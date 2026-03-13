@@ -1,12 +1,263 @@
 <!DOCTYPE html>
-<html lang="en-US">
+<!-- WeatherScout Docs v1.0.0 (Mar 13, 2026) -->
+<!-- https://weatherscout.github.io/docs -->
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WeatherScout</title>
+    <title>WeatherScout Docs</title>
+    <link rel="icon" href="https://raw.githubusercontent.com/microsoft/fluentui-emoji/refs/heads/main/assets/Sun%20behind%20small%20cloud/3D/sun_behind_small_cloud_3d.png" />
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0f0f0f;
+            --sidebar-bg: #161616;
+            --text-main: #e0e0e0;
+            --text-dim: #a0a0a0;
+            --accent: #4faaff;
+            --border: rgba(255, 255, 255, 0.1);
+            --code-bg: #252525;
+        }
+
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: 'Outfit', sans-serif;
+            line-height: 1.7;
+            display: flex;
+        }
+
+        #sidebar {
+            width: 280px;
+            height: 100vh;
+            background: var(--sidebar-bg);
+            border-right: 1px solid var(--border);
+            position: fixed;
+            padding: 20px;
+            overflow-y: auto;
+            display: block;
+        }
+
+        #sidebar h3 {
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-dim);
+            margin-top: 25px;
+        }
+
+        #sidebar ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        #sidebar li {
+            margin: 10px 0;
+        }
+
+        #sidebar a {
+            color: var(--text-main);
+            text-decoration: none;
+            font-size: 15px;
+            transition: color 0.2s;
+        }
+
+        #sidebar a:hover {
+            color: var(--accent);
+        }
+
+        #content {
+            margin-left: 280px;
+            padding: 40px 60px;
+            max-width: 1000px;
+            width: 100%;
+        }
+
+        h1 { font-size: 42px; margin-bottom: 10px; color: #fff; }
+        h2 { font-size: 28px; margin-top: 50px; border-bottom: 1px solid var(--border); padding-bottom: 10px; color: var(--accent); }
+        h3 { font-size: 20px; margin-top: 30px; color: #fff; }
+        
+        p { margin-bottom: 20px; font-weight: 300; }
+
+        .badge {
+            background: var(--code-bg);
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 0.9em;
+            color: var(--accent);
+        }
+
+        .shortcut-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .shortcut-item {
+            background: var(--sidebar-bg);
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+
+        .note {
+            background: rgba(79, 170, 255, 0.1);
+            border-left: 4px solid var(--accent);
+            padding: 20px;
+            border-radius: 4px;
+            margin: 30px 0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: var(--sidebar-bg);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        th, td {
+            text-align: left;
+            padding: 12px 15px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        th { background: rgba(255,255,255,0.05); color: var(--text-dim); font-size: 13px; text-transform: uppercase; }
+
+        @media (max-width: 900px) {
+            #sidebar { display: none; }
+            #content { margin-left: 0; padding: 30px; }
+        }
+    </style>
 </head>
 <body>
-    <h3>There's nothing here!</h3>
-    <p>Come back later, or check out the <a href="https://weatherscout.github.io/app">app</a>.</p>
+
+    <nav id="sidebar">
+        <h2 style="font-size: 22px; border: none; margin-top: 0;">WeatherScout</h2>
+        <h3>Getting Started</h3>
+        <ul>
+            <li><a href="#intro">Introduction</a></li>
+            <li><a href="#core">Core Features</a></li>
+        </ul>
+        <h3>Map Layers</h3>
+        <ul>
+            <li><a href="#radar">Radar Data</a></li>
+            <li><a href="#alerts">Severe Alerts</a></li>
+            <li><a href="#spc">SPC Outlooks</a></li>
+        </ul>
+        <h3>Tools</h3>
+        <ul>
+            <li><a href="#shortcuts">Key Shortcuts</a></li>
+            <li><a href="#params">URL Parameters</a></li>
+            <li><a href="#settings">App Settings</a></li>
+        </ul>
+    </nav>
+
+    <main id="content">
+        <header id="intro">
+            <h1>WeatherScout Docs</h1>
+            <p style="font-size: 18px; color: var(--text-dim);">A comprehensive guide to the WeatherScout interface and features.</p>
+        </header>
+
+        <section id="core">
+            <h2>Core Features</h2>
+            <p>WeatherScout is a high-performance weather visualization tool built on MapLibre GL. It prioritizes speed, clarity, and real-time data accuracy.</p>
+            <ul>
+                <li><strong>Dynamic Interface:</strong> Glassmorphism UI that stays out of the way of the data.</li>
+                <li><strong>Smart Navigation:</strong> Right-click anywhere to instantly lock onto the nearest radar site.</li>
+                <li><strong>Auto-Update:</strong> All data feeds (Radar, Alerts, SPC) refresh automatically in the background.</li>
+            </ul>
+        </section>
+
+        <section id="radar">
+            <h2>Radar Capabilities</h2>
+            <h3>National Mosaic</h3>
+            <p>The default view provides a smoothed reflectivity composite of the entire United States. Managed via the <span class="badge">Mosaic</span> toggle in the sidebar.</p>
+            
+            <h3>Single-Site Precision</h3>
+            <p>Access high-resolution data by clicking any radar station dot. The system supports <strong>WSR-88D</strong> (Standard) and <strong>TDWR</strong> (Airport-based) stations.</p>
+            <ul>
+                <li><strong>Reflectivity:</strong> Detects precipitation intensity.</li>
+                <li><strong>Velocity:</strong> Detects wind movement (crucial for rotation tracking).</li>
+                <li><strong>Radar Info Pill:</strong> Displays the current Station ID and Product at the top left. Click it to cycle products.</li>
+            </ul>
+        </section>
+
+        <section id="alerts">
+            <h2>Severe Alerts</h2>
+            <p>WeatherScout processes live NWS alerts with specific visual logic:</p>
+            <ul>
+                <li><strong>High-Threat Highlighting:</strong> Warnings with "Catastrophic" or "Destructive" tags receive thicker borders and priority map flashing.</li>
+                <li><strong>Interaction:</strong> Click a map alert to view the "Full Text" bulletin or a "Pager" if multiple alerts overlap.</li>
+                <li><strong>Zone Alerts:</strong> Toggles broad alerts (Watches/Advisories) to keep the map clean during active outbreaks.</li>
+            </ul>
+        </section>
+
+        <section id="spc">
+            <h2>SPC Outlooks</h2>
+            <p>Visualize Storm Prediction Center forecasts directly on the map. Select a Day (1-8) and a Risk Type (Categorical, Tornado, Hail, Wind, or Probabilistic).</p>
+            <div class="note">
+                <strong>Analysis:</strong> Click any outlook area to read the full technical discussion from SPC meteorologists.
+            </div>
+        </section>
+
+        <section id="shortcuts">
+            <h2>Keyboard Shortcuts</h2>
+            <p>Hold <span class="badge">Shift</span> and press the following keys for rapid control:</p>
+            <div class="shortcut-grid">
+                <div class="shortcut-item"><strong>Shift + F</strong><br><small>Full Reset View/Layers</small></div>
+                <div class="shortcut-item"><strong>Shift + A</strong><br><small>Toggle All Alerts</small></div>
+                <div class="shortcut-item"><strong>Shift + M</strong><br><small>Toggle Radar Mosaic</small></div>
+                <div class="shortcut-item"><strong>Shift + S</strong><br><small>Toggle Site Dots</small></div>
+                <div class="shortcut-item"><strong>Shift + Z</strong><br><small>Toggle Zone Alerts</small></div>
+                <div class="shortcut-item"><strong>Shift + R / V</strong><br><small>Switch Reflectivity / Velocity</small></div>
+                <div class="shortcut-item"><strong>Shift + [1-8]</strong><br><small>Quick Outlook Change</small></div>
+                <div class="shortcut-item"><strong>Shift + `</strong><br><small>Clear Outlooks</small></div>
+            </div>
+        </section>
+
+        <section id="params">
+            <h2>URL Parameters</h2>
+            <p>Control the app state via the URL string using <span class="badge">?s=</span> for settings and <span class="badge">?l=</span> for location.</p>
+            <table>
+                <thead>
+                    <tr><th>Flag</th><th>Description</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td><code>ftr / xfr</code></td><td>Fly to Radar (On / Off)</td></tr>
+                    <tr><td><code>alt / xal</code></td><td>Alerts Visibility (On / Off)</td></tr>
+                    <tr><td><code>zna / xza</code></td><td>Zone Alerts (On / Off)</td></tr>
+                    <tr><td><code>dbg / xdb</code></td><td>Debug Mode (On / Off)</td></tr>
+                    <tr><td><code>sav / xsv</code></td><td>Save Settings to Cache (On / Off)</td></tr>
+                    <tr><td><code>r[ID]</code></td><td>Auto-load Reflectivity for ID (e.g. rKTLX)</td></tr>
+                    <tr><td><code>l=[City]</code></td><td>Geocode and fly to location (e.g. l=Norman-OK)</td></tr>
+                </tbody>
+            </table>
+        </section>
+
+        <section id="settings">
+            <h2>App Settings</h2>
+            <ul>
+                <li><strong>Site Selection:</strong> Filter map dots by station type (WSR-88D vs TDWR).</li>
+                <li><strong>Fly to Radar:</strong> Automatically zooms into a station when you select it.</li>
+                <li><strong>Debug Mode:</strong> For developers. Unlocks the <span class="badge">Shift + U</span> upload feature for testing GeoJSON payloads.</li>
+                <li><strong>Save Settings:</strong> Stores your zoom, position, and active layers in browser storage.</li>
+            </ul>
+        </section>
+
+        <footer style="margin-top: 100px; padding-bottom: 50px; color: var(--text-dim); font-size: 13px; text-align: center; border-top: 1px solid var(--border); padding-top: 20px;">
+            Docs for WeatherScout App v1.0.0
+        </footer>
+    </main>
+
 </body>
 </html>
