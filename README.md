@@ -1,1 +1,1 @@
-# weatherscout.github.io
+# WeatherScout
