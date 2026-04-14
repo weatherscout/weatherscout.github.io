@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- WeatherScout App v1.6.0 (Apr 3, 2026) -->
+<!-- WeatherScout App v1.6.2 (Apr 13, 2026) -->
 <!-- https://weatherscout.github.io/app -->
 <html>
     <head>
@@ -1179,7 +1179,8 @@
                 line-height: 1;
             }
 
-            #hidden-alerts-panel {
+            #hidden-alerts-panel,
+            #alert-sounds-panel {
                 display: none;
                 position: fixed;
                 top: 50%;
@@ -1192,10 +1193,12 @@
                 overflow: hidden;
                 padding: 0 !important;
             }
-            #hidden-alerts-panel.open {
+            #hidden-alerts-panel.open,
+            #alert-sounds-panel.open {
                 display: flex;
             }
-            #hidden-alerts-panel-header {
+            #hidden-alerts-panel-header,
+            #alert-sounds-panel-header {
                 display: flex;
                 align-items: center;
                 justify-content: space-between;
@@ -1203,7 +1206,8 @@
                 border-bottom: 1px solid var(--glass-border-color);
                 flex-shrink: 0;
             }
-            #hidden-alerts-panel-title {
+            #hidden-alerts-panel-title,
+            #alert-sounds-panel-title {
                 display: flex;
                 align-items: center;
                 gap: 10px;
@@ -1211,11 +1215,13 @@
                 font-weight: 600;
                 color: white;
             }
-            #hidden-alerts-panel-title .material-symbols-rounded {
+            #hidden-alerts-panel-title .material-symbols-rounded,
+            #alert-sounds-panel-title .material-symbols-rounded {
                 font-size: 22px;
                 color: #ffffff8c;
             }
-            #hidden-alerts-search-wrap {
+            #hidden-alerts-search-wrap,
+            #alert-sounds-search-wrap {
                 padding: 10px 20px 4px;
                 flex-shrink: 0;
             }
@@ -1229,6 +1235,7 @@
             }
             #alerts-sidebar-search,
             #hidden-alerts-search,
+            #alert-sounds-search,
             #radar-panel-search,
             #location-search-input {
                 width: 100%;
@@ -1245,12 +1252,14 @@
             }
             #alerts-sidebar-search::placeholder,
             #hidden-alerts-search::placeholder,
+            #alert-sounds-search::placeholder,
             #radar-panel-search::placeholder,
             #location-search-input::placeholder {
                 color: #ffffff50;
             }
             #alerts-sidebar-search:focus,
             #hidden-alerts-search:focus,
+            #alert-sounds-search:focus,
             #radar-panel-search:focus,
             #location-search-input:focus {
                 border-color: #ffffff40;
@@ -1327,7 +1336,8 @@
                 flex-shrink: 0;
                 padding: 0 12px 0 4px;
             }
-            #hidden-alerts-list {
+            #hidden-alerts-list,
+            #alert-sounds-list {
                 overflow-y: auto;
                 flex: 1;
                 padding: 14px;
@@ -1336,10 +1346,14 @@
                 -webkit-mask-image: linear-gradient(to bottom, transparent 0px, black 20px, black calc(100% - 20px), transparent 100%);
                 mask-image: linear-gradient(to bottom, transparent 0px, black 20px, black calc(100% - 20px), transparent 100%);
             }
-            #hidden-alerts-list::-webkit-scrollbar { width: 4px; }
-            #hidden-alerts-list::-webkit-scrollbar-track { background: transparent; }
-            #hidden-alerts-list::-webkit-scrollbar-thumb { background: #ffffff2e; border-radius: 2px; }
-            .hidden-alert-row {
+            #hidden-alerts-list::-webkit-scrollbar,
+            #alert-sounds-list::-webkit-scrollbar { width: 4px; }
+            #hidden-alerts-list::-webkit-scrollbar-track,
+            #alert-sounds-list::-webkit-scrollbar-track { background: transparent; }
+            #hidden-alerts-list::-webkit-scrollbar-thumb,
+            #alert-sounds-list::-webkit-scrollbar-thumb { background: #ffffff2e; border-radius: 2px; }
+            .hidden-alert-row,
+            .alert-sound-row {
                 display: flex;
                 align-items: center;
                 gap: 8px;
@@ -1352,19 +1366,24 @@
                 font-size: 13px;
                 font-weight: 600;
                 color: white;
-                cursor: pointer;
                 user-select: none;
                 transition: background 0.2s, border-color 0.2s;
                 margin-bottom: 6px;
             }
-            .hidden-alert-row:last-child {
+            .hidden-alert-row {
+                cursor: pointer;
+            }
+            .hidden-alert-row:last-child,
+            .alert-sound-row:last-child {
                 margin-bottom: 0;
             }
-            .hidden-alert-row:hover {
+            .hidden-alert-row:hover,
+            .alert-sound-row:hover {
                 background: var(--glass-hover) !important;
                 border-color: #ffffff80 !important;
             }
-            .hidden-alert-label {
+            .hidden-alert-label,
+            .alert-sound-label {
                 flex: 1;
                 white-space: nowrap;
                 overflow: hidden;
@@ -1383,7 +1402,30 @@
             .hidden-alert-row.is-hidden .hidden-alert-eye {
                 color: #ffffff28;
             }
-            #hidden-alerts-footer {
+            .alert-sound-select {
+                background: #ffffff12;
+                color: white;
+                border: 1px solid var(--glass-border-color);
+                border-radius: 6px;
+                padding: 4px 8px;
+                font-family: var(--font-family);
+                font-size: 13px;
+                outline: none;
+                cursor: pointer;
+                transition: background 0.15s, border-color 0.15s;
+                max-width: 120px;
+            }
+            .alert-sound-select:hover {
+                background: #ffffff22;
+                border-color: #ffffff80;
+            }
+            .alert-sound-select option {
+                background: #222;
+                color: white;
+            }
+
+            #hidden-alerts-footer,
+            #alert-sounds-footer {
                 padding: 10px 14px;
                 border-top: 1px solid var(--glass-border-color);
                 display: flex;
@@ -1391,11 +1433,13 @@
                 align-items: center;
                 flex-shrink: 0;
             }
-            #hidden-alerts-count-label {
+            #hidden-alerts-count-label,
+            #alert-sounds-count-label {
                 font-size: 12px;
                 color: #ffffff50;
             }
-            #hidden-alerts-reset-btn {
+            #hidden-alerts-reset-btn,
+            #alert-sounds-reset-btn {
                 background: #ffffff12;
                 border: 1px solid var(--glass-border-color);
                 border-radius: 7px;
@@ -1406,7 +1450,8 @@
                 cursor: pointer;
                 transition: background 0.15s, color 0.15s;
             }
-            #hidden-alerts-reset-btn:hover {
+            #hidden-alerts-reset-btn:hover,
+            #alert-sounds-reset-btn:hover {
                 background: #ffffff22;
                 color: white;
             }
@@ -1622,6 +1667,12 @@
                     <span id="hidden-alert-types-count" style="font-size:12px;color:#ffffff61;font-weight:500;flex-shrink:0;"></span>
                     <i class="material-symbols-rounded" style="font-size:18px;color:#ffffff61;">chevron_right</i>
                 </button>
+                <button class="settings-row" id="alert-sounds-btn">
+                    <i class="material-symbols-rounded">notification_important</i>
+                    <div class="settings-row-label">Alert Sounds</div>
+                    <span id="alert-sounds-count" style="font-size:12px;color:#ffffff61;font-weight:500;flex-shrink:0;"></span>
+                    <i class="material-symbols-rounded" style="font-size:18px;color:#ffffff61;">chevron_right</i>
+                </button>
             </div>
         </div>
 
@@ -1733,6 +1784,31 @@
             </div>
         </div>
 
+        <div id="alert-sounds-panel" class="standard-glass">
+            <div id="alert-sounds-panel-header">
+                <div id="alert-sounds-panel-title">
+                    <i class="material-symbols-rounded">notification_important</i>
+                    Alert Sounds
+                </div>
+                <div style="display:flex;gap:6px;align-items:center;">
+                    <button class="settings-close-btn" id="alert-sounds-back-btn" aria-label="Back to Alert Settings">
+                        <i class="material-symbols-rounded">arrow_back</i>
+                    </button>
+                    <button class="settings-close-btn" id="alert-sounds-close-btn" aria-label="Close">
+                        <i class="material-symbols-rounded">close</i>
+                    </button>
+                </div>
+            </div>
+            <div id="alert-sounds-search-wrap">
+                <input id="alert-sounds-search" type="text" placeholder="Search for alerts..." autocomplete="off" spellcheck="false" />
+            </div>
+            <div id="alert-sounds-list"></div>
+            <div id="alert-sounds-footer">
+                <span id="alert-sounds-count-label"></span>
+                <button id="alert-sounds-reset-btn">Reset All</button>
+            </div>
+        </div>
+
         <div id="spc-outlook-panel" class="standard-glass">
             <div class="settings-header">
                 <div class="settings-header-title">
@@ -1762,6 +1838,16 @@
             let myLocationEnabled = false;
             let myLocationMarker = null;
             let myLocationInterval = null;
+            let alertSoundsMap = {};
+
+            const AUDIO_OPTIONS = [
+                { label: "None", value: "none" },
+                { label: "Beep Warning", value: "https://github.com/weatherscout/weatherscout.github.io/raw/refs/heads/main/app/audio/beep_warning.mp3" },
+                { label: "Radio Wave", value: "https://github.com/weatherscout/weatherscout.github.io/raw/refs/heads/main/app/audio/radio_wave.mp3" },
+                { label: "Short Beep", value: "https://github.com/weatherscout/weatherscout.github.io/raw/refs/heads/main/app/audio/short_beep.mp3" },
+                { label: "Woosh 1", value: "https://github.com/weatherscout/weatherscout.github.io/raw/refs/heads/main/app/audio/woosh1.mp3" },
+                { label: "Woosh 2", value: "https://github.com/weatherscout/weatherscout.github.io/raw/refs/heads/main/app/audio/woosh2.mp3" }
+            ];
 
             function getOffsetMins(date, tz) {
                 const parts = new Intl.DateTimeFormat("en-US", { timeZone: tz, timeZoneName: "shortOffset" }).formatToParts(date);
@@ -1840,6 +1926,25 @@
                 } else {
                     return { month: "long", day: "numeric", hour: "numeric", minute: "numeric", hour12: getHour12() };
                 }
+            }
+
+            function formatAlertTimeRange(sentIso, expIso) {
+                let sentStr = "", expStr = "";
+                const tz = getEffectiveTz();
+                const sDate = sentIso ? new Date(sentIso) : null;
+                const eDate = expIso ? new Date(expIso) : null;
+                
+                if (sDate && !isNaN(sDate.getTime())) {
+                    sentStr = formatDateWithTz(sDate, tz, getSmartDateOptions(sDate, eDate));
+                }
+                if (eDate && !isNaN(eDate.getTime())) {
+                    expStr = formatDateWithTz(eDate, tz, getSmartDateOptions(eDate, sDate));
+                }
+                
+                if (sentStr && expStr) return `${sentStr} to ${expStr}`;
+                if (sentStr) return `Sent: ${sentStr}`;
+                if (expStr) return `Expires: ${expStr}`;
+                return "";
             }
 
             const urlParams = new URLSearchParams(window.location.search);
@@ -2185,6 +2290,8 @@
                     if (localStorage.getItem("mesoDiscussionsVisible") === "false") mesoDiscussionsEnabled = false;
                     const savedHidden = localStorage.getItem("hiddenAlertTypes");
                     if (savedHidden) { try { hiddenAlertTypes = new Set(JSON.parse(savedHidden)); } catch(e) {} }
+                    const savedSounds = localStorage.getItem("alertSoundsMap");
+                    if (savedSounds) { try { alertSoundsMap = JSON.parse(savedSounds); } catch(e) {} }
                     const savedTz = localStorage.getItem("appTimeZone");
                     if (savedTz) appTimeZone = savedTz;
                     const savedDst = localStorage.getItem("appDstMode");
@@ -2260,6 +2367,15 @@
                 const hiddenCountEl = document.getElementById("hidden-alert-types-count");
                 if (hiddenCountEl && hiddenAlertTypes.size > 0) hiddenCountEl.textContent = hiddenAlertTypes.size;
 
+                function updateAlertSoundsCountLabel() { 
+                    const countEl = document.getElementById("alert-sounds-count");
+                    const internalLabel = document.getElementById("alert-sounds-count-label");
+                    const activeCount = Object.values(alertSoundsMap).filter(v => v !== "none").length;
+                    if (countEl) countEl.textContent = activeCount > 0 ? activeCount : "";
+                    if (internalLabel) internalLabel.textContent = activeCount === 0 ? "No custom sounds" : `${activeCount} custom sound${activeCount >= 2 ? "s" : ""}`;
+                }
+                updateAlertSoundsCountLabel();
+
                 function updateSiteSelectionUI() {
                     document.querySelectorAll(".site-select-option").forEach((opt) => {
                         opt.classList.toggle("selected", opt.dataset.value === radarSiteSelectionMode);
@@ -2317,6 +2433,7 @@
                         localStorage.setItem("zoneAlertsVisible", zoneAlertsEnabled);
                         localStorage.setItem("mesoDiscussionsVisible", mesoDiscussionsEnabled);
                         localStorage.setItem("hiddenAlertTypes", JSON.stringify([...hiddenAlertTypes]));
+                        localStorage.setItem("alertSoundsMap", JSON.stringify(alertSoundsMap));
                         localStorage.setItem("debugMode", debugModeEnabled);
                         localStorage.setItem("lastZoom", map.getZoom());
                         localStorage.setItem("lastCenter", JSON.stringify(map.getCenter()));
@@ -2545,6 +2662,7 @@
                     closeAlertSettings();
                     if (window.closeRadarPanel) window.closeRadarPanel();
                     if (window.closeHiddenAlertsPanel) window.closeHiddenAlertsPanel();
+                    if (window.closeAlertSoundsPanel) window.closeAlertSoundsPanel();
                     if (window.closeLocationSearch) window.closeLocationSearch();
                     if (window.closeSpcOutlookPanel) window.closeSpcOutlookPanel();
                     if (window.closeFullAlertPopup) window.closeFullAlertPopup();
@@ -2569,6 +2687,7 @@
                     closeSettings();
                     if (window.closeRadarPanel) window.closeRadarPanel();
                     if (window.closeHiddenAlertsPanel) window.closeHiddenAlertsPanel();
+                    if (window.closeAlertSoundsPanel) window.closeAlertSoundsPanel();
                     if (window.closeLocationSearch) window.closeLocationSearch();
                     if (window.closeSpcOutlookPanel) window.closeSpcOutlookPanel();
                     if (window.closeFullAlertPopup) window.closeFullAlertPopup();
@@ -2651,6 +2770,7 @@
                     closeSettings(); closeAlertSettings();
                     if (window.closeLocationSearch) window.closeLocationSearch();
                     if (window.closeSpcOutlookPanel) window.closeSpcOutlookPanel();
+                    if (window.closeAlertSoundsPanel) window.closeAlertSoundsPanel();
                     if (window.closeFullAlertPopup) window.closeFullAlertPopup();
                     if (hiddenAlertsSearch) hiddenAlertsSearch.value = ""; 
                     renderHiddenAlertsList("");
@@ -2669,6 +2789,95 @@
                 const hiddenAlertsTrigger = document.getElementById("hidden-alert-types-btn");
                 if (hiddenAlertsTrigger) hiddenAlertsTrigger.addEventListener("click", openHiddenAlertsPanel);
 
+                const alertSoundsPanel = document.getElementById("alert-sounds-panel");
+                const alertSoundsBackBtn = document.getElementById("alert-sounds-back-btn");
+                const alertSoundsCloseBtn = document.getElementById("alert-sounds-close-btn");
+                const alertSoundsSearch = document.getElementById("alert-sounds-search");
+                const alertSoundsListEl = document.getElementById("alert-sounds-list");
+                const alertSoundsResetBtn = document.getElementById("alert-sounds-reset-btn");
+
+                function renderAlertSoundsList(filter) {
+                    if (!alertSoundsListEl) return;
+                    const query = (filter || "").toLowerCase();
+                    const allTypes = Object.keys(alertColorMap);
+                    const sorted = allTypes.slice().sort((a, b) => getAlertPriorityScore({ properties: { event: a, parameters: {} } }) - getAlertPriorityScore({ properties: { event: b, parameters: {} } }));
+                    const visible = query ? sorted.filter(t => t.toLowerCase().includes(query)) : sorted;
+                    const existingRows = Array.from(alertSoundsListEl.querySelectorAll(".alert-sound-row"));
+                    const existingMap = new Map(existingRows.map(r => [r.dataset.eventType, r]));
+                    const newKeys = new Set(visible);
+                    
+                    existingRows.forEach(r => { if (!newKeys.has(r.dataset.eventType)) r.remove(); });
+                    
+                    visible.forEach((eventType, i) => {
+                        const currentColor = alertColorMap[eventType] || "#808080";
+                        const currentValue = alertSoundsMap[eventType] || "none";
+                        
+                        if (existingMap.has(eventType)) {
+                            const row = existingMap.get(eventType);
+                            const select = row.querySelector("select");
+                            if (select.value !== currentValue) select.value = currentValue;
+                            const after = alertSoundsListEl.children[i];
+                            if (after !== row) alertSoundsListEl.insertBefore(row, after || null);
+                        } else {
+                            const row = document.createElement("div");
+                            row.className = "alert-sound-row";
+                            row.dataset.eventType = eventType;
+                            row.style.borderLeftColor = `${currentColor}80`;
+                            
+                            let optionsHtml = AUDIO_OPTIONS.map(opt => `<option value="${opt.value}" ${currentValue === opt.value ? "selected" : ""}>${opt.label}</option>`).join("");
+                            
+                            row.innerHTML = `<span class="alert-sound-label">${eventType}</span>
+                                             <select class="alert-sound-select">${optionsHtml}</select>`;
+                            
+                            row.querySelector("select").addEventListener("change", (e) => {
+                                const val = e.target.value;
+                                if (val === "none") {
+                                    delete alertSoundsMap[eventType];
+                                } else {
+                                    alertSoundsMap[eventType] = val;
+                                    const audio = new Audio(val);
+                                    audio.play().catch(() => {});
+                                }
+                                saveCurrentState();
+                                updateAlertSoundsCountLabel();
+                            });
+                            
+                            const after = alertSoundsListEl.children[i];
+                            alertSoundsListEl.insertBefore(row, after || null);
+                        }
+                    });
+                    updateAlertSoundsCountLabel();
+                }
+
+                function openAlertSoundsPanel() {
+                    if (window.closeSidebar) window.closeSidebar();
+                    closeSettings(); closeAlertSettings();
+                    if (window.closeLocationSearch) window.closeLocationSearch();
+                    if (window.closeSpcOutlookPanel) window.closeSpcOutlookPanel();
+                    if (window.closeHiddenAlertsPanel) window.closeHiddenAlertsPanel();
+                    if (window.closeFullAlertPopup) window.closeFullAlertPopup();
+                    if (alertSoundsSearch) alertSoundsSearch.value = ""; 
+                    renderAlertSoundsList("");
+                    if (alertSoundsPanel) {
+                        alertSoundsPanel.classList.add("open");
+                        const lst = document.getElementById("alert-sounds-list");
+                        if (lst) lst.scrollTop = 0;
+                    }
+                }
+                function closeAlertSoundsPanel() { if (alertSoundsPanel) alertSoundsPanel.classList.remove("open"); }
+                window.closeAlertSoundsPanel = closeAlertSoundsPanel;
+                if (alertSoundsBackBtn) alertSoundsBackBtn.addEventListener("click", () => { closeAlertSoundsPanel(); openAlertSettings(); });
+                if (alertSoundsCloseBtn) alertSoundsCloseBtn.addEventListener("click", closeAlertSoundsPanel);
+                if (alertSoundsSearch) alertSoundsSearch.addEventListener("input", () => renderAlertSoundsList(alertSoundsSearch.value));
+                if (alertSoundsResetBtn) alertSoundsResetBtn.addEventListener("click", () => { 
+                    alertSoundsMap = {}; 
+                    saveCurrentState(); 
+                    renderAlertSoundsList(alertSoundsSearch.value); 
+                    showToast("Alert sounds reset to None"); 
+                });
+                const alertSoundsTrigger = document.getElementById("alert-sounds-btn");
+                if (alertSoundsTrigger) alertSoundsTrigger.addEventListener("click", openAlertSoundsPanel);
+
                 const locationSearchPanel = document.getElementById("location-search-panel");
                 const locationSearchInput = document.getElementById("location-search-input");
                 const locationSearchResults = document.getElementById("location-search-results");
@@ -2680,6 +2889,7 @@
                     if (window.closeAlertSettings) window.closeAlertSettings();
                     if (window.closeSidebar) window.closeSidebar();
                     if (window.closeHiddenAlertsPanel) window.closeHiddenAlertsPanel();
+                    if (window.closeAlertSoundsPanel) window.closeAlertSoundsPanel();
                     if (window.closeSpcOutlookPanel) window.closeSpcOutlookPanel();
                     if (window.closeFullAlertPopup) window.closeFullAlertPopup();
                     if (locationSearchPanel) {
@@ -2748,6 +2958,7 @@
                     if (window.closeRadarPanel) window.closeRadarPanel();
                     if (window.closeLocationSearch) window.closeLocationSearch();
                     if (window.closeHiddenAlertsPanel) window.closeHiddenAlertsPanel();
+                    if (window.closeAlertSoundsPanel) window.closeAlertSoundsPanel();
                     if (window.closeFullAlertPopup) window.closeFullAlertPopup();
                     const panel = document.getElementById("spc-outlook-panel");
                     if (panel) {
@@ -2798,7 +3009,7 @@
                         listEl.appendChild(item);
                     });
                 }
-                function openRadarPanel() { if (window.closeSidebar) window.closeSidebar(); closeSettings(); closeAlertSettings(); if (window.closeHiddenAlertsPanel) window.closeHiddenAlertsPanel(); if (window.closeLocationSearch) window.closeLocationSearch(); if (window.closeSpcOutlookPanel) window.closeSpcOutlookPanel(); if (window.closeFullAlertPopup) window.closeFullAlertPopup(); updateRadarPanelToggles(); renderRadarSiteList(); if (radarPanel) radarPanel.classList.add("open"); if (fabMosaic) fabMosaic.classList.add("active"); }
+                function openRadarPanel() { if (window.closeSidebar) window.closeSidebar(); closeSettings(); closeAlertSettings(); if (window.closeHiddenAlertsPanel) window.closeHiddenAlertsPanel(); if (window.closeAlertSoundsPanel) window.closeAlertSoundsPanel(); if (window.closeLocationSearch) window.closeLocationSearch(); if (window.closeSpcOutlookPanel) window.closeSpcOutlookPanel(); if (window.closeFullAlertPopup) window.closeFullAlertPopup(); updateRadarPanelToggles(); renderRadarSiteList(); if (radarPanel) radarPanel.classList.add("open"); if (fabMosaic) fabMosaic.classList.add("active"); }
                 function closeRadarPanel() { if (radarPanel) radarPanel.classList.remove("open"); if (window.closeRadarSettings) window.closeRadarSettings(); if (fabMosaic) fabMosaic.classList.remove("active"); }
                 window.closeRadarPanel = closeRadarPanel;
                 const rPanelClose = document.getElementById("radar-panel-close-btn");
@@ -2942,8 +3153,15 @@
                 if (nextItem.type !== "spcOutlook" && hiddenAlertTypes.has(nextItem.feature.properties.event)) { alertQueue.shift(); displayNextAlert(); return; }
                 isDisplayingAlert = true;
                 const { feature, type } = alertQueue.shift();
+                
                 if (type !== "spcOutlook") flashAlertOnMap(feature, 7500);
                 createAndShowAlertPopup(feature, "new");
+
+                const eventType = feature.properties.event;
+                if (alertSoundsMap[eventType] && alertSoundsMap[eventType] !== "none") {
+                    const audio = new Audio(alertSoundsMap[eventType]);
+                    audio.play().catch(() => {});
+                }
             }
             function addNewAlertToQueue(feature, type, isSilent = false) {
                 const id = feature.properties.id, msgType = feature.properties.messageType, isUpdate = msgType === "Update", isNew = msgType === "Alert";
@@ -3249,7 +3467,7 @@
             }
             async function showFullAlertTextPopup(f) {
                 const props = f.properties, params = props.parameters || {}, popup = document.getElementById("full-alert-text-popup"), titleEl = document.getElementById("full-alert-text-popup-title-text"), contentEl = document.getElementById("full-alert-text-content");
-                if (window.closeSettings) window.closeSettings(); if (window.closeAlertSettings) window.closeAlertSettings(); if (window.closeSidebar) window.closeSidebar(); if (window.closeHiddenAlertsPanel) window.closeHiddenAlertsPanel(); if (window.closeLocationSearch) window.closeLocationSearch(); if (window.closeSpcOutlookPanel) window.closeSpcOutlookPanel();
+                if (window.closeSettings) window.closeSettings(); if (window.closeAlertSettings) window.closeAlertSettings(); if (window.closeSidebar) window.closeSidebar(); if (window.closeHiddenAlertsPanel) window.closeHiddenAlertsPanel(); if (window.closeAlertSoundsPanel) window.closeAlertSoundsPanel(); if (window.closeLocationSearch) window.closeLocationSearch(); if (window.closeSpcOutlookPanel) window.closeSpcOutlookPanel();
                 
                 const sentD = parseApiDate(props.sent);
                 const expireD = parseApiDate(props.expires);
@@ -3280,7 +3498,7 @@
             }
             async function showFullSpcTextPopup(item) {
                 const popup = document.getElementById("full-alert-text-popup"), titleEl = document.getElementById("full-alert-text-popup-title-text"), contentEl = document.getElementById("full-alert-text-content");
-                if (window.closeSettings) window.closeSettings(); if (window.closeAlertSettings) window.closeAlertSettings(); if (window.closeSidebar) window.closeSidebar(); if (window.closeHiddenAlertsPanel) window.closeHiddenAlertsPanel(); if (window.closeLocationSearch) window.closeLocationSearch(); if (window.closeSpcOutlookPanel) window.closeSpcOutlookPanel();
+                if (window.closeSettings) window.closeSettings(); if (window.closeAlertSettings) window.closeAlertSettings(); if (window.closeSidebar) window.closeSidebar(); if (window.closeHiddenAlertsPanel) window.closeHiddenAlertsPanel(); if (window.closeAlertSoundsPanel) window.closeAlertSoundsPanel(); if (window.closeLocationSearch) window.closeLocationSearch(); if (window.closeSpcOutlookPanel) window.closeSpcOutlookPanel();
                 const spcDay = parseInt(activeSpcDay); if (titleEl) titleEl.textContent = spcDay >= 4 ? "SPC Day 4-8 Discussion" : `SPC Day ${activeSpcDay} Discussion`;
                 if (contentEl) contentEl.innerHTML = `<div class="full-alert-section-label">Description</div><p>Loading...</p>`; if (popup) popup.classList.add("open"); 
                 const body = document.getElementById("full-alert-text-popup-body");
@@ -3368,7 +3586,7 @@
 
             (function () {
                 const sidebarBtn = document.getElementById("fab-alerts"), sidebar = document.getElementById("alerts-sidebar"), closeBtn = document.getElementById("alerts-sidebar-close"), listEl = document.getElementById("alerts-sidebar-list"), emptyEl = document.getElementById("alerts-sidebar-empty"), countEl = document.getElementById("alerts-sidebar-count");
-                function openSidebar() { if (window.closeSettings) window.closeSettings(); if (window.closeAlertSettings) window.closeAlertSettings(); if (window.closeHiddenAlertsPanel) window.closeHiddenAlertsPanel(); if (window.closeLocationSearch) window.closeLocationSearch(); if (window.closeSpcOutlookPanel) window.closeSpcOutlookPanel(); if (window.closeFullAlertPopup) window.closeFullAlertPopup(); if (sidebar) sidebar.classList.add("open"); if (sidebarBtn) sidebarBtn.classList.add("active"); if (listEl) listEl.scrollTop = 0; renderSidebar(); }
+                function openSidebar() { if (window.closeSettings) window.closeSettings(); if (window.closeAlertSettings) window.closeAlertSettings(); if (window.closeHiddenAlertsPanel) window.closeHiddenAlertsPanel(); if (window.closeAlertSoundsPanel) window.closeAlertSoundsPanel(); if (window.closeLocationSearch) window.closeLocationSearch(); if (window.closeSpcOutlookPanel) window.closeSpcOutlookPanel(); if (window.closeFullAlertPopup) window.closeFullAlertPopup(); if (sidebar) sidebar.classList.add("open"); if (sidebarBtn) sidebarBtn.classList.add("active"); if (listEl) listEl.scrollTop = 0; renderSidebar(); }
                 function closeSidebar() { if (sidebar) sidebar.classList.remove("open"); if (sidebarBtn) sidebarBtn.classList.remove("active"); if (listEl) listEl.querySelectorAll(".sidebar-alert-group.open").forEach((g) => g.classList.remove("open")); }
                 window.closeSidebar = closeSidebar; window.openSidebar = openSidebar;
                 if (sidebarBtn) sidebarBtn.addEventListener("click", (e) => { e.stopPropagation(); if (sidebar) sidebar.classList.contains("open") ? closeSidebar() : openSidebar(); });
@@ -3380,20 +3598,6 @@
                 document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeSidebar(); });
                 function getAllActiveAlerts() { const all = [...globalPolyAlerts, ...globalZoneAlerts, ...(mesoDiscussionsEnabled ? globalMdAlerts : []), ...globalPolyWatchAlerts], seen = new Set(); const unique = all.filter((f) => { const id = f.properties.id; if (seen.has(id)) return false; seen.add(id); return true; }); unique.sort((a, b) => getAlertPriorityScore(a) - getAlertPriorityScore(b)); return unique; }
                 
-                function formatExpires(isoString, props) {
-                    if (!isoString) return "";
-                    const d = new Date(isoString);
-                    if (isNaN(d.getTime())) return "";
-                    const s = props.sent ? new Date(props.sent) : null;
-                    return "Expires: " + formatDateWithTz(d, getEffectiveTz(), getSmartDateOptions(d, s));
-                }
-                function formatSent(isoString, props) {
-                    if (!isoString) return "";
-                    const d = new Date(isoString);
-                    if (isNaN(d.getTime())) return "";
-                    const e = props.expires ? new Date(props.expires) : null;
-                    return "Sent: " + formatDateWithTz(d, getEffectiveTz(), getSmartDateOptions(d, e));
-                }
                 function renderSidebar() {
                     const alerts = getAllActiveAlerts(), count = alerts.length; if (countEl) countEl.textContent = count > 0 ? `(${count})` : "";
                     const searchQuery = (document.getElementById("alerts-sidebar-search")?.value || "").toLowerCase().trim();
@@ -3411,9 +3615,9 @@
                         const items = document.createElement("div"); items.className = "sidebar-alert-group-items"; if (openGroups.has(eventType)) group.classList.add("open");
                         header.addEventListener("click", () => group.classList.toggle("open"));
                         groupAlerts.forEach((feature) => {
-                            const props = feature.properties, itemColor = props.displayColor || "#808080", name = props.specificEventName || props.event || "Alert", area = props.areaDesc || "", sent = formatSent(props.sent, props), exp = formatExpires(props.expires, props), itemIsNew = props.messageType === "Alert" && isRecentlySent(props.sent), itemIsUpdated = props.messageType === "Update" && isRecentlySent(props.sent);
+                            const props = feature.properties, itemColor = props.displayColor || "#808080", name = props.specificEventName || props.event || "Alert", area = props.areaDesc || "", timeRange = formatAlertTimeRange(props.sent, props.expires), itemIsNew = props.messageType === "Alert" && isRecentlySent(props.sent), itemIsUpdated = props.messageType === "Update" && isRecentlySent(props.sent);
                             const item = document.createElement("div"); item.className = "sidebar-alert-item"; item.style.borderLeftColor = `${itemColor}80`;
-                            item.innerHTML = `<div class="sidebar-alert-content"><div class="sidebar-alert-name" style="display:flex;align-items:center;gap:6px;"><span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${name}</span>${itemIsNew ? `<span class="alert-new-tag">New</span>` : ""}${itemIsUpdated ? `<span class="alert-updated-tag">Updated</span>` : ""}</div>${area ? `<div class="sidebar-alert-area">${area}</div>` : ""}${sent ? `<div class="sidebar-alert-expires">${sent}</div>` : ""}${exp ? `<div class="sidebar-alert-expires">${exp}</div>` : ""}</div>`;
+                            item.innerHTML = `<div class="sidebar-alert-content"><div class="sidebar-alert-name" style="display:flex;align-items:center;gap:6px;"><span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${name}</span>${itemIsNew ? `<span class="alert-new-tag">New</span>` : ""}${itemIsUpdated ? `<span class="alert-updated-tag">Updated</span>` : ""}</div>${area ? `<div class="sidebar-alert-area">${area}</div>` : ""}${timeRange ? `<div class="sidebar-alert-expires">${timeRange}</div>` : ""}</div>`;
                             item.addEventListener("click", () => { flyToAlert(feature); closeSidebar(); }); items.appendChild(item);
                         });
                         group.appendChild(header); group.appendChild(items); if (listEl) listEl.appendChild(group);
