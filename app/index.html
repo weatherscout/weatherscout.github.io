@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- WeatherScout App v1.6.2 (Apr 13, 2026) -->
+<!-- WeatherScout App v1.6.6 (Apr 14, 2026) -->
 <!-- https://weatherscout.github.io/app -->
 <html>
     <head>
@@ -92,7 +92,8 @@
                     border-color 0.2s;
             }
             .fab-action.status-on,
-            .fab-side-item.status-on {
+            .fab-side-item.status-on,
+            #fab-search-btn.status-on {
                 background: var(--status-green) !important;
                 border-color: var(--status-green-border) !important;
             }
@@ -102,7 +103,6 @@
             #attribution-bubble:hover,
             #fab-menu-btn:hover,
             #fab-search-btn:hover,
-
             #pill-info-btn:hover,
             .alert-popup:hover,
             .sidebar-alert-item:hover,
@@ -116,7 +116,9 @@
                 cursor: pointer;
             }
             .fab-action.status-on:hover,
-            .fab-action.status-on.active {
+            .fab-action.status-on.active,
+            #fab-search-btn.status-on:hover,
+            #fab-search-btn.status-on.active {
                 background: var(--glass-hover) !important;
                 border-color: #ffffff80 !important;
                 cursor: pointer;
@@ -484,7 +486,6 @@
                 background-color: #ffffffff;
                 transform: scale(1.2);
             }
-
             #full-alert-text-popup {
                 display: none;
                 position: fixed;
@@ -529,7 +530,6 @@
                 color: #ffffff8c;
                 flex-shrink: 0;
             }
-
             #full-alert-text-popup-close {
                 width: 30px;
                 height: 30px;
@@ -601,7 +601,6 @@
                 margin: 0;
                 padding: 0;
             }
-
             .settings-popup {
                 display: none;
                 position: fixed;
@@ -618,7 +617,6 @@
             .settings-popup.open {
                 display: flex;
             }
-
             .settings-header {
                 display: flex;
                 align-items: center;
@@ -663,7 +661,6 @@
                 background: #ffffff29;
                 color: white;
             }
-
             .settings-body {
                 overflow-y: auto;
                 flex: 1;
@@ -683,7 +680,6 @@
                 background: #ffffff2e;
                 border-radius: 2px;
             }
-
             .settings-section-label {
                 font-size: 10px;
                 font-weight: 700;
@@ -695,7 +691,6 @@
             .settings-section-label:first-child {
                 padding-top: 4px;
             }
-
             .settings-row {
                 display: flex;
                 align-items: center;
@@ -737,7 +732,6 @@
                 color: #ffffff66;
                 margin-top: 1px;
             }
-
             .settings-toggle {
                 width: 40px;
                 height: 22px;
@@ -768,7 +762,6 @@
                 transform: translateX(18px);
                 opacity: 1;
             }
-
             .site-selector {
                 display: flex;
                 background: #ffffff12;
@@ -798,7 +791,6 @@
                 background: #ffffff2e;
                 color: white;
             }
-
             .settings-divider {
                 height: 1px;
                 background: var(--glass-border-color);
@@ -937,7 +929,6 @@
                 opacity: 1;
                 transform: translateY(0);
             }
-
             #alerts-sidebar {
                 display: none;
                 position: fixed;
@@ -954,7 +945,6 @@
             #alerts-sidebar.open {
                 display: flex;
             }
-
             #alerts-sidebar-header {
                 display: flex;
                 align-items: center;
@@ -1004,7 +994,6 @@
                 background: #ffffff29;
                 color: white;
             }
-
             #alerts-sidebar-list {
                 overflow-y: auto;
                 flex: 1;
@@ -1024,7 +1013,6 @@
                 background: #ffffff2e;
                 border-radius: 2px;
             }
-
             #alerts-sidebar-empty {
                 display: flex;
                 flex-direction: column;
@@ -1039,7 +1027,6 @@
             #alerts-sidebar-empty .material-symbols-rounded {
                 font-size: 36px;
             }
-
             .sidebar-alert-group {
                 margin-bottom: 6px;
             }
@@ -1178,7 +1165,6 @@
                 flex-shrink: 0;
                 line-height: 1;
             }
-
             #hidden-alerts-panel,
             #alert-sounds-panel {
                 display: none;
@@ -1381,6 +1367,7 @@
             .alert-sound-row:hover {
                 background: var(--glass-hover) !important;
                 border-color: #ffffff80 !important;
+                color: white;
             }
             .hidden-alert-label,
             .alert-sound-label {
@@ -1423,7 +1410,6 @@
                 background: #222;
                 color: white;
             }
-
             #hidden-alerts-footer,
             #alert-sounds-footer {
                 padding: 10px 14px;
@@ -1495,7 +1481,6 @@
         </div>
         <div id="alert-popup-container"></div>
         <div id="toast-container"></div>
-
         <div id="alerts-sidebar" class="standard-glass">
             <div id="alerts-sidebar-header">
                 <div id="alerts-sidebar-title">
@@ -1523,10 +1508,8 @@
                 </div>
             </div>
         </div>
-
         <button id="fab-menu-btn"><i class="material-symbols-rounded">menu</i></button>
         <button id="fab-search-btn"><i class="material-symbols-rounded">search</i></button>
-
         <div id="location-search-panel" class="standard-glass">
             <div class="settings-header">
                 <div class="settings-header-title">
@@ -1551,19 +1534,16 @@
             <div class="fab-action" id="fab-outlooks" title="Outlooks"><i class="material-symbols-rounded">map</i></div>
             <div class="fab-action" id="fab-mosaic" title="Radar"><i class="material-symbols-rounded">radar</i></div>
             <div class="fab-action" id="fab-alerts" title="Alerts"><i class="material-symbols-rounded">warning</i></div>
-            <div class="fab-action" id="fab-settings" title="Settings">
-                <i class="material-symbols-rounded">settings</i>
-            </div>
+            <div class="fab-action" id="fab-my-location" title="My Location"><i class="material-symbols-rounded">location_disabled</i></div>
+            <div class="fab-action" id="fab-settings" title="Settings"><i class="material-symbols-rounded">settings</i></div>
         </div>
         <div id="fab-side"></div>
-
         <div id="radar-info-pill">
             <button id="pill-info-btn">
                 <div id="pill-id-time"></div>
                 <div id="pill-product"></div>
             </button>
         </div>
-
         <div class="settings-popup" id="settings-popup">
             <div class="settings-header">
                 <div class="settings-header-title">
@@ -1617,11 +1597,6 @@
                 </div>
                 <div class="settings-divider"></div>
                 <div class="settings-section-label">App</div>
-                <button class="settings-row" id="my-location-settings-btn">
-                    <i class="material-symbols-rounded">my_location</i>
-                    <div class="settings-row-label">My Location</div>
-                    <div class="settings-toggle" id="my-location-settings-toggle-ui"></div>
-                </button>
                 <button class="settings-row" id="debug-settings-btn">
                     <i class="material-symbols-rounded">bug_report</i>
                     <div class="settings-row-label">Debug Mode</div>
@@ -1631,6 +1606,11 @@
                     <i class="material-symbols-rounded">save</i>
                     <div class="settings-row-label">Save Settings</div>
                     <div class="settings-toggle" id="save-settings-toggle-ui"></div>
+                </button>
+                <button class="settings-row" id="reset-app-settings-btn">
+                    <i class="material-symbols-rounded">restart_alt</i>
+                    <div class="settings-row-label">Reset App</div>
+                    <i class="material-symbols-rounded" style="font-size:18px;color:#ff6b6b;">delete_forever</i>
                 </button>
             </div>
         </div>
@@ -1675,7 +1655,6 @@
                 </button>
             </div>
         </div>
-
         <div class="settings-popup" id="radar-panel">
             <div class="settings-header">
                 <div class="settings-header-title">
@@ -1702,7 +1681,6 @@
                 </div>
             </div>
         </div>
-
         <div class="settings-popup" id="radar-settings-popup">
             <div class="settings-header">
                 <div class="settings-header-title">
@@ -1758,7 +1736,6 @@
                 </div>
             </div>
         </div>
-
         <div id="hidden-alerts-panel" class="standard-glass">
             <div id="hidden-alerts-panel-header">
                 <div id="hidden-alerts-panel-title">
@@ -1783,7 +1760,6 @@
                 <button id="hidden-alerts-reset-btn">Show All</button>
             </div>
         </div>
-
         <div id="alert-sounds-panel" class="standard-glass">
             <div id="alert-sounds-panel-header">
                 <div id="alert-sounds-panel-title">
@@ -1808,7 +1784,6 @@
                 <button id="alert-sounds-reset-btn">Reset All</button>
             </div>
         </div>
-
         <div id="spc-outlook-panel" class="standard-glass">
             <div class="settings-header">
                 <div class="settings-header-title">
@@ -1824,7 +1799,6 @@
             </div>
             <div id="spc-outlook-body" class="settings-body"></div>
         </div>
-
         <div style="display: none">
             <input type="checkbox" id="radar-toggle" checked />
             <input type="checkbox" id="radar-sites-toggle" checked />
@@ -1839,16 +1813,46 @@
             let myLocationMarker = null;
             let myLocationInterval = null;
             let alertSoundsMap = {};
-
+            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const preloadedBuffers = new Map();
             const AUDIO_OPTIONS = [
                 { label: "None", value: "none" },
-                { label: "Beep Warning", value: "https://github.com/weatherscout/weatherscout.github.io/raw/refs/heads/main/app/audio/beep_warning.mp3" },
-                { label: "Radio Wave", value: "https://github.com/weatherscout/weatherscout.github.io/raw/refs/heads/main/app/audio/radio_wave.mp3" },
-                { label: "Short Beep", value: "https://github.com/weatherscout/weatherscout.github.io/raw/refs/heads/main/app/audio/short_beep.mp3" },
-                { label: "Woosh 1", value: "https://github.com/weatherscout/weatherscout.github.io/raw/refs/heads/main/app/audio/woosh1.mp3" },
-                { label: "Woosh 2", value: "https://github.com/weatherscout/weatherscout.github.io/raw/refs/heads/main/app/audio/woosh2.mp3" }
+                { label: "Beep Warning", value: "https://raw.githubusercontent.com/weatherscout/weatherscout.github.io/main/app/audio/beep_warning.mp3" },
+                { label: "Radio Wave", value: "https://raw.githubusercontent.com/weatherscout/weatherscout.github.io/main/app/audio/radio_wave.mp3" },
+                { label: "Short Beep", value: "https://raw.githubusercontent.com/weatherscout/weatherscout.github.io/main/app/audio/short_beep.mp3" },
+                { label: "Woosh 1", value: "https://raw.githubusercontent.com/weatherscout/weatherscout.github.io/main/app/audio/woosh1.mp3" },
+                { label: "Woosh 2", value: "https://raw.githubusercontent.com/weatherscout/weatherscout.github.io/main/app/audio/woosh2.mp3" }
             ];
-
+            async function preloadAllAudio() {
+                for (const option of AUDIO_OPTIONS) {
+                    if (option.value === "none") continue;
+                    try {
+                        const response = await fetch(option.value, { mode: 'cors' });
+                        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                        const arrayBuffer = await response.arrayBuffer();
+                        const decodedData = await audioCtx.decodeAudioData(arrayBuffer);
+                        preloadedBuffers.set(option.value, decodedData);
+                    } catch (e) { console.error(`Failed to preload audio: ${option.label}`, e); }
+                }
+            }
+            function playAlertSound(url, title = "Weather Alert") {
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+                const buffer = preloadedBuffers.get(url);
+                if (!buffer) return;
+                const source = audioCtx.createBufferSource();
+                source.buffer = buffer;
+                source.connect(audioCtx.destination);
+                source.start(0);
+                if ('mediaSession' in navigator) {
+                    navigator.mediaSession.metadata = new MediaMetadata({
+                        title: title,
+                        artist: 'WeatherScout',
+                        artwork: [{ src: 'https://raw.githubusercontent.com/microsoft/fluentui-emoji/refs/heads/main/assets/Sun%20behind%20small%20cloud/3D/sun_behind_small_cloud_3d.png', sizes: '512x512', type: 'image/png' }]
+                    });
+                    navigator.mediaSession.playbackState = "playing";
+                }
+            }
+            document.addEventListener('click', () => { if (audioCtx.state === 'suspended') audioCtx.resume(); }, { once: false });
             function getOffsetMins(date, tz) {
                 const parts = new Intl.DateTimeFormat("en-US", { timeZone: tz, timeZoneName: "shortOffset" }).formatToParts(date);
                 const off = parts.find(p => p.type === "timeZoneName")?.value || "GMT+0";
@@ -1856,7 +1860,6 @@
                 if (!m) return 0;
                 return (m[1] === "+" ? 1 : -1) * (parseInt(m[2]) * 60 + parseInt(m[3] || 0));
             }
-
             function getEffectiveTz() {
                 const tz = appTimeZone;
                 if (tz.startsWith("FIXED:")) {
@@ -1879,7 +1882,6 @@
                     catch(e) { return tz; }
                 } catch(e) { return tz; }
             }
-
             function getHour12() {
                 if (appHourMode === "12") return true;
                 if (appHourMode === "24") return false;
@@ -1888,7 +1890,6 @@
                 if (utcZero) return false;
                 return undefined;
             }
-
             function formatDateWithTz(date, tz, options) {
                 if (!tz || !tz.startsWith("FIXED:")) {
                     return date.toLocaleString("en-US", { ...options, timeZone: tz || "UTC" });
@@ -1897,7 +1898,6 @@
                 const shifted = new Date(date.getTime() + offsetMins * 60000);
                 return shifted.toLocaleString("en-US", { ...options, timeZone: "UTC" });
             }
-
             function formatDateFull(date, tz) {
                 const opts = { month: "long", day: "numeric", year: "numeric", hour: "numeric", minute: "numeric", timeZoneName: "short", hour12: getHour12() };
                 if (!tz || !tz.startsWith("FIXED:")) {
@@ -1907,48 +1907,39 @@
                 const shifted = new Date(date.getTime() + offsetMins * 60000);
                 return shifted.toLocaleString("en-US", { ...opts, timeZone: "UTC" });
             }
-
             function getSmartDateOptions(date, otherDate, tz) {
                 const effectiveTz = tz || getEffectiveTz();
                 const alertDateStr = date.toLocaleString("en-US", { timeZone: effectiveTz, month: 'numeric', day: 'numeric', year: 'numeric' });
                 const nowDateStr = new Date().toLocaleString("en-US", { timeZone: effectiveTz, month: 'numeric', day: 'numeric', year: 'numeric' });
-                
                 let otherDateStr = null;
                 if (otherDate) {
                     otherDateStr = otherDate.toLocaleString("en-US", { timeZone: effectiveTz, month: 'numeric', day: 'numeric', year: 'numeric' });
                 }
-
                 const isToday = alertDateStr === nowDateStr;
                 const sameDayAsOther = otherDateStr ? alertDateStr === otherDateStr : true;
-
                 if (isToday && sameDayAsOther) {
                     return { hour: "numeric", minute: "numeric", hour12: getHour12() };
                 } else {
                     return { month: "long", day: "numeric", hour: "numeric", minute: "numeric", hour12: getHour12() };
                 }
             }
-
             function formatAlertTimeRange(sentIso, expIso) {
                 let sentStr = "", expStr = "";
                 const tz = getEffectiveTz();
                 const sDate = sentIso ? new Date(sentIso) : null;
                 const eDate = expIso ? new Date(expIso) : null;
-                
                 if (sDate && !isNaN(sDate.getTime())) {
                     sentStr = formatDateWithTz(sDate, tz, getSmartDateOptions(sDate, eDate));
                 }
                 if (eDate && !isNaN(eDate.getTime())) {
                     expStr = formatDateWithTz(eDate, tz, getSmartDateOptions(eDate, sDate));
                 }
-                
                 if (sentStr && expStr) return `${sentStr} to ${expStr}`;
                 if (sentStr) return `Sent: ${sentStr}`;
                 if (expStr) return `Expires: ${expStr}`;
                 return "";
             }
-
             const urlParams = new URLSearchParams(window.location.search);
-
             const PersistentCache = {
                 DB_NAME: "WeatherScoutDB",
                 STORE_NAME: "ZoneGeometries",
@@ -1987,7 +1978,6 @@
                     tx.objectStore(PersistentCache.STORE_NAME).put({ ts: Date.now(), data }, key);
                 },
             };
-
             const alertColorMap = {
                 "Tsunami Warning": "#FD6347", "Tornado Warning": "#FF0000", "Extreme Wind Warning": "#FF8C00", "Severe Thunderstorm Warning": "#FFA500", "Flash Flood Warning": "#8B0000", "Flash Flood Statement": "#8B0000", "Severe Weather Statement": "#00FFFF", "Shelter In Place Warning": "#FA8072", "Evacuation Immediate": "#7FFF00", "Civil Danger Warning": "#FFB6C1", "Nuclear Power Plant Warning": "#4B0082", "Radiological Hazard Warning": "#4B0082", "Hazardous Materials Warning": "#4B0082", "Fire Warning": "#A0522D", "Civil Emergency Message": "#FFB6C1", "Law Enforcement Warning": "#C0C0C0", "Storm Surge Warning": "#B524F7", "Hurricane Force Wind Warning": "#CD5C5C", "Hurricane Warning": "#DC143C", "Typhoon Warning": "#DC143C", "Special Marine Warning": "#FFA500", "Blizzard Warning": "#FF4500", "Snow Squall Warning": "#C71585", "Ice Storm Warning": "#8B008B", "Heavy Freezing Spray Warning": "#00BFFF", "Winter Storm Warning": "#FF69B4", "Lake Effect Snow Warning": "#008B8B", "Dust Storm Warning": "#FFE4C4", "Blowing Dust Warning": "#FFE4C4", "High Wind Warning": "#DAA520", "Tropical Storm Warning": "#B22222", "Storm Warning": "#9400D3", "Tsunami Advisory": "#D2691E", "Tsunami Watch": "#FF00FF", "Avalanche Warning": "#1E90FF", "Earthquake Warning": "#8B4513", "Volcano Warning": "#2F4F4F", "Ashfall Warning": "#A9A9A9", "Flood Warning": "#00FF00", "Coastal Flood Warning": "#228B22", "Lakeshore Flood Warning": "#228B22", "Ashfall Advisory": "#696969", "High Surf Warning": "#228B22", "Extreme Heat Warning": "#C71585", "Tornado Watch": "#FFFF00", "Severe Thunderstorm Watch": "#DB7093", "Flash Flood Watch": "#2E8B57", "Gale Warning": "#DDA0DD", "Flood Statement": "#00FF00", "Extreme Cold Warning": "#0000FF", "Freeze Warning": "#483D8B", "Red Flag Warning": "#FF1493", "Storm Surge Watch": "#DB7FF7", "Hurricane Watch": "#FF00FF", "Hurricane Force Wind Watch": "#9932CC", "Typhoon Watch": "#FF00FF", "Tropical Storm Watch": "#F08080", "Storm Watch": "#FFE4B5", "Tropical Cyclone Local Statement": "#FFE4B5", "Winter Weather Advisory": "#7B68EE", "Avalanche Advisory": "#CD853F", "Cold Weather Advisory": "#AFEEEE", "Heat Advisory": "#FF7F50", "Flood Advisory": "#00FF7F", "Coastal Flood Advisory": "#7CFC00", "Lakeshore Flood Advisory": "#7CFC00", "High Surf Advisory": "#BA55D3", "Dense Fog Advisory": "#708090", "Dense Smoke Advisory": "#F0E68C", "Small Craft Advisory": "#D8BFD8", "Brisk Wind Advisory": "#D8BFD8", "Hazardous Seas Warning": "#D8BFD8", "Dust Advisory": "#BDB76B", "Blowing Dust Advisory": "#BDB76B", "Lake Wind Advisory": "#D2B48C", "Wind Advisory": "#D2B48C", "Frost Advisory": "#6495ED", "Freezing Fog Advisory": "#008080", "Freezing Spray Advisory": "#00BFFF", "Low Water Advisory": "#A52A2A", "Local Area Emergency": "#C0C0C0", "Winter Storm Watch": "#4682B4", "Rip Current Statement": "#40E0D0", "Beach Hazards Statement": "#40E0D0", "Gale Watch": "#FFC0CB", "Avalanche Watch": "#F4A460", "Hazardous Seas Watch": "#483D8B", "Heavy Freezing Spray Watch": "#BC8F8F", "Flood Watch": "#2E8B57", "Coastal Flood Watch": "#66CDAA", "Lakeshore Flood Watch": "#66CDAA", "High Wind Watch": "#B8860B", "Extreme Heat Watch": "#800000", "Extreme Cold Watch": "#5F9EA0", "Freeze Watch": "#00FFFF", "Fire Weather Watch": "#FFDEAD", "Extreme Fire Danger": "#E9967A", "911 Telephone Outage": "#C0C0C0", "Coastal Flood Statement": "#6B8E23", "Lakeshore Flood Statement": "#6B8E23", "Special Weather Statement": "#FFE4B5", "Marine Weather Statement": "#FFDAB9", "Air Quality Alert": "#808080", "Air Stagnation Advisory": "#808080", "Hazardous Weather Outlook": "#EEE8AA", "Hydrologic Outlook": "#90EE90", "Short Term Forecast": "#98FB98", "Administrative Message": "#C0C0C0", "Child Abduction Emergency": "#FFFFFF", "Blue Alert": "#FFFFFF", Test: "#F0FFFF",
             };
@@ -1995,7 +1985,6 @@
                 1: ["cat", "torn", "wind", "hail"], 2: ["cat", "torn", "wind", "hail"], 3: ["cat", "prob"], 4: ["prob"], 5: ["prob"], 6: ["prob"], 7: ["prob"], 8: ["prob"],
             };
             const typeLabels = { cat: "Categorical", torn: "Tornado", wind: "Wind", hail: "Hail", prob: "Prob.", };
-
             function showToast(message) {
                 const container = document.getElementById("toast-container");
                 const toast = document.createElement("div");
@@ -2009,7 +1998,6 @@
                 if (!text) return "";
                 return text.replace(/\r\n/g, "\n").replace(/\n\n+/g, "@@PARA@@").replace(/\n/g, " ").replace(/@@PARA@@/g, "<br><br>").trim();
             };
-
             let radarSiteSelectionMode = "Both";
             let showSitesMode = "Both";
             let activeSpcDay = "none";
@@ -2024,7 +2012,6 @@
             let hiddenAlertTypes = new Set();
             let urlRadarRequest = null;
             const radarSiteDefaultColor = [ "case", ["==", ["get", "statusError"], true], "#8800FF", ["==", ["get", "isOffline"], true], "#ff0000", ["==", ["get", "stationType"], "WSR-88D"], "#0099ff", ["==", ["get", "stationType"], "TDWR"], "#ff9900", "#808080", ];
-
             function updateGreenStatusIndicators() {
                 const radarToggle = document.getElementById("radar-toggle");
                 document.getElementById("fab-mosaic").classList.toggle("status-on", radarToggle && radarToggle.checked);
@@ -2037,18 +2024,14 @@
                 if (spcToggle) spcToggle.classList.toggle("active", spcActive);
                 updateSpcOutlookPanelState();
             }
-
             function toggleFabMenu() {
                 const menu = document.getElementById("fab-menu");
                 const btn = document.getElementById("fab-menu-btn");
                 menu.classList.toggle("open");
                 btn.classList.toggle("active", menu.classList.contains("open"));
             }
-
             function initSpcOutlookPanel() { renderSpcOutlookPanel(); }
-
             const spcSourceCache = {};
-
             function getSpcSourceHighest(sourceId) {
                 const data = spcSourceCache[sourceId];
                 if (!data || !data.features || !data.features.length) return null;
@@ -2072,7 +2055,6 @@
                     return { label: formatSpcLabel(String(best.properties.LABEL || best.properties.LABEL2)), fill: best.properties.fill || "#808080" };
                 }
             }
-
             function renderSpcOutlookPanel() {
                 const body = document.getElementById("spc-outlook-body");
                 if (!body) return;
@@ -2165,9 +2147,7 @@
                     body.appendChild(empty);
                 }
             }
-
             function updateSpcOutlookPanelState() { renderSpcOutlookPanel(); }
-
             const layerIds = {
                 radar: "weather-radar-layer",
                 alertsZone: "alerts-zone-layer",
@@ -2191,10 +2171,8 @@
                     day8: { prob: "spc-day8-prob" },
                 },
             };
-
             const baseSpcLayerIds = Object.values(layerIds.spc).flatMap((day) => Object.values(day));
             const allSpcLayerIds = baseSpcLayerIds.flatMap((id) => [id, `${id}-border`]);
-
             function updateSpcLayerVisibility() {
                 if (!map.isStyleLoaded()) return;
                 allSpcLayerIds.forEach((id) => {
@@ -2210,12 +2188,13 @@
                     }
                 }
             }
-
             function updateMyLocation() {
                 if (!myLocationEnabled) return;
                 navigator.geolocation.getCurrentPosition(
                     (pos) => {
                         const { longitude, latitude } = pos.coords;
+                        const fabLoc = document.getElementById("fab-my-location");
+                        if (fabLoc) fabLoc.querySelector('i').textContent = "my_location";
                         if (!myLocationMarker) {
                             const el = document.createElement('div');
                             el.className = 'my-location-dot';
@@ -2237,16 +2216,22 @@
                     { enableHighAccuracy: true }
                 );
             }
-
             function toggleMyLocation(enabled) {
                 myLocationEnabled = enabled;
-                const toggleUI = document.getElementById("my-location-settings-toggle-ui");
-                if (toggleUI) toggleUI.classList.toggle("active", enabled);
+                const fabLoc = document.getElementById("fab-my-location");
                 if (enabled) {
+                    if (fabLoc) {
+                        fabLoc.classList.add("status-on");
+                        fabLoc.querySelector('i').textContent = "location_searching";
+                    }
                     updateMyLocation();
                     myLocationInterval = setInterval(updateMyLocation, 5000);
                     showToast("My Location: On");
                 } else {
+                    if (fabLoc) {
+                        fabLoc.classList.remove("status-on");
+                        fabLoc.querySelector('i').textContent = "location_disabled";
+                    }
                     if (myLocationInterval) clearInterval(myLocationInterval);
                     if (myLocationMarker) {
                         myLocationMarker.remove();
@@ -2256,10 +2241,11 @@
                 }
                 if (window.saveCurrentState) window.saveCurrentState();
             }
-
             document.addEventListener("DOMContentLoaded", () => {
+                preloadAllAudio();
                 const saveSettingsBtn = document.getElementById("save-settings-btn");
                 const saveSettingsToggleUI = document.getElementById("save-settings-toggle-ui");
+                const resetAppBtn = document.getElementById("reset-app-settings-btn");
                 const flySettingsBtn = document.getElementById("fly-settings-btn");
                 const flySettingsToggleUI = document.getElementById("fly-settings-toggle-ui");
                 const zoneAlertsBtn = document.getElementById("zone-alerts-settings-btn");
@@ -2268,11 +2254,10 @@
                 const mesoDiscussionsToggleUI = document.getElementById("meso-discussions-settings-toggle-ui");
                 const debugSettingsBtn = document.getElementById("debug-settings-btn");
                 const debugSettingsToggleUI = document.getElementById("debug-settings-toggle-ui");
-                const myLocBtn = document.getElementById("my-location-settings-btn");
+                const fabLocBtn = document.getElementById("fab-my-location");
                 const radarToggle = document.getElementById("radar-toggle");
                 const sitesToggle = document.getElementById("radar-sites-toggle");
                 const debugInput = document.getElementById("debug-file-input");
-
                 saveSettingsEnabled = localStorage.getItem("saveSettings") === "true";
                 if (saveSettingsEnabled) {
                     debugModeEnabled = localStorage.getItem("debugMode") === "true";
@@ -2300,7 +2285,6 @@
                     if (savedHour) appHourMode = savedHour;
                     if (localStorage.getItem("myLocationEnabled") === "true") myLocationEnabled = true;
                 }
-
                 const sParam = urlParams.get("s");
                 let overrodeSaveSettings = null;
                 if (sParam) {
@@ -2351,7 +2335,6 @@
                     if (overrodeSaveSettings === true) { saveSettingsEnabled = true; localStorage.setItem("saveSettings", "true"); }
                     else if (overrodeSaveSettings === false) { saveSettingsEnabled = false; localStorage.setItem("saveSettings", "false"); }
                 }
-
                 if (saveSettingsEnabled) saveSettingsToggleUI.classList.add("active");
                 else saveSettingsToggleUI.classList.remove("active");
                 if (debugModeEnabled) debugSettingsToggleUI.classList.add("active");
@@ -2363,26 +2346,22 @@
                 if (mesoDiscussionsEnabled) mesoDiscussionsToggleUI.classList.add("active");
                 else mesoDiscussionsToggleUI.classList.remove("active");
                 if (myLocationEnabled) toggleMyLocation(true);
-
                 const hiddenCountEl = document.getElementById("hidden-alert-types-count");
                 if (hiddenCountEl && hiddenAlertTypes.size > 0) hiddenCountEl.textContent = hiddenAlertTypes.size;
-
                 function updateAlertSoundsCountLabel() { 
                     const countEl = document.getElementById("alert-sounds-count");
                     const internalLabel = document.getElementById("alert-sounds-count-label");
                     const activeCount = Object.values(alertSoundsMap).filter(v => v !== "none").length;
                     if (countEl) countEl.textContent = activeCount > 0 ? activeCount : "";
-                    if (internalLabel) internalLabel.textContent = activeCount === 0 ? "No custom sounds" : `${activeCount} custom sound${activeCount >= 2 ? "s" : ""}`;
+                    if (internalLabel) internalLabel.textContent = activeCount === 0 ? "No alerts with sounds" : `${activeCount} alert${activeCount >= 2 ? "s" : ""} with sounds`;
                 }
                 updateAlertSoundsCountLabel();
-
                 function updateSiteSelectionUI() {
                     document.querySelectorAll(".site-select-option").forEach((opt) => {
                         opt.classList.toggle("selected", opt.dataset.value === radarSiteSelectionMode);
                     });
                 }
                 updateSiteSelectionUI();
-
                 document.querySelectorAll(".site-select-option").forEach((option) => {
                     option.addEventListener("click", () => {
                         radarSiteSelectionMode = option.dataset.value;
@@ -2391,7 +2370,6 @@
                         saveCurrentState();
                     });
                 });
-
                 function updateShowSitesFilter() {
                     document.querySelectorAll(".show-sites-option").forEach((opt) => {
                         opt.classList.toggle("selected", opt.dataset.value === showSitesMode);
@@ -2406,7 +2384,6 @@
                 }
                 updateShowSitesFilter();
                 window.updateShowSitesFilter = updateShowSitesFilter;
-
                 document.querySelectorAll(".show-sites-option").forEach((option) => {
                     option.addEventListener("click", () => {
                         showSitesMode = option.dataset.value;
@@ -2415,7 +2392,6 @@
                         saveCurrentState();
                     });
                 });
-
                 function saveCurrentState() {
                     const radarToggle = document.getElementById("radar-toggle");
                     const sitesToggle = document.getElementById("radar-sites-toggle");
@@ -2444,7 +2420,6 @@
                     }
                 }
                 window.saveCurrentState = saveCurrentState;
-
                 saveSettingsBtn.addEventListener("click", () => {
                     if (saveSettingsToggleUI.classList.contains("active")) {
                         saveSettingsToggleUI.classList.remove("active");
@@ -2458,22 +2433,29 @@
                         showToast("Settings Saved");
                     }
                 });
-
+                if (resetAppBtn) {
+                    resetAppBtn.addEventListener("click", () => {
+                        localStorage.clear();
+                        document.cookie.split(";").forEach(c => document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/"));
+                        showToast("App Reset");
+                        setTimeout(() => location.reload(), 600);
+                    });
+                }
                 debugSettingsBtn.addEventListener("click", () => {
                     debugModeEnabled = !debugModeEnabled;
                     debugSettingsToggleUI.classList.toggle("active");
                     saveCurrentState();
                     showToast(`Debug Mode: ${debugModeEnabled ? "On" : "Off"}`);
                 });
-
-                myLocBtn.addEventListener("click", () => {
-                    toggleMyLocation(!myLocationEnabled);
-                });
-
+                if (fabLocBtn) {
+                    fabLocBtn.addEventListener("click", (e) => {
+                        e.stopPropagation();
+                        toggleMyLocation(!myLocationEnabled);
+                    });
+                }
                 const TZ_ABBREV_MINS = {
                     "BIT":  -720, "SST":  -660, "HST":  -600, "HAST": -600, "AKST": -540, "HDT":  -540, "HADT": -540, "PST":  -480, "AKDT": -480, "MST":  -420, "PDT":  -420, "CST":  -360, "MDT":  -360, "EST":  -300, "CDT":  -300, "AST":  -240, "EDT":  -240, "ADT":  -180, "CHST":  600, "WAKT":  720,
                 };
-
                 function minsToStoredTz(totalMins) {
                     if (totalMins === 0) return "UTC";
                     if (totalMins % 60 === 0) {
@@ -2484,7 +2466,6 @@
                     }
                     return "FIXED:" + totalMins;
                 }
-
                 function resolveCustomInput(raw) {
                     const trimmed = raw.trim();
                     const upper = trimmed.toUpperCase();
@@ -2500,7 +2481,6 @@
                     if (hours > 14 || minutes >= 60 || (hours === 14 && minutes > 0)) return null;
                     return minsToStoredTz(sign * (hours * 60 + minutes));
                 }
-
                 function tzToDisplay(tz) {
                     if (!tz) return "";
                     if (tz === "UTC" || tz === "GMT") return tz;
@@ -2522,10 +2502,8 @@
                     }
                     return tz;
                 }
-
                 const tzCustomInput = document.getElementById("tz-custom-input");
                 const localBrowserTz = Intl.DateTimeFormat().resolvedOptions().timeZone;
-
                 function updateTzSelector() {
                     const isLocal = appTimeZone === localBrowserTz;
                     const isUTC = appTimeZone === "UTC";
@@ -2533,10 +2511,8 @@
                     document.querySelector('.tz-option[data-value="UTC"]').classList.toggle("selected", isUTC && !isLocal);
                     if (tzCustomInput) tzCustomInput.classList.toggle("active", !isLocal && !isUTC);
                 }
-
                 function isFixedOffset(tz) { return tz === "UTC" || tz === "GMT" || tz.startsWith("Etc/GMT") || tz.startsWith("FIXED:"); }
                 function isUTCZero(tz) { if (tz === "UTC" || tz === "Etc/GMT") return true; if (tz.startsWith("FIXED:")) return parseInt(tz.slice(6), 10) === 0; return false; }
-
                 function updateDstSelector() {
                     const fixed = isFixedOffset(appTimeZone);
                     if (fixed && appDstMode !== "auto") appDstMode = "auto";
@@ -2549,7 +2525,6 @@
                         btn.style.pointerEvents = (fixed && forcedOption) ? "none" : "";
                     });
                 }
-
                 function updateHourSelector() {
                     const utcZero = isUTCZero(appTimeZone);
                     if (utcZero && appHourMode !== "auto") { appHourMode = "auto"; saveCurrentState(); }
@@ -2562,10 +2537,8 @@
                         btn.style.pointerEvents = (utcZero && forcedOption) ? "none" : "";
                     });
                 }
-
                 updateTzSelector(); updateDstSelector(); updateHourSelector();
                 if (appTimeZone !== localBrowserTz && appTimeZone !== "UTC" && tzCustomInput) { tzCustomInput.value = tzToDisplay(appTimeZone); }
-
                 document.querySelectorAll(".tz-option").forEach(btn => {
                     btn.addEventListener("click", () => {
                         const val = btn.dataset.value;
@@ -2575,7 +2548,6 @@
                         saveCurrentState(); showToast("Time Zone: " + btn.textContent.trim());
                     });
                 });
-
                 if (tzCustomInput) {
                     tzCustomInput.addEventListener("focus", () => { tzCustomInput.classList.remove("invalid"); });
                     tzCustomInput.addEventListener("input", () => {
@@ -2589,17 +2561,13 @@
                     });
                     tzCustomInput.addEventListener("keydown", e => { if (e.key === "Enter") { tzCustomInput.blur(); e.preventDefault(); } });
                 }
-
                 document.querySelectorAll(".dst-option").forEach(btn => {
                     btn.addEventListener("click", () => { appDstMode = btn.dataset.value; updateDstSelector(); saveCurrentState(); showToast("Time Mode: " + btn.textContent.trim()); });
                 });
-
                 document.querySelectorAll(".hour-option").forEach(btn => {
                     btn.addEventListener("click", () => { if (btn.disabled) return; appHourMode = btn.dataset.value; updateHourSelector(); saveCurrentState(); showToast("Hour Format: " + btn.textContent.trim()); });
                 });
-
                 flySettingsBtn.addEventListener("click", () => { flyToRadarSetting = !flyToRadarSetting; flySettingsToggleUI.classList.toggle("active"); saveCurrentState(); });
-
                 (function() {
                     const loopCustomInput = document.getElementById("loop-time-custom-input");
                     function updateLoopTimeUI() {
@@ -2631,7 +2599,6 @@
                     }
                     updateLoopTimeUI();
                 })();
-
                 zoneAlertsBtn.addEventListener("click", () => {
                     zoneAlertsEnabled = !zoneAlertsEnabled;
                     zoneAlertsToggleUI.classList.toggle("active");
@@ -2639,7 +2606,6 @@
                     if (zoneAlertsEnabled) { showToast("Zone Alerts: On"); if (map.getSource("alerts-poly-watch")) map.getSource("alerts-poly-watch").setData({ type: "FeatureCollection", features: [] }); globalPolyWatchAlerts = []; if (alertsEnabled) refreshNwsAlerts(true); }
                     else { showToast("Zone Alerts: Off"); if (map.getSource("alerts-zone")) map.getSource("alerts-zone").setData({ type: "FeatureCollection", features: [] }); globalZoneAlerts = []; if (alertsEnabled) { refreshNwsAlerts(true); updatePlacefileAlerts(true); } }
                 });
-
                 mesoDiscussionsBtn.addEventListener("click", () => {
                     mesoDiscussionsEnabled = !mesoDiscussionsEnabled;
                     mesoDiscussionsToggleUI.classList.toggle("active");
@@ -2647,7 +2613,6 @@
                     if (mesoDiscussionsEnabled) { showToast("Mesoscale Discussions: On"); if (alertsEnabled) updatePlacefileAlerts(true); }
                     else { showToast("Mesoscale Discussions: Off"); if (map.getSource("alerts-md")) map.getSource("alerts-md").setData({ type: "FeatureCollection", features: [] }); globalMdAlerts = []; if (window.renderAlertsSidebar) window.renderAlertsSidebar(); }
                 });
-
                 const fabMenuBtn = document.getElementById("fab-menu-btn");
                 const fabOutlooks = document.getElementById("fab-outlooks");
                 const fabMosaic = document.getElementById("fab-mosaic");
@@ -2656,7 +2621,6 @@
                 const settingsPopup = document.getElementById("settings-popup");
                 const settingsCloseBtn = document.getElementById("settings-close-btn");
                 const pillInfoBtn = document.getElementById("pill-info-btn");
-
                 function openSettings() {
                     if (window.closeSidebar) window.closeSidebar();
                     closeAlertSettings();
@@ -2674,10 +2638,8 @@
                 function closeSettings() { settingsPopup.classList.remove("open"); if (fabSettings) fabSettings.classList.remove("active"); }
                 window.closeSettings = closeSettings;
                 if (settingsCloseBtn) settingsCloseBtn.addEventListener("click", closeSettings);
-
                 document.getElementById("settings-open-alerts-btn").addEventListener("click", () => { openAlertSettings("settings"); });
                 document.getElementById("settings-open-radar-btn").addEventListener("click", () => { openRadarSettingsFrom("settings"); });
-
                 const alertSettingsPopup = document.getElementById("alert-settings-popup");
                 const alertSettingsCloseBtn = document.getElementById("alert-settings-close-btn");
                 let alertSettingsOpener = "sidebar"; 
@@ -2705,7 +2667,6 @@
                     if (alertSettingsOpener === "settings") openSettings();
                     else if (window.openSidebar) window.openSidebar();
                 });
-
                 function applyMapAlertFilters() {
                     const hiddenArr = [...hiddenAlertTypes];
                     const polyFilter = hiddenArr.length > 0 ? ["all", ["==", "geometryType", "polygon"], ["!in", "event", ...hiddenArr]] : ["==", "geometryType", "polygon"];
@@ -2717,7 +2678,6 @@
                     if (countEl) countEl.textContent = hiddenAlertTypes.size > 0 ? hiddenAlertTypes.size : "";
                 }
                 window.applyMapAlertFilters = applyMapAlertFilters;
-
                 const hiddenAlertsPanel = document.getElementById("hidden-alerts-panel");
                 const hiddenAlertsBackBtn = document.getElementById("hidden-alerts-back-btn");
                 const hiddenAlertsCloseBtn = document.getElementById("hidden-alerts-close-btn");
@@ -2725,13 +2685,18 @@
                 const hiddenAlertsListEl = document.getElementById("hidden-alerts-list");
                 const hiddenAlertsCountLabel = document.getElementById("hidden-alerts-count-label");
                 const hiddenAlertsResetBtn = document.getElementById("hidden-alerts-reset-btn");
-
                 function updateHiddenAlertsCountLabel() { const n = hiddenAlertTypes.size; if (hiddenAlertsCountLabel) hiddenAlertsCountLabel.textContent = n === 0 ? "No alerts hidden" : `${n} alert${n >= 2 ? "s" : ""} hidden`; }
                 function renderHiddenAlertsList(filter) {
                     if (!hiddenAlertsListEl) return;
                     const query = (filter || "").toLowerCase();
                     const allTypes = Object.keys(alertColorMap);
-                    const sorted = allTypes.slice().sort((a, b) => getAlertPriorityScore({ properties: { event: a, parameters: {} } }) - getAlertPriorityScore({ properties: { event: b, parameters: {} } }));
+                    const sorted = allTypes.slice().sort((a, b) => {
+                        const aHidden = hiddenAlertTypes.has(a) ? 1 : 0;
+                        const bHidden = hiddenAlertTypes.has(b) ? 1 : 0;
+                        if (aHidden !== bHidden) return aHidden - bHidden;
+                        return getAlertPriorityScore({ properties: { event: a, parameters: {} } }) - 
+                               getAlertPriorityScore({ properties: { event: b, parameters: {} } });
+                    });
                     const visible = query ? sorted.filter(t => t.toLowerCase().includes(query)) : sorted;
                     const existingRows = Array.from(hiddenAlertsListEl.querySelectorAll(".hidden-alert-row"));
                     const existingMap = new Map(existingRows.map(r => [r.dataset.eventType, r]));
@@ -2764,7 +2729,6 @@
                     });
                     updateHiddenAlertsCountLabel();
                 }
-
                 function openHiddenAlertsPanel() {
                     if (window.closeSidebar) window.closeSidebar();
                     closeSettings(); closeAlertSettings();
@@ -2788,30 +2752,38 @@
                 if (hiddenAlertsResetBtn) hiddenAlertsResetBtn.addEventListener("click", () => { hiddenAlertTypes.clear(); applyMapAlertFilters(); saveCurrentState(); renderHiddenAlertsList(hiddenAlertsSearch.value); showToast("All alert types visible"); });
                 const hiddenAlertsTrigger = document.getElementById("hidden-alert-types-btn");
                 if (hiddenAlertsTrigger) hiddenAlertsTrigger.addEventListener("click", openHiddenAlertsPanel);
-
                 const alertSoundsPanel = document.getElementById("alert-sounds-panel");
                 const alertSoundsBackBtn = document.getElementById("alert-sounds-back-btn");
                 const alertSoundsCloseBtn = document.getElementById("alert-sounds-close-btn");
                 const alertSoundsSearch = document.getElementById("alert-sounds-search");
                 const alertSoundsListEl = document.getElementById("alert-sounds-list");
                 const alertSoundsResetBtn = document.getElementById("alert-sounds-reset-btn");
-
+                function updateAlertSoundsCountLabel() { 
+                    const countEl = document.getElementById("alert-sounds-count");
+                    const internalLabel = document.getElementById("alert-sounds-count-label");
+                    const activeCount = Object.values(alertSoundsMap).filter(v => v !== "none").length;
+                    if (countEl) countEl.textContent = activeCount > 0 ? activeCount : "";
+                    if (internalLabel) internalLabel.textContent = activeCount === 0 ? "No alerts with sounds" : `${activeCount} alert${activeCount >= 2 ? "s" : ""} with sounds`;
+                }
                 function renderAlertSoundsList(filter) {
                     if (!alertSoundsListEl) return;
                     const query = (filter || "").toLowerCase();
                     const allTypes = Object.keys(alertColorMap);
-                    const sorted = allTypes.slice().sort((a, b) => getAlertPriorityScore({ properties: { event: a, parameters: {} } }) - getAlertPriorityScore({ properties: { event: b, parameters: {} } }));
+                    const sorted = allTypes.slice().sort((a, b) => {
+                        const aHasSound = (alertSoundsMap[a] && alertSoundsMap[a] !== "none") ? 0 : 1;
+                        const bHasSound = (alertSoundsMap[b] && alertSoundsMap[b] !== "none") ? 0 : 1;
+                        if (aHasSound !== bHasSound) return aHasSound - bHasSound;
+                        return getAlertPriorityScore({ properties: { event: a, parameters: {} } }) - 
+                               getAlertPriorityScore({ properties: { event: b, parameters: {} } });
+                    });
                     const visible = query ? sorted.filter(t => t.toLowerCase().includes(query)) : sorted;
                     const existingRows = Array.from(alertSoundsListEl.querySelectorAll(".alert-sound-row"));
                     const existingMap = new Map(existingRows.map(r => [r.dataset.eventType, r]));
                     const newKeys = new Set(visible);
-                    
                     existingRows.forEach(r => { if (!newKeys.has(r.dataset.eventType)) r.remove(); });
-                    
                     visible.forEach((eventType, i) => {
                         const currentColor = alertColorMap[eventType] || "#808080";
                         const currentValue = alertSoundsMap[eventType] || "none";
-                        
                         if (existingMap.has(eventType)) {
                             const row = existingMap.get(eventType);
                             const select = row.querySelector("select");
@@ -2823,32 +2795,27 @@
                             row.className = "alert-sound-row";
                             row.dataset.eventType = eventType;
                             row.style.borderLeftColor = `${currentColor}80`;
-                            
                             let optionsHtml = AUDIO_OPTIONS.map(opt => `<option value="${opt.value}" ${currentValue === opt.value ? "selected" : ""}>${opt.label}</option>`).join("");
-                            
                             row.innerHTML = `<span class="alert-sound-label">${eventType}</span>
                                              <select class="alert-sound-select">${optionsHtml}</select>`;
-                            
                             row.querySelector("select").addEventListener("change", (e) => {
                                 const val = e.target.value;
                                 if (val === "none") {
                                     delete alertSoundsMap[eventType];
                                 } else {
                                     alertSoundsMap[eventType] = val;
-                                    const audio = new Audio(val);
-                                    audio.play().catch(() => {});
+                                    playAlertSound(val, eventType);
                                 }
                                 saveCurrentState();
                                 updateAlertSoundsCountLabel();
+                                renderAlertSoundsList(alertSoundsSearch.value);
                             });
-                            
                             const after = alertSoundsListEl.children[i];
                             alertSoundsListEl.insertBefore(row, after || null);
                         }
                     });
                     updateAlertSoundsCountLabel();
                 }
-
                 function openAlertSoundsPanel() {
                     if (window.closeSidebar) window.closeSidebar();
                     closeSettings(); closeAlertSettings();
@@ -2877,13 +2844,11 @@
                 });
                 const alertSoundsTrigger = document.getElementById("alert-sounds-btn");
                 if (alertSoundsTrigger) alertSoundsTrigger.addEventListener("click", openAlertSoundsPanel);
-
                 const locationSearchPanel = document.getElementById("location-search-panel");
                 const locationSearchInput = document.getElementById("location-search-input");
                 const locationSearchResults = document.getElementById("location-search-results");
                 const locationSearchEmpty = document.getElementById("location-search-empty");
                 const locationSearchEmptyText = document.getElementById("location-search-empty-text");
-
                 function openLocationSearch() {
                     if (window.closeSettings) window.closeSettings();
                     if (window.closeAlertSettings) window.closeAlertSettings();
@@ -2910,11 +2875,33 @@
                     setLocationSearchEmpty("travel_explore", "Results show up here");
                 }
                 window.closeLocationSearch = closeLocationSearch;
+                function clearLocationMarker() {
+                    if (locationSearchMarker) {
+                        locationSearchMarker.remove();
+                        locationSearchMarker = null;
+                    }
+                    const searchFab = document.getElementById("fab-search-btn");
+                    if (searchFab) searchFab.classList.remove("status-on");
+                    showToast("Search Cleared");
+                }
                 const locCloseBtn = document.getElementById("location-search-close-btn");
                 if (locCloseBtn) locCloseBtn.addEventListener("click", closeLocationSearch);
                 const searchFab = document.getElementById("fab-search-btn");
-                if (searchFab) searchFab.addEventListener("click", () => { if (locationSearchPanel) locationSearchPanel.classList.contains("open") ? closeLocationSearch() : openLocationSearch(); });
-
+                if (searchFab) {
+                    searchFab.addEventListener("click", (e) => {
+                        e.stopPropagation();
+                        if (searchFab.classList.contains("status-on")) {
+                            clearLocationMarker();
+                            if (locationSearchPanel && locationSearchPanel.classList.contains("open")) {
+                                closeLocationSearch();
+                            }
+                        } else {
+                            if (locationSearchPanel) {
+                                locationSearchPanel.classList.contains("open") ? closeLocationSearch() : openLocationSearch();
+                            }
+                        }
+                    });
+                }
                 let locationSearchTimeout = null;
                 let locationSearchMarker = null;
                 function setLocationSearchEmpty(icon, text) { if (locationSearchEmpty) { locationSearchEmpty.style.display = "flex"; locationSearchEmpty.querySelector(".material-symbols-rounded").textContent = icon; if (locationSearchEmptyText) locationSearchEmptyText.textContent = text; } }
@@ -2934,6 +2921,8 @@
                         item.addEventListener("click", () => {
                             if (locationSearchMarker) locationSearchMarker.remove();
                             locationSearchMarker = new maplibregl.Marker({ color: "#FFC300", scale: 0.6 }).setLngLat([lon, lat]).addTo(map);
+                            const searchFab = document.getElementById("fab-search-btn");
+                            if (searchFab) searchFab.classList.add("status-on");
                             map.flyTo({ center: [lon, lat], zoom: getLocationZoom(result), essential: true });
                             closeLocationSearch();
                         });
@@ -2950,7 +2939,6 @@
                     });
                     locationSearchInput.addEventListener("keydown", e => { if (e.key === "Escape") { closeLocationSearch(); e.stopPropagation(); } });
                 }
-
                 if (fabMenuBtn) fabMenuBtn.addEventListener("click", (e) => { e.stopPropagation(); toggleFabMenu(); });
                 function openSpcOutlookPanel() {
                     if (window.closeSidebar) window.closeSidebar();
@@ -2985,7 +2973,6 @@
                     });
                 }
                 if (fabOutlooks) fabOutlooks.addEventListener("click", (e) => { e.stopPropagation(); const panel = document.getElementById("spc-outlook-panel"); if (panel) panel.classList.contains("open") ? closeSpcOutlookPanel() : openSpcOutlookPanel(); });
-
                 const radarPanel = document.getElementById("radar-panel");
                 function isAnyRadarOn() { const toggle = document.getElementById("radar-toggle"); return (toggle && toggle.checked) || showSitesMode !== "None" || !!(activeSiteIdForData && activeRadarProductCode); }
                 function updateRadarPanelToggles() { const toggle = document.getElementById("radar-toggle"); const panelToggle = document.getElementById("radar-panel-toggle"); if (panelToggle && toggle) panelToggle.classList.toggle("active", toggle.checked); }
@@ -3040,7 +3027,7 @@
                 const rSettClose = document.getElementById("radar-settings-close-btn");
                 if (rSettClose) rSettClose.addEventListener("click", () => { closeRadarSettings(); closeRadarPanel(); });
                 const rSettBack = document.getElementById("radar-settings-back-btn");
-                if (rSettBack) rSettBack.addEventListener("click", () => { closeRadarSettings(); if (radarSettingsOpener === "settings") openSettings(); else { updateRadarPanelToggles(); renderRadarSiteList(); if (radarPanel) radarPanel.classList.add("open"); if (fabMosaic) fabMosaic.classList.add("active"); } });
+                if (rSettBack) rSettBack.addEventListener("click", () => { closeRadarSettings(); if (radarSettingsOpener === "settings") openSettings(); else { updateRadarPanelToggles(); renderRadarSiteList(); if (radarPanel) radarPanel.classList.add("open"); if (fabMosaic) fabMosaic.classList.remove("active"); } });
                 if (fabMosaic) fabMosaic.addEventListener("click", (e) => { e.stopPropagation(); if (radarPanel) radarPanel.classList.contains("open") ? closeRadarPanel() : openRadarPanel(); });
                 if (fabSettings) fabSettings.addEventListener("click", () => { if (settingsPopup) settingsPopup.classList.contains("open") ? closeSettings() : openSettings(); });
                 if (debugInput) debugInput.addEventListener("change", handleDebugUpload);
@@ -3053,13 +3040,11 @@
                 if (saveSettingsEnabled && urlParams.get("s")) saveCurrentState();
                 setTimeout(updateGreenStatusIndicators, 500);
             });
-
             const map = new maplibregl.Map({ container: "map", style: "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json", center: [-97, 39], zoom: 3, attributionControl: false });
             let currentMapPopup = null, allRadarSitesData = [], currentStackedAlertsOnMap = [], currentStackedAlertIndex = 0, globalPolyAlerts = [], globalZoneAlerts = [], globalMdAlerts = [], globalPolyWatchAlerts = [], alertQueue = [], knownAlertIds = new Set(), newAlertIds = new Set(), updatedAlertIds = new Set(), isDisplayingAlert = false, isInitialLoad = true;
             const intervals = [], spcSources = [
                 { id: "spc-day1-cat", url: "https://www.spc.noaa.gov/products/outlook/day1otlk_cat.nolyr.geojson" }, { id: "spc-day1-torn", url: "https://www.spc.noaa.gov/products/outlook/day1otlk_torn.nolyr.geojson" }, { id: "spc-day1-hail", url: "https://www.spc.noaa.gov/products/outlook/day1otlk_hail.nolyr.geojson" }, { id: "spc-day1-wind", url: "https://www.spc.noaa.gov/products/outlook/day1otlk_wind.nolyr.geojson" }, { id: "spc-day2-cat", url: "https://www.spc.noaa.gov/products/outlook/day2otlk_cat.nolyr.geojson" }, { id: "spc-day2-torn", url: "https://www.spc.noaa.gov/products/outlook/day2otlk_torn.nolyr.geojson" }, { id: "spc-day2-hail", url: "https://www.spc.noaa.gov/products/outlook/day2otlk_hail.nolyr.geojson" }, { id: "spc-day2-wind", url: "https://www.spc.noaa.gov/products/outlook/day2otlk_wind.nolyr.geojson" }, { id: "spc-day3-cat", url: "https://www.spc.noaa.gov/products/outlook/day3otlk_cat.nolyr.geojson" }, { id: "spc-day3-prob", url: "https://www.spc.noaa.gov/products/outlook/day3otlk_prob.nolyr.geojson" }, { id: "spc-day4-prob", url: "https://www.spc.noaa.gov/products/exper/day4-8/day4prob.nolyr.geojson" }, { id: "spc-day5-prob", url: "https://www.spc.noaa.gov/products/exper/day4-8/day5prob.nolyr.geojson" }, { id: "spc-day6-prob", url: "https://www.spc.noaa.gov/products/exper/day4-8/day6prob.nolyr.geojson" }, { id: "spc-day7-prob", url: "https://www.spc.noaa.gov/products/exper/day4-8/day7prob.nolyr.geojson" }, { id: "spc-day8-prob", url: "https://www.spc.noaa.gov/products/exper/day4-8/day8prob.nolyr.geojson" }
             ];
-
             function getAlertColor(props) {
                 const event = props.event, params = props.parameters || {};
                 if (event === "Tornado Warning") { const threat = params.tornadoDamageThreat?.[0]; if (threat === "CATASTROPHIC") return "#E066FF"; if (threat === "CONSIDERABLE") return "#FF66CC"; return "#FF0000"; }
@@ -3081,7 +3066,6 @@
             }
             function isValidAlert(feature) { const props = feature.properties; if (!props) return false; if (props.parameters && props.parameters.VTEC && props.parameters.VTEC[0] && props.parameters.VTEC[0].startsWith("/O.CAN.")) return false; return true; }
             function formatThreatValue(value) { if (!value || typeof value !== "string") return ""; const cleanedValue = value.toUpperCase() === "N/A" ? "" : value; if (!cleanedValue) return ""; return cleanedValue.toLowerCase().split(" ").map((word) => word.charAt(0).toUpperCase() + word.slice(1)).join(" "); }
-
             let activeFlashTimeouts = [];
             function flashAlertOnMap(feature, duration = 7500) {
                 if (!feature || !feature.geometry) return;
@@ -3153,14 +3137,12 @@
                 if (nextItem.type !== "spcOutlook" && hiddenAlertTypes.has(nextItem.feature.properties.event)) { alertQueue.shift(); displayNextAlert(); return; }
                 isDisplayingAlert = true;
                 const { feature, type } = alertQueue.shift();
-                
                 if (type !== "spcOutlook") flashAlertOnMap(feature, 7500);
                 createAndShowAlertPopup(feature, "new");
-
                 const eventType = feature.properties.event;
-                if (alertSoundsMap[eventType] && alertSoundsMap[eventType] !== "none") {
-                    const audio = new Audio(alertSoundsMap[eventType]);
-                    audio.play().catch(() => {});
+                const soundUrl = alertSoundsMap[eventType];
+                if (soundUrl && soundUrl !== "none") {
+                    playAlertSound(soundUrl, eventType);
                 }
             }
             function addNewAlertToQueue(feature, type, isSilent = false) {
@@ -3168,7 +3150,6 @@
                 if (!knownAlertIds.has(id)) { knownAlertIds.add(id); if (isNew) newAlertIds.add(id); if (isUpdate) updatedAlertIds.add(id); if (!isInitialLoad && !isSilent && alertsEnabled) { const score = getAlertPriorityScore(feature); feature.properties.priorityScore = score; alertQueue.push({ feature, type, score }); alertQueue.sort((a, b) => a.score - b.score); } }
                 else if (isUpdate && !updatedAlertIds.has(id)) { updatedAlertIds.add(id); newAlertIds.delete(id); if (!isInitialLoad && !isSilent && alertsEnabled) { const score = getAlertPriorityScore(feature); feature.properties.priorityScore = score; alertQueue.push({ feature, type, score }); alertQueue.sort((a, b) => a.score - b.score); } }
             }
-
             async function refreshNwsAlerts(isSilent = false) {
                 if (!alertsEnabled) return;
                 try {
@@ -3181,7 +3162,6 @@
                     if (isInitialLoad) isInitialLoad = false; displayNextAlert(); updateGreenStatusIndicators(); if (window.renderAlertsSidebar) window.renderAlertsSidebar();
                 } catch (e) {}
             }
-
             async function processRawAlertFeatures(raw, filterType, isSilent = false) {
                 if (!alertsEnabled) return;
                 const valid = raw.filter(isValidAlert), poly = [], zone = [];
@@ -3193,7 +3173,6 @@
                 if (filterType === "polygon") { poly.forEach((f) => { f.properties.priorityScore = getAlertPriorityScore(f); }); if (map.getSource("alerts-poly")) map.getSource("alerts-poly").setData({ type: "FeatureCollection", features: poly }); globalPolyAlerts = poly; poly.forEach((f) => addNewAlertToQueue(f, "alert", isSilent)); }
                 else if (filterType === "zone" && zoneAlertsEnabled) await processZoneAlerts(zone, isSilent);
             }
-
             async function fetchIemMdFeatures() {
                 try {
                     const res = await fetch("https://mesonet.agron.iastate.edu/api/1/nws/spc_mcd.geojson"), data = await res.json();
@@ -3203,7 +3182,6 @@
                     });
                 } catch (e) { return []; }
             }
-
             async function fetchIemWatchFeatures() {
                 try {
                     const res = await fetch("https://mesonet.agron.iastate.edu/api/1/spc_watch_outline.geojson"), data = await res.json();
@@ -3214,7 +3192,6 @@
                     });
                 } catch (e) { return []; }
             }
-
             async function updatePlacefileAlerts(isSilent = false) {
                 if (!alertsEnabled) return;
                 const mdFeatures = await fetchIemMdFeatures(), watchFeatures = (!zoneAlertsEnabled && alertsEnabled) ? await fetchIemWatchFeatures() : [];
@@ -3226,7 +3203,6 @@
                 else { if (map.getSource("alerts-poly-watch")) map.getSource("alerts-poly-watch").setData({ type: "FeatureCollection", features: [] }); globalPolyWatchAlerts = []; }
                 displayNextAlert(); if (window.renderAlertsSidebar) window.renderAlertsSidebar();
             }
-
             function handleDebugUpload(e) {
                 const file = e.target.files[0]; if (!file) return;
                 const reader = new FileReader(); reader.onload = async (ev) => {
@@ -3241,7 +3217,6 @@
             }
             function removeSingleSiteLayer() { if (map.getLayer(layerIds.singleSiteRadar)) map.removeLayer(layerIds.singleSiteRadar); if (map.getSource("single-site-radar-source")) map.removeSource("single-site-radar-source"); document.getElementById("radar-info-pill").style.display = "none"; }
             function closeAllPopups() { document.querySelectorAll(".maplibregl-popup").forEach((p) => p.remove()); currentMapPopup = null; currentStackedAlertsOnMap = []; currentStackedAlertIndex = 0; if (window.closeFullAlertPopup) window.closeFullAlertPopup(); }
-
             function toggleRadarProduct(stationId, productCode) {
                 removeSingleSiteLayer();
                 if (activeSiteIdForData === stationId && activeRadarProductCode === productCode) { activeRadarProductCode = activeSiteIdForData = null; map.setPaintProperty(layerIds.radarSites, "circle-color", radarSiteDefaultColor); }
@@ -3259,7 +3234,6 @@
                 }
                 updateMosaicVisibility(); if (window.saveCurrentState) window.saveCurrentState();
             }
-
             async function processZoneAlerts(features, isSilent = false) {
                 if (!zoneAlertsEnabled || !alertsEnabled) return;
                 const tasks = features.flatMap((f) => (f.properties.affectedZones || []).map((url) => ({ url, parentFeature: f })));
@@ -3270,7 +3244,6 @@
                 features.forEach((f) => { const geoms = featureGeometryMap.get(f.properties.id); if (geoms && geoms.length > 0) { const feature = { type: "Feature", geometry: { type: "MultiPolygon", coordinates: geoms }, properties: { ...f.properties, geometryType: "zone" } }; feature.properties.priorityScore = getAlertPriorityScore(feature); resolvedFeatures.push(feature); addNewAlertToQueue(feature, "alert", isSilent); } });
                 if (map.getSource("alerts-zone")) map.getSource("alerts-zone").setData({ type: "FeatureCollection", features: resolvedFeatures }); globalZoneAlerts = resolvedFeatures;
             }
-
             async function checkRadarStatus(prefetchedData) {
                 try {
                     const bulk = prefetchedData || await (async () => { const res = await fetch(`https://api.weather.gov/radar/stations?stationType=WSR-88D,TDWR`); if (!res.ok) throw new Error(); return res.json(); })();
@@ -3280,7 +3253,6 @@
                     if (changed && map.getSource("radar-sites")) { map.getSource("radar-sites").setData({ type: "FeatureCollection", features: allRadarSitesData }); }
                 } catch (e) {}
             }
-
             async function fetchSpcOutlookText(day) {
                 let url = parseInt(day) >= 4 ? "https://www.spc.noaa.gov/products/exper/day4-8/index.html" : `https://www.spc.noaa.gov/products/outlook/day${day}otlk.html`;
                 try { const res = await fetch(`https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`), text = await res.text(), pre = new DOMParser().parseFromString(text, "text/html").querySelector("pre"); return pre ? pre.textContent : "Not found."; }
@@ -3302,7 +3274,6 @@
                     } 
                 } catch (e) { if (e.name !== 'AbortError') console.error(e); }
             }
-
             window.radarLoopMinutes = 30;
             (function() {
                 const IEM_REL_MAP = { 5: "nexrad-n0q-900913-m05m", 10: "nexrad-n0q-900913-m10m", 15: "nexrad-n0q-900913-m15m", 20: "nexrad-n0q-900913-m20m", 25: "nexrad-n0q-900913-m25m", 30: "nexrad-n0q-900913-m30m", 35: "nexrad-n0q-900913-m35m", 40: "nexrad-n0q-900913-m40m", 45: "nexrad-n0q-900913-m45m", 50: "nexrad-n0q-900913-m50m" };
@@ -3358,7 +3329,6 @@
                 }
                 document.addEventListener("keydown", (e) => { const tag = document.activeElement && document.activeElement.tagName; if (tag === "INPUT" || tag === "TEXTAREA") return; if (!isAnyRadarVisible()) return; if (e.code === "Space") { e.preventDefault(); loopActive ? stopLoop() : startLoop(); } else if (e.key === "," || e.key === ".") { e.preventDefault(); stepFrame(e.key === "," ? -1 : +1); } });
             })();
-
             const spcCatOrder = ["HIGH", "MDT", "ENH", "SLGT", "MRGL", "TSTM"];
             const spcIssueSnapshots = {};
             function getHighestSpcCatFeature(features) {
@@ -3386,7 +3356,6 @@
                 }));
                 renderSpcOutlookPanel();
             }
-
             async function setupMapData() {
                 let symbolId; for (const l of map.getStyle().layers) { if (l.type === "symbol") { symbolId = l.id; break; } }
                 spcSources.forEach((s) => { if (!map.getSource(s.id)) map.addSource(s.id, { type: "geojson", data: { type: "FeatureCollection", features: [] } }); });
@@ -3419,12 +3388,10 @@
                 const sitesToggle = document.getElementById("radar-sites-toggle");
                 if (!map.getLayer(layerIds.radarSites)) map.addLayer({ id: layerIds.radarSites, type: "circle", source: "radar-sites", paint: { "circle-radius": 4, "circle-stroke-color": "white", "circle-stroke-width": 1.5, "circle-color": radarSiteDefaultColor }, layout: { visibility: sitesToggle ? (sitesToggle.checked ? "visible" : "none") : "visible" } });
             }
-
             function mosaicVisible() {
                 const radarToggle = document.getElementById("radar-toggle");
                 return radarToggle ? (radarToggle.checked ? "visible" : "none") : "visible";
             }
-
             async function toggleAllAlerts() {
                 alertsEnabled = !alertsEnabled; updateGreenStatusIndicators(); if (window.saveCurrentState) window.saveCurrentState();
                 if (alertsEnabled) { showToast("Alerts: On"); await refreshNwsAlerts(true); await updatePlacefileAlerts(true); }
@@ -3432,10 +3399,18 @@
                 const v = alertsEnabled ? "visible" : "none"; [layerIds.alertsZone, layerIds.alertsZoneBorder, layerIds.alertsPolygon, layerIds.alertsPolygonBorder, layerIds.alertsMd, layerIds.alertsMdBorder, layerIds.alertsPolyWatch, layerIds.alertsPolyWatchBorder].forEach((l) => { if (map.getLayer(l)) map.setLayoutProperty(l, "visibility", v); });
                 updateGreenStatusIndicators(); if (window.renderAlertsSidebar) window.renderAlertsSidebar();
             }
-
             async function geocodeAndPlaceMarker() {
                 const loc = urlParams.get("l"); if (!loc) return;
-                try { const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(loc.replace(/-/g, " "))}&format=json&limit=1`), data = await res.json(); if (data.length > 0) { const lon = parseFloat(data[0].lon), lat = parseFloat(data[0].lat); new maplibregl.Marker({ color: "#FFC300", scale: 0.6 }).setLngLat([lon, lat]).addTo(map); map.flyTo({ center: [lon, lat], zoom: 7, essential: true }); } }
+                try { 
+                    const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(loc.replace(/-/g, " "))}&format=json&limit=1`), data = await res.json(); 
+                    if (data.length > 0) { 
+                        const lon = parseFloat(data[0].lon), lat = parseFloat(data[0].lat); 
+                        locationSearchMarker = new maplibregl.Marker({ color: "#FFC300", scale: 0.6 }).setLngLat([lon, lat]).addTo(map); 
+                        const searchFab = document.getElementById("fab-search-btn");
+                        if (searchFab) searchFab.classList.add("status-on");
+                        map.flyTo({ center: [lon, lat], zoom: 7, essential: true }); 
+                    } 
+                }
                 catch (e) {}
             }
             function formatSpcLabel(val) { if (!val) return "N/A"; if (!isNaN(val)) return parseFloat(val) < 1 ? parseFloat(val) * 100 + "%" : val + "%"; const m = { TSTM: "General Thunderstorms", MRGL: "Marginal", SLGT: "Slight", ENH: "Enhanced", MDT: "Moderate", HIGH: "High" }; return m[val.toUpperCase()] || val; }
@@ -3468,14 +3443,12 @@
             async function showFullAlertTextPopup(f) {
                 const props = f.properties, params = props.parameters || {}, popup = document.getElementById("full-alert-text-popup"), titleEl = document.getElementById("full-alert-text-popup-title-text"), contentEl = document.getElementById("full-alert-text-content");
                 if (window.closeSettings) window.closeSettings(); if (window.closeAlertSettings) window.closeAlertSettings(); if (window.closeSidebar) window.closeSidebar(); if (window.closeHiddenAlertsPanel) window.closeHiddenAlertsPanel(); if (window.closeAlertSoundsPanel) window.closeAlertSoundsPanel(); if (window.closeLocationSearch) window.closeLocationSearch(); if (window.closeSpcOutlookPanel) window.closeSpcOutlookPanel();
-                
                 const sentD = parseApiDate(props.sent);
                 const expireD = parseApiDate(props.expires);
                 const sentStr = props.sent ? `<div class="full-alert-meta-row"><strong>Sent:</strong> ${formatDateFull(sentD, getEffectiveTz())}</div>` : "";
                 const expiresStr = props.expires ? `<div class="full-alert-meta-row"><strong>Expires:</strong> ${formatDateFull(expireD, getEffectiveTz())}</div>` : "";
                 const areaStr = props.areaDesc ? `<div class="full-alert-meta-row"><strong>Affected:</strong> ${props.areaDesc}</div>` : "";
                 const metaHTML = `${sentStr}${expiresStr}${areaStr}<div class="full-alert-section-label" style="padding-top:10px;">Description</div>`;
-
                 if (props.url && typeof props.url === "string" && props.id && (props.id.startsWith("md") || props.id.startsWith("ww"))) {
                     let validatedUrl = null; try { validatedUrl = new URL(props.url).href; } catch (e) {}
                     if (titleEl) titleEl.textContent = props.specificEventName;
@@ -3507,7 +3480,6 @@
                 else if (contentEl) contentEl.innerHTML = `<div class="full-alert-section-label">Description</div><p>${formatNwsText(text)}</p>`;
             }
             function handleOutlookShortcut(day) { const types = outlookTypes[day]; if (!types) return; let next = activeSpcDay === day ? types[(types.indexOf(activeSpcType) + 1) % types.length] : types[0]; activeSpcDay = day; activeSpcType = next; updateSpcLayerVisibility(); if (window.saveCurrentState) window.saveCurrentState(); showToast(`Outlook: Day ${day} ${typeLabels[next]}`); updateGreenStatusIndicators(); updateSpcOutlookPanelState(); }
-
             map.on("load", async () => {
                 let willFlyToRadar = false; await PersistentCache.init(); await setupMapData();
                 if (window.applyMapAlertFilters) applyMapAlertFilters(); updateSpcLayerVisibility(); updateSpcOutlooks(); geocodeAndPlaceMarker(); checkRadarStatus(setupMapData._initialRadarData);
@@ -3526,7 +3498,6 @@
                     if (nearest) { const id = nearest.properties.id.toLowerCase(), type = nearest.properties.stationType; let prod = activeRadarProductCode ? activeRadarProductCode.includes("vel") ? (type === "TDWR" ? "bvel" : "sr_bvel") : activeRadarProductCode === "brefl" ? (type === "TDWR" ? "brefl" : "sr_bref") : (type === "TDWR" ? "bref1" : "sr_bref") : (type === "TDWR" ? "bref1" : "sr_bref"); if (flyToRadarSetting) { map.flyTo({ center: nearest.geometry.coordinates, zoom: 7, essential: true }); if (activeSiteIdForData !== id) toggleRadarProduct(id, prod); } else toggleRadarProduct(id, prod); }
                 });
             });
-
             map.on("click", (e) => {
                 if (currentMapPopup) { closeAllPopups(); return; }
                 const features = map.queryRenderedFeatures(e.point, { layers: [layerIds.radarSites, layerIds.alertsZone, layerIds.alertsPolygon, layerIds.alertsMd, layerIds.alertsPolyWatch, ...allSpcLayerIds] });
@@ -3545,7 +3516,6 @@
                 if (e.code === "KeyU") { if (debugModeEnabled) { const dbgIn = document.getElementById("debug-file-input"); if (dbgIn) dbgIn.click(); showToast("Upload Debug File"); } return; }
                 if (e.code === "KeyA") { toggleAllAlerts(); return; }
                 if (e.code === "Backspace") { localStorage.clear(); document.cookie.split(";").forEach(c => document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/")); showToast("App Reset"); setTimeout(() => location.reload(), 600); return; }
-                
                 if (e.code === "KeyM") {
                     const radarToggle = document.getElementById("radar-toggle");
                     if (radarToggle) {
@@ -3569,21 +3539,27 @@
                     toggleMyLocation(!myLocationEnabled);
                     return;
                 }
-                
                 if (e.code === "KeyZ") { zoneAlertsEnabled = !zoneAlertsEnabled; const toggleUI = document.getElementById("zone-alerts-settings-toggle-ui"); if (toggleUI) toggleUI.classList.toggle("active"); if (zoneAlertsEnabled && alertsEnabled) { showToast("Zone Alerts: On"); if (map.getSource("alerts-poly-watch")) map.getSource("alerts-poly-watch").setData({ type: "FeatureCollection", features: [] }); globalPolyWatchAlerts = []; refreshNwsAlerts(true); } else if (!zoneAlertsEnabled) { showToast("Zone Alerts: Off"); if (map.getSource("alerts-zone")) map.getSource("alerts-zone").setData({ type: "FeatureCollection", features: [] }); globalZoneAlerts = []; if (alertsEnabled) { refreshNwsAlerts(true); updatePlacefileAlerts(true); } } }
                 else if (e.code === "Backquote") { activeSpcDay = activeSpcType = "none"; updateSpcLayerVisibility(); if (window.saveCurrentState) window.saveCurrentState(); showToast("Outlook: Off"); updateGreenStatusIndicators(); }
                 else if (e.code.startsWith("Digit")) handleOutlookShortcut(e.code.slice(5));
-                
                 if (activeSiteIdForData) { 
                     const s = allRadarSitesData.find((site) => site.properties.id.toLowerCase() === activeSiteIdForData); 
                     if (s) {
-                        let p = e.code === "KeyR" ? (s.properties.stationType === "TDWR" ? "bref1" : "sr_bref") : e.code === "KeyV" ? (s.properties.stationType === "TDWR" ? "bvel" : "sr_bvel") : null; 
+                        let p = null;
+                        if (e.code === "KeyR") {
+                            if (s.properties.stationType === "TDWR") {
+                                p = activeRadarProductCode === "bref1" ? "brefl" : "bref1";
+                            } else {
+                                p = "sr_bref";
+                            }
+                        } else if (e.code === "KeyV") {
+                            p = (s.properties.stationType === "TDWR" ? "bvel" : "sr_bvel");
+                        }
                         if (p && p !== activeRadarProductCode) toggleRadarProduct(activeSiteIdForData, p); 
                     }
                 }
             });
             document.addEventListener("contextmenu", (e) => e.preventDefault());
-
             (function () {
                 const sidebarBtn = document.getElementById("fab-alerts"), sidebar = document.getElementById("alerts-sidebar"), closeBtn = document.getElementById("alerts-sidebar-close"), listEl = document.getElementById("alerts-sidebar-list"), emptyEl = document.getElementById("alerts-sidebar-empty"), countEl = document.getElementById("alerts-sidebar-count");
                 function openSidebar() { if (window.closeSettings) window.closeSettings(); if (window.closeAlertSettings) window.closeAlertSettings(); if (window.closeHiddenAlertsPanel) window.closeHiddenAlertsPanel(); if (window.closeAlertSoundsPanel) window.closeAlertSoundsPanel(); if (window.closeLocationSearch) window.closeLocationSearch(); if (window.closeSpcOutlookPanel) window.closeSpcOutlookPanel(); if (window.closeFullAlertPopup) window.closeFullAlertPopup(); if (sidebar) sidebar.classList.add("open"); if (sidebarBtn) sidebarBtn.classList.add("active"); if (listEl) listEl.scrollTop = 0; renderSidebar(); }
@@ -3596,15 +3572,32 @@
                 const sidebarTgl = document.getElementById("alerts-sidebar-toggle");
                 if (sidebarTgl) sidebarTgl.addEventListener("click", () => { toggleAllAlerts(); }); 
                 document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeSidebar(); });
-                function getAllActiveAlerts() { const all = [...globalPolyAlerts, ...globalZoneAlerts, ...(mesoDiscussionsEnabled ? globalMdAlerts : []), ...globalPolyWatchAlerts], seen = new Set(); const unique = all.filter((f) => { const id = f.properties.id; if (seen.has(id)) return false; seen.add(id); return true; }); unique.sort((a, b) => getAlertPriorityScore(a) - getAlertPriorityScore(b)); return unique; }
-                
+                function getAllActiveAlerts() { 
+                    const all = [...globalPolyAlerts, ...globalZoneAlerts, ...(mesoDiscussionsEnabled ? globalMdAlerts : []), ...globalPolyWatchAlerts], seen = new Set(); 
+                    const unique = all.filter((f) => { const id = f.properties.id; if (seen.has(id)) return false; seen.add(id); return true; }); 
+                    unique.sort((a, b) => {
+                        const scoreA = getAlertPriorityScore(a);
+                        const scoreB = getAlertPriorityScore(b);
+                        if (scoreA !== scoreB) return scoreA - scoreB;
+                        const timeA = a.properties.sent ? new Date(a.properties.sent).getTime() : 0;
+                        const timeB = b.properties.sent ? new Date(b.properties.sent).getTime() : 0;
+                        return timeB - timeA;
+                    }); 
+                    return unique; 
+                }
                 function renderSidebar() {
                     const alerts = getAllActiveAlerts(), count = alerts.length; if (countEl) countEl.textContent = count > 0 ? `(${count})` : "";
                     const searchQuery = (document.getElementById("alerts-sidebar-search")?.value || "").toLowerCase().trim();
                     const openGroups = new Set(); if (listEl) Array.from(listEl.querySelectorAll(".sidebar-alert-group.open")).forEach((g) => { openGroups.add(g.dataset.eventType); });
                     if (listEl) Array.from(listEl.children).forEach((c) => { if (c.id !== "alerts-sidebar-empty") c.remove(); });
                     if (count === 0) { const icon = document.getElementById("alerts-sidebar-empty-icon"), text = document.getElementById("alerts-sidebar-empty-text"); if (!alertsEnabled) { if (icon) icon.textContent = "notifications_off"; if (text) text.textContent = "Alerts are off"; } else if (isInitialLoad) { if (icon) icon.textContent = "hourglass_empty"; if (text) text.textContent = "Loading alerts..."; } else { if (icon) icon.textContent = "check_circle"; if (text) text.textContent = "No active alerts"; } if (emptyEl) emptyEl.style.display = "flex"; return; }
-                    if (emptyEl) emptyEl.style.display = "none"; const groups = new Map(); alerts.forEach((feature) => { const evt = feature.properties.event || "Alert", key = evt.startsWith("Mesoscale Discussion") ? "Mesoscale Discussion" : evt; if (!groups.has(key)) groups.set(key, []); groups.get(key).push(feature); });
+                    if (emptyEl) emptyEl.style.display = "none"; 
+                    const groups = new Map(); 
+                    alerts.forEach((feature) => { 
+                        const evt = feature.properties.event || "Alert", key = evt.startsWith("Mesoscale Discussion") ? "Mesoscale Discussion" : evt; 
+                        if (!groups.has(key)) groups.set(key, []); 
+                        groups.get(key).push(feature); 
+                    });
                     groups.forEach((groupAlerts, eventType) => {
                         if (searchQuery && !eventType.toLowerCase().includes(searchQuery)) return;
                         const color = groupAlerts[0].properties.displayColor || "#808080", group = document.createElement("div"); group.className = "sidebar-alert-group"; group.dataset.eventType = eventType;
