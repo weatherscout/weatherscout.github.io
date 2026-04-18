@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- WeatherScout App v1.6.6 (Apr 14, 2026) -->
+<!-- WeatherScout App v1.7.0 (Apr 17, 2026) -->
 <!-- https://weatherscout.github.io/app -->
 <html>
     <head>
@@ -1559,12 +1559,12 @@
                 <button class="settings-row" id="settings-open-alerts-btn">
                     <i class="material-symbols-rounded">warning</i>
                     <div class="settings-row-label">Alert Settings</div>
-                    <i class="material-symbols-rounded" style="font-size:18px;color:#ffffff61;">open_in_new</i>
+                    <i class="material-symbols-rounded" style="font-size:18px;color:#ffffff61;">chevron_right</i>
                 </button>
                 <button class="settings-row" id="settings-open-radar-btn">
                     <i class="material-symbols-rounded">radar</i>
                     <div class="settings-row-label">Radar Settings</div>
-                    <i class="material-symbols-rounded" style="font-size:18px;color:#ffffff61;">open_in_new</i>
+                    <i class="material-symbols-rounded" style="font-size:18px;color:#ffffff61;">chevron_right</i>
                 </button>
                 <div class="settings-divider"></div>
                 <div class="settings-section-label">Time</div>
@@ -1621,7 +1621,7 @@
                     Alert Settings
                 </div>
                 <div style="display:flex;gap:6px;align-items:center;">
-                    <button class="settings-close-btn" id="alert-settings-back-btn" aria-label="Back to Alerts">
+                    <button class="settings-close-btn" id="alert-settings-back-btn" aria-label="Back">
                         <i class="material-symbols-rounded">arrow_back</i>
                     </button>
                     <button class="settings-close-btn" id="alert-settings-close-btn" aria-label="Close alert settings">
@@ -1640,6 +1640,11 @@
                     <i class="material-symbols-rounded">comment</i>
                     <div class="settings-row-label">Mesoscale Discussions</div>
                     <div class="settings-toggle active" id="meso-discussions-settings-toggle-ui"></div>
+                </button>
+                <button class="settings-row" id="faster-updates-settings-btn">
+                    <i class="material-symbols-rounded">speed</i>
+                    <div class="settings-row-label">Faster Updates</div>
+                    <div class="settings-toggle" id="faster-updates-settings-toggle-ui"></div>
                 </button>
                 <button class="settings-row" id="hidden-alert-types-btn">
                     <i class="material-symbols-rounded">visibility_off</i>
@@ -1743,7 +1748,7 @@
                     Hidden Alerts
                 </div>
                 <div style="display:flex;gap:6px;align-items:center;">
-                    <button class="settings-close-btn" id="hidden-alerts-back-btn" aria-label="Back to Alert Settings">
+                    <button class="settings-close-btn" id="hidden-alerts-back-btn" aria-label="Back">
                         <i class="material-symbols-rounded">arrow_back</i>
                     </button>
                     <button class="settings-close-btn" id="hidden-alerts-close-btn" aria-label="Close">
@@ -1767,7 +1772,7 @@
                     Alert Sounds
                 </div>
                 <div style="display:flex;gap:6px;align-items:center;">
-                    <button class="settings-close-btn" id="alert-sounds-back-btn" aria-label="Back to Alert Settings">
+                    <button class="settings-close-btn" id="alert-sounds-back-btn" aria-label="Back">
                         <i class="material-symbols-rounded">arrow_back</i>
                     </button>
                     <button class="settings-close-btn" id="alert-sounds-close-btn" aria-label="Close">
@@ -1823,6 +1828,68 @@
                 { label: "Woosh 1", value: "https://raw.githubusercontent.com/weatherscout/weatherscout.github.io/main/app/audio/woosh1.mp3" },
                 { label: "Woosh 2", value: "https://raw.githubusercontent.com/weatherscout/weatherscout.github.io/main/app/audio/woosh2.mp3" }
             ];
+
+            let menuHistory = [];
+
+            function getCurrentOpenMenu() {
+                if (document.getElementById("settings-popup").classList.contains("open")) return "settings";
+                if (document.getElementById("alert-settings-popup").classList.contains("open")) return "alert-settings";
+                if (document.getElementById("radar-panel").classList.contains("open")) return "radar";
+                if (document.getElementById("radar-settings-popup").classList.contains("open")) return "radar-settings";
+                if (document.getElementById("hidden-alerts-panel").classList.contains("open")) return "hidden-alerts";
+                if (document.getElementById("alert-sounds-panel").classList.contains("open")) return "alert-sounds";
+                if (document.getElementById("location-search-panel").classList.contains("open")) return "search";
+                if (document.getElementById("spc-outlook-panel").classList.contains("open")) return "outlooks";
+                if (document.getElementById("alerts-sidebar").classList.contains("open")) return "alerts-sidebar";
+                return null;
+            }
+
+            function closeAllMenus() {
+                const menus = [
+                    "settings-popup", "alert-settings-popup", "radar-panel", 
+                    "radar-settings-popup", "hidden-alerts-panel", "alert-sounds-panel",
+                    "location-search-panel", "spc-outlook-panel", "alerts-sidebar"
+                ];
+                menus.forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) el.classList.remove("open");
+                });
+                const searchBtn = document.getElementById("fab-search-btn");
+                if (searchBtn) searchBtn.classList.remove("active");
+                const outlooksBtn = document.getElementById("fab-outlooks");
+                if (outlooksBtn) outlooksBtn.classList.remove("active");
+                const mosaicBtn = document.getElementById("fab-mosaic");
+                if (mosaicBtn) mosaicBtn.classList.remove("active");
+                const alertsBtn = document.getElementById("fab-alerts");
+                if (alertsBtn) alertsBtn.classList.remove("active");
+                const settingsBtn = document.getElementById("fab-settings");
+                if (settingsBtn) settingsBtn.classList.remove("active");
+                if (window.closeFullAlertPopup) window.closeFullAlertPopup();
+            }
+
+            function goBack() {
+                if (menuHistory.length > 0) {
+                    const prevMenu = menuHistory.pop();
+                    openMenuById(prevMenu, true);
+                } else {
+                    closeAllMenus();
+                }
+            }
+
+            function openMenuById(id, isBack = false) {
+                switch(id) {
+                    case "settings": openSettings(isBack); break;
+                    case "alert-settings": openAlertSettings(isBack); break;
+                    case "radar": openRadarPanel(isBack); break;
+                    case "radar-settings": openRadarSettingsFrom(null, isBack); break;
+                    case "hidden-alerts": openHiddenAlertsPanel(isBack); break;
+                    case "alert-sounds": openAlertSoundsPanel(isBack); break;
+                    case "search": openLocationSearch(isBack); break;
+                    case "outlooks": openSpcOutlookPanel(isBack); break;
+                    case "alerts-sidebar": openSidebar(isBack); break;
+                }
+            }
+
             async function preloadAllAudio() {
                 for (const option of AUDIO_OPTIONS) {
                     if (option.value === "none") continue;
@@ -2007,6 +2074,7 @@
             let flyToRadarSetting = false;
             let zoneAlertsEnabled = true;
             let mesoDiscussionsEnabled = true;
+            let fasterUpdatesEnabled = false;
             let alertsEnabled = true;
             let saveSettingsEnabled = false;
             let hiddenAlertTypes = new Set();
@@ -2252,6 +2320,8 @@
                 const zoneAlertsToggleUI = document.getElementById("zone-alerts-settings-toggle-ui");
                 const mesoDiscussionsBtn = document.getElementById("meso-discussions-settings-btn");
                 const mesoDiscussionsToggleUI = document.getElementById("meso-discussions-settings-toggle-ui");
+                const fasterUpdatesBtn = document.getElementById("faster-updates-settings-btn");
+                const fasterUpdatesToggleUI = document.getElementById("faster-updates-settings-toggle-ui");
                 const debugSettingsBtn = document.getElementById("debug-settings-btn");
                 const debugSettingsToggleUI = document.getElementById("debug-settings-toggle-ui");
                 const fabLocBtn = document.getElementById("fab-my-location");
@@ -2273,6 +2343,7 @@
                     flyToRadarSetting = localStorage.getItem("flyToRadar") === "true";
                     if (localStorage.getItem("zoneAlertsVisible") === "false") zoneAlertsEnabled = false;
                     if (localStorage.getItem("mesoDiscussionsVisible") === "false") mesoDiscussionsEnabled = false;
+                    if (localStorage.getItem("fasterUpdates") === "true") fasterUpdatesEnabled = true;
                     const savedHidden = localStorage.getItem("hiddenAlertTypes");
                     if (savedHidden) { try { hiddenAlertTypes = new Set(JSON.parse(savedHidden)); } catch(e) {} }
                     const savedSounds = localStorage.getItem("alertSoundsMap");
@@ -2325,6 +2396,8 @@
                             case "xal": alertsEnabled = false; break;
                             case "myl": myLocationEnabled = true; break;
                             case "xml": myLocationEnabled = false; break;
+                            case "fup": fasterUpdatesEnabled = true; break;
+                            case "xfu": fasterUpdatesEnabled = false; break;
                             default:
                                 if (flag.length === 5 && /^[rvl][a-z0-9]{4}$/i.test(flag)) {
                                     urlRadarRequest = { id: flag.substring(1).toUpperCase(), type: flag.charAt(0) };
@@ -2345,6 +2418,8 @@
                 else zoneAlertsToggleUI.classList.remove("active");
                 if (mesoDiscussionsEnabled) mesoDiscussionsToggleUI.classList.add("active");
                 else mesoDiscussionsToggleUI.classList.remove("active");
+                if (fasterUpdatesEnabled) fasterUpdatesToggleUI.classList.add("active");
+                else fasterUpdatesToggleUI.classList.remove("active");
                 if (myLocationEnabled) toggleMyLocation(true);
                 const hiddenCountEl = document.getElementById("hidden-alert-types-count");
                 if (hiddenCountEl && hiddenAlertTypes.size > 0) hiddenCountEl.textContent = hiddenAlertTypes.size;
@@ -2408,6 +2483,7 @@
                         localStorage.setItem("flyToRadar", flyToRadarSetting);
                         localStorage.setItem("zoneAlertsVisible", zoneAlertsEnabled);
                         localStorage.setItem("mesoDiscussionsVisible", mesoDiscussionsEnabled);
+                        localStorage.setItem("fasterUpdates", fasterUpdatesEnabled);
                         localStorage.setItem("hiddenAlertTypes", JSON.stringify([...hiddenAlertTypes]));
                         localStorage.setItem("alertSoundsMap", JSON.stringify(alertSoundsMap));
                         localStorage.setItem("debugMode", debugModeEnabled);
@@ -2496,7 +2572,7 @@
                         const rest = tz.slice(7);
                         if (!rest) return "UTC";
                         const etcSign = rest[0];
-                        const etcN = parseInt(rest.slice(1), 10);
+                        const etcN = parseInt(rest.slice(1), 2);
                         const utcSign = etcSign === "+" ? "-" : "+";
                         return "UTC" + utcSign + etcN;
                     }
@@ -2613,6 +2689,13 @@
                     if (mesoDiscussionsEnabled) { showToast("Mesoscale Discussions: On"); if (alertsEnabled) updatePlacefileAlerts(true); }
                     else { showToast("Mesoscale Discussions: Off"); if (map.getSource("alerts-md")) map.getSource("alerts-md").setData({ type: "FeatureCollection", features: [] }); globalMdAlerts = []; if (window.renderAlertsSidebar) window.renderAlertsSidebar(); }
                 });
+                fasterUpdatesBtn.addEventListener("click", () => {
+                    fasterUpdatesEnabled = !fasterUpdatesEnabled;
+                    fasterUpdatesToggleUI.classList.toggle("active");
+                    saveCurrentState();
+                    if (window.startAlertIntervals) window.startAlertIntervals();
+                    showToast(`Faster Updates: ${fasterUpdatesEnabled ? "On" : "Off"}`);
+                });
                 const fabMenuBtn = document.getElementById("fab-menu-btn");
                 const fabOutlooks = document.getElementById("fab-outlooks");
                 const fabMosaic = document.getElementById("fab-mosaic");
@@ -2621,15 +2704,10 @@
                 const settingsPopup = document.getElementById("settings-popup");
                 const settingsCloseBtn = document.getElementById("settings-close-btn");
                 const pillInfoBtn = document.getElementById("pill-info-btn");
-                function openSettings() {
-                    if (window.closeSidebar) window.closeSidebar();
-                    closeAlertSettings();
-                    if (window.closeRadarPanel) window.closeRadarPanel();
-                    if (window.closeHiddenAlertsPanel) window.closeHiddenAlertsPanel();
-                    if (window.closeAlertSoundsPanel) window.closeAlertSoundsPanel();
-                    if (window.closeLocationSearch) window.closeLocationSearch();
-                    if (window.closeSpcOutlookPanel) window.closeSpcOutlookPanel();
-                    if (window.closeFullAlertPopup) window.closeFullAlertPopup();
+                
+                function openSettings(isBack = false) {
+                    if (!isBack) menuHistory = [];
+                    closeAllMenus();
                     settingsPopup.classList.add("open");
                     settingsPopup.querySelector(".settings-body").scrollTop = 0;
                     fabSettings.classList.add("active");
@@ -2638,21 +2716,15 @@
                 function closeSettings() { settingsPopup.classList.remove("open"); if (fabSettings) fabSettings.classList.remove("active"); }
                 window.closeSettings = closeSettings;
                 if (settingsCloseBtn) settingsCloseBtn.addEventListener("click", closeSettings);
-                document.getElementById("settings-open-alerts-btn").addEventListener("click", () => { openAlertSettings("settings"); });
-                document.getElementById("settings-open-radar-btn").addEventListener("click", () => { openRadarSettingsFrom("settings"); });
+                document.getElementById("settings-open-alerts-btn").addEventListener("click", () => { openAlertSettings(); });
+                document.getElementById("settings-open-radar-btn").addEventListener("click", () => { openRadarSettingsFrom(); });
+
                 const alertSettingsPopup = document.getElementById("alert-settings-popup");
                 const alertSettingsCloseBtn = document.getElementById("alert-settings-close-btn");
-                let alertSettingsOpener = "sidebar"; 
-                function openAlertSettings(opener) {
-                    alertSettingsOpener = opener || "sidebar";
-                    if (window.closeSidebar) window.closeSidebar();
-                    closeSettings();
-                    if (window.closeRadarPanel) window.closeRadarPanel();
-                    if (window.closeHiddenAlertsPanel) window.closeHiddenAlertsPanel();
-                    if (window.closeAlertSoundsPanel) window.closeAlertSoundsPanel();
-                    if (window.closeLocationSearch) window.closeLocationSearch();
-                    if (window.closeSpcOutlookPanel) window.closeSpcOutlookPanel();
-                    if (window.closeFullAlertPopup) window.closeFullAlertPopup();
+                
+                function openAlertSettings(isBack = false) {
+                    if (!isBack) { const curr = getCurrentOpenMenu(); if (curr) menuHistory.push(curr); }
+                    closeAllMenus();
                     if (alertSettingsPopup) {
                         alertSettingsPopup.classList.add("open");
                         alertSettingsPopup.querySelector(".settings-body").scrollTop = 0;
@@ -2662,11 +2734,8 @@
                 function closeAlertSettings() { if (alertSettingsPopup) alertSettingsPopup.classList.remove("open"); }
                 window.closeAlertSettings = closeAlertSettings;
                 if (alertSettingsCloseBtn) alertSettingsCloseBtn.addEventListener("click", closeAlertSettings);
-                document.getElementById("alert-settings-back-btn").addEventListener("click", () => {
-                    closeAlertSettings();
-                    if (alertSettingsOpener === "settings") openSettings();
-                    else if (window.openSidebar) window.openSidebar();
-                });
+                document.getElementById("alert-settings-back-btn").addEventListener("click", goBack);
+
                 function applyMapAlertFilters() {
                     const hiddenArr = [...hiddenAlertTypes];
                     const polyFilter = hiddenArr.length > 0 ? ["all", ["==", "geometryType", "polygon"], ["!in", "event", ...hiddenArr]] : ["==", "geometryType", "polygon"];
@@ -2729,13 +2798,9 @@
                     });
                     updateHiddenAlertsCountLabel();
                 }
-                function openHiddenAlertsPanel() {
-                    if (window.closeSidebar) window.closeSidebar();
-                    closeSettings(); closeAlertSettings();
-                    if (window.closeLocationSearch) window.closeLocationSearch();
-                    if (window.closeSpcOutlookPanel) window.closeSpcOutlookPanel();
-                    if (window.closeAlertSoundsPanel) window.closeAlertSoundsPanel();
-                    if (window.closeFullAlertPopup) window.closeFullAlertPopup();
+                function openHiddenAlertsPanel(isBack = false) {
+                    if (!isBack) { const curr = getCurrentOpenMenu(); if (curr) menuHistory.push(curr); }
+                    closeAllMenus();
                     if (hiddenAlertsSearch) hiddenAlertsSearch.value = ""; 
                     renderHiddenAlertsList("");
                     if (hiddenAlertsPanel) {
@@ -2744,14 +2809,16 @@
                         if (lst) lst.scrollTop = 0;
                     }
                 }
+                window.openHiddenAlertsPanel = openHiddenAlertsPanel;
                 function closeHiddenAlertsPanel() { if (hiddenAlertsPanel) hiddenAlertsPanel.classList.remove("open"); }
                 window.closeHiddenAlertsPanel = closeHiddenAlertsPanel;
-                if (hiddenAlertsBackBtn) hiddenAlertsBackBtn.addEventListener("click", () => { closeHiddenAlertsPanel(); openAlertSettings(); });
+                if (hiddenAlertsBackBtn) hiddenAlertsBackBtn.addEventListener("click", goBack);
                 if (hiddenAlertsCloseBtn) hiddenAlertsCloseBtn.addEventListener("click", closeHiddenAlertsPanel);
                 if (hiddenAlertsSearch) hiddenAlertsSearch.addEventListener("input", () => renderHiddenAlertsList(hiddenAlertsSearch.value));
                 if (hiddenAlertsResetBtn) hiddenAlertsResetBtn.addEventListener("click", () => { hiddenAlertTypes.clear(); applyMapAlertFilters(); saveCurrentState(); renderHiddenAlertsList(hiddenAlertsSearch.value); showToast("All alert types visible"); });
                 const hiddenAlertsTrigger = document.getElementById("hidden-alert-types-btn");
-                if (hiddenAlertsTrigger) hiddenAlertsTrigger.addEventListener("click", openHiddenAlertsPanel);
+                if (hiddenAlertsTrigger) hiddenAlertsTrigger.addEventListener("click", () => openHiddenAlertsPanel());
+
                 const alertSoundsPanel = document.getElementById("alert-sounds-panel");
                 const alertSoundsBackBtn = document.getElementById("alert-sounds-back-btn");
                 const alertSoundsCloseBtn = document.getElementById("alert-sounds-close-btn");
@@ -2816,13 +2883,9 @@
                     });
                     updateAlertSoundsCountLabel();
                 }
-                function openAlertSoundsPanel() {
-                    if (window.closeSidebar) window.closeSidebar();
-                    closeSettings(); closeAlertSettings();
-                    if (window.closeLocationSearch) window.closeLocationSearch();
-                    if (window.closeSpcOutlookPanel) window.closeSpcOutlookPanel();
-                    if (window.closeHiddenAlertsPanel) window.closeHiddenAlertsPanel();
-                    if (window.closeFullAlertPopup) window.closeFullAlertPopup();
+                function openAlertSoundsPanel(isBack = false) {
+                    if (!isBack) { const curr = getCurrentOpenMenu(); if (curr) menuHistory.push(curr); }
+                    closeAllMenus();
                     if (alertSoundsSearch) alertSoundsSearch.value = ""; 
                     renderAlertSoundsList("");
                     if (alertSoundsPanel) {
@@ -2831,9 +2894,10 @@
                         if (lst) lst.scrollTop = 0;
                     }
                 }
+                window.openAlertSoundsPanel = openAlertSoundsPanel;
                 function closeAlertSoundsPanel() { if (alertSoundsPanel) alertSoundsPanel.classList.remove("open"); }
                 window.closeAlertSoundsPanel = closeAlertSoundsPanel;
-                if (alertSoundsBackBtn) alertSoundsBackBtn.addEventListener("click", () => { closeAlertSoundsPanel(); openAlertSettings(); });
+                if (alertSoundsBackBtn) alertSoundsBackBtn.addEventListener("click", goBack);
                 if (alertSoundsCloseBtn) alertSoundsCloseBtn.addEventListener("click", closeAlertSoundsPanel);
                 if (alertSoundsSearch) alertSoundsSearch.addEventListener("input", () => renderAlertSoundsList(alertSoundsSearch.value));
                 if (alertSoundsResetBtn) alertSoundsResetBtn.addEventListener("click", () => { 
@@ -2843,20 +2907,16 @@
                     showToast("Alert sounds reset to None"); 
                 });
                 const alertSoundsTrigger = document.getElementById("alert-sounds-btn");
-                if (alertSoundsTrigger) alertSoundsTrigger.addEventListener("click", openAlertSoundsPanel);
+                if (alertSoundsTrigger) alertSoundsTrigger.addEventListener("click", () => openAlertSoundsPanel());
+
                 const locationSearchPanel = document.getElementById("location-search-panel");
                 const locationSearchInput = document.getElementById("location-search-input");
                 const locationSearchResults = document.getElementById("location-search-results");
                 const locationSearchEmpty = document.getElementById("location-search-empty");
                 const locationSearchEmptyText = document.getElementById("location-search-empty-text");
-                function openLocationSearch() {
-                    if (window.closeSettings) window.closeSettings();
-                    if (window.closeAlertSettings) window.closeAlertSettings();
-                    if (window.closeSidebar) window.closeSidebar();
-                    if (window.closeHiddenAlertsPanel) window.closeHiddenAlertsPanel();
-                    if (window.closeAlertSoundsPanel) window.closeAlertSoundsPanel();
-                    if (window.closeSpcOutlookPanel) window.closeSpcOutlookPanel();
-                    if (window.closeFullAlertPopup) window.closeFullAlertPopup();
+                function openLocationSearch(isBack = false) {
+                    if (!isBack) menuHistory = [];
+                    closeAllMenus();
                     if (locationSearchPanel) {
                         locationSearchPanel.classList.add("open");
                         const searchBtn = document.getElementById("fab-search-btn");
@@ -2865,6 +2925,7 @@
                         if (locationSearchInput) setTimeout(() => locationSearchInput.focus(), 50);
                     }
                 }
+                window.openLocationSearch = openLocationSearch;
                 function closeLocationSearch() {
                     if (locationSearchPanel) locationSearchPanel.classList.remove("open");
                     const searchBtn = document.getElementById("fab-search-btn");
@@ -2940,14 +3001,9 @@
                     locationSearchInput.addEventListener("keydown", e => { if (e.key === "Escape") { closeLocationSearch(); e.stopPropagation(); } });
                 }
                 if (fabMenuBtn) fabMenuBtn.addEventListener("click", (e) => { e.stopPropagation(); toggleFabMenu(); });
-                function openSpcOutlookPanel() {
-                    if (window.closeSidebar) window.closeSidebar();
-                    closeSettings(); closeAlertSettings();
-                    if (window.closeRadarPanel) window.closeRadarPanel();
-                    if (window.closeLocationSearch) window.closeLocationSearch();
-                    if (window.closeHiddenAlertsPanel) window.closeHiddenAlertsPanel();
-                    if (window.closeAlertSoundsPanel) window.closeAlertSoundsPanel();
-                    if (window.closeFullAlertPopup) window.closeFullAlertPopup();
+                function openSpcOutlookPanel(isBack = false) {
+                    if (!isBack) menuHistory = [];
+                    closeAllMenus();
                     const panel = document.getElementById("spc-outlook-panel");
                     if (panel) {
                         panel.classList.add("open");
@@ -2960,6 +3016,7 @@
                         if (fabOutlooks) fabOutlooks.classList.add("active");
                     }
                 }
+                window.openSpcOutlookPanel = openSpcOutlookPanel;
                 function closeSpcOutlookPanel() { const panel = document.getElementById("spc-outlook-panel"); if (panel) panel.classList.remove("open"); document.querySelectorAll("#spc-outlook-body .sidebar-alert-group").forEach(g => g.classList.remove("open")); if (fabOutlooks) fabOutlooks.classList.remove("active"); }
                 window.closeSpcOutlookPanel = closeSpcOutlookPanel;
                 const spcCloseBtn = document.getElementById("spc-outlook-close-btn");
@@ -2991,12 +3048,20 @@
                         const accentColor = offline ? "#ff4444" : type === "TDWR" ? "#ff9900" : "#0099ff";
                         const item = document.createElement("div");
                         item.className = "radar-site-item"; item.style.borderLeftColor = accentColor + "99";
-                        item.innerHTML = `<div class="radar-site-item-content"><div class="radar-site-item-label">${id} – ${name}</div></div><i class="material-symbols-rounded radar-site-item-icon">open_in_new</i>`;
+                        item.innerHTML = `<div class="radar-site-item-content"><div class="radar-site-item-label">${id} – ${name}</div></div><i class="material-symbols-rounded radar-site-item-icon">chevron_right</i>`;
                         item.addEventListener("click", () => { if (offline) return; closeRadarPanel(); const siteId = id.toLowerCase(), prodCode = activeRadarProductCode ? activeRadarProductCode.includes("vel") ? type === "TDWR" ? "bvel" : "sr_bvel" : activeRadarProductCode === "brefl" ? type === "TDWR" ? "brefl" : "sr_bref" : type === "TDWR" ? "bref1" : "sr_bref" : type === "TDWR" ? "bref1" : "sr_bref"; toggleRadarProduct(siteId, prodCode); map.flyTo({ center: site.geometry.coordinates, zoom: 7, essential: true }); updateGreenStatusIndicators(); if (window.saveCurrentState) window.saveCurrentState(); });
                         listEl.appendChild(item);
                     });
                 }
-                function openRadarPanel() { if (window.closeSidebar) window.closeSidebar(); closeSettings(); closeAlertSettings(); if (window.closeHiddenAlertsPanel) window.closeHiddenAlertsPanel(); if (window.closeAlertSoundsPanel) window.closeAlertSoundsPanel(); if (window.closeLocationSearch) window.closeLocationSearch(); if (window.closeSpcOutlookPanel) window.closeSpcOutlookPanel(); if (window.closeFullAlertPopup) window.closeFullAlertPopup(); updateRadarPanelToggles(); renderRadarSiteList(); if (radarPanel) radarPanel.classList.add("open"); if (fabMosaic) fabMosaic.classList.add("active"); }
+                function openRadarPanel(isBack = false) { 
+                    if (!isBack) menuHistory = [];
+                    closeAllMenus(); 
+                    updateRadarPanelToggles(); 
+                    renderRadarSiteList(); 
+                    if (radarPanel) radarPanel.classList.add("open"); 
+                    if (fabMosaic) fabMosaic.classList.add("active"); 
+                }
+                window.openRadarPanel = openRadarPanel;
                 function closeRadarPanel() { if (radarPanel) radarPanel.classList.remove("open"); if (window.closeRadarSettings) window.closeRadarSettings(); if (fabMosaic) fabMosaic.classList.remove("active"); }
                 window.closeRadarPanel = closeRadarPanel;
                 const rPanelClose = document.getElementById("radar-panel-close-btn");
@@ -3017,17 +3082,19 @@
                     });
                 }
                 const radarSettingsPopup = document.getElementById("radar-settings-popup");
-                let radarSettingsOpener = "radar";
-                function openRadarSettings() { radarSettingsOpener = "radar"; if (radarPanel) radarPanel.classList.remove("open"); if (radarSettingsPopup) radarSettingsPopup.classList.add("open"); }
-                function openRadarSettingsFrom(opener) { radarSettingsOpener = opener || "radar"; closeSettings(); if (window.closeRadarPanel) { if (radarPanel) radarPanel.classList.remove("open"); if (fabMosaic) fabMosaic.classList.remove("active"); } if (radarSettingsPopup) radarSettingsPopup.classList.add("open"); }
+                function openRadarSettingsFrom(opener, isBack = false) { 
+                    if (!isBack) { const curr = getCurrentOpenMenu(); if (curr) menuHistory.push(curr); }
+                    closeAllMenus(); 
+                    if (radarSettingsPopup) radarSettingsPopup.classList.add("open"); 
+                }
                 function closeRadarSettings() { if (radarSettingsPopup) radarSettingsPopup.classList.remove("open"); }
                 window.closeRadarSettings = closeRadarSettings; window.openRadarSettingsFrom = openRadarSettingsFrom;
                 const rPanelSett = document.getElementById("radar-panel-settings-btn");
-                if (rPanelSett) rPanelSett.addEventListener("click", openRadarSettings);
+                if (rPanelSett) rPanelSett.addEventListener("click", () => openRadarSettingsFrom("radar"));
                 const rSettClose = document.getElementById("radar-settings-close-btn");
-                if (rSettClose) rSettClose.addEventListener("click", () => { closeRadarSettings(); closeRadarPanel(); });
+                if (rSettClose) rSettClose.addEventListener("click", closeRadarSettings);
                 const rSettBack = document.getElementById("radar-settings-back-btn");
-                if (rSettBack) rSettBack.addEventListener("click", () => { closeRadarSettings(); if (radarSettingsOpener === "settings") openSettings(); else { updateRadarPanelToggles(); renderRadarSiteList(); if (radarPanel) radarPanel.classList.add("open"); if (fabMosaic) fabMosaic.classList.remove("active"); } });
+                if (rSettBack) rSettBack.addEventListener("click", goBack);
                 if (fabMosaic) fabMosaic.addEventListener("click", (e) => { e.stopPropagation(); if (radarPanel) radarPanel.classList.contains("open") ? closeRadarPanel() : openRadarPanel(); });
                 if (fabSettings) fabSettings.addEventListener("click", () => { if (settingsPopup) settingsPopup.classList.contains("open") ? closeSettings() : openSettings(); });
                 if (debugInput) debugInput.addEventListener("change", handleDebugUpload);
@@ -3442,7 +3509,7 @@
             }
             async function showFullAlertTextPopup(f) {
                 const props = f.properties, params = props.parameters || {}, popup = document.getElementById("full-alert-text-popup"), titleEl = document.getElementById("full-alert-text-popup-title-text"), contentEl = document.getElementById("full-alert-text-content");
-                if (window.closeSettings) window.closeSettings(); if (window.closeAlertSettings) window.closeAlertSettings(); if (window.closeSidebar) window.closeSidebar(); if (window.closeHiddenAlertsPanel) window.closeHiddenAlertsPanel(); if (window.closeAlertSoundsPanel) window.closeAlertSoundsPanel(); if (window.closeLocationSearch) window.closeLocationSearch(); if (window.closeSpcOutlookPanel) window.closeSpcOutlookPanel();
+                closeAllMenus();
                 const sentD = parseApiDate(props.sent);
                 const expireD = parseApiDate(props.expires);
                 const sentStr = props.sent ? `<div class="full-alert-meta-row"><strong>Sent:</strong> ${formatDateFull(sentD, getEffectiveTz())}</div>` : "";
@@ -3471,7 +3538,7 @@
             }
             async function showFullSpcTextPopup(item) {
                 const popup = document.getElementById("full-alert-text-popup"), titleEl = document.getElementById("full-alert-text-popup-title-text"), contentEl = document.getElementById("full-alert-text-content");
-                if (window.closeSettings) window.closeSettings(); if (window.closeAlertSettings) window.closeAlertSettings(); if (window.closeSidebar) window.closeSidebar(); if (window.closeHiddenAlertsPanel) window.closeHiddenAlertsPanel(); if (window.closeAlertSoundsPanel) window.closeAlertSoundsPanel(); if (window.closeLocationSearch) window.closeLocationSearch(); if (window.closeSpcOutlookPanel) window.closeSpcOutlookPanel();
+                closeAllMenus();
                 const spcDay = parseInt(activeSpcDay); if (titleEl) titleEl.textContent = spcDay >= 4 ? "SPC Day 4-8 Discussion" : `SPC Day ${activeSpcDay} Discussion`;
                 if (contentEl) contentEl.innerHTML = `<div class="full-alert-section-label">Description</div><p>Loading...</p>`; if (popup) popup.classList.add("open"); 
                 const body = document.getElementById("full-alert-text-popup-body");
@@ -3480,6 +3547,16 @@
                 else if (contentEl) contentEl.innerHTML = `<div class="full-alert-section-label">Description</div><p>${formatNwsText(text)}</p>`;
             }
             function handleOutlookShortcut(day) { const types = outlookTypes[day]; if (!types) return; let next = activeSpcDay === day ? types[(types.indexOf(activeSpcType) + 1) % types.length] : types[0]; activeSpcDay = day; activeSpcType = next; updateSpcLayerVisibility(); if (window.saveCurrentState) window.saveCurrentState(); showToast(`Outlook: Day ${day} ${typeLabels[next]}`); updateGreenStatusIndicators(); updateSpcOutlookPanelState(); }
+            let nwsUpdateInterval, placefileUpdateInterval;
+            function startAlertIntervals() {
+                if (nwsUpdateInterval) clearInterval(nwsUpdateInterval);
+                if (placefileUpdateInterval) clearInterval(placefileUpdateInterval);
+                const nwsTime = fasterUpdatesEnabled ? 15000 : 60000;
+                const placeTime = fasterUpdatesEnabled ? 75000 : 300000;
+                nwsUpdateInterval = setInterval(refreshNwsAlerts, nwsTime);
+                placefileUpdateInterval = setInterval(updatePlacefileAlerts, placeTime);
+            }
+            window.startAlertIntervals = startAlertIntervals;
             map.on("load", async () => {
                 let willFlyToRadar = false; await PersistentCache.init(); await setupMapData();
                 if (window.applyMapAlertFilters) applyMapAlertFilters(); updateSpcLayerVisibility(); updateSpcOutlooks(); geocodeAndPlaceMarker(); checkRadarStatus(setupMapData._initialRadarData);
@@ -3490,7 +3567,8 @@
                 }
                 if (!willFlyToRadar && saveSettingsEnabled) { const savedZoom = localStorage.getItem("lastZoom"), savedCenter = localStorage.getItem("lastCenter"); if (savedZoom && savedCenter) { try { map.flyTo({ center: JSON.parse(savedCenter), zoom: parseFloat(savedZoom), essential: true }); } catch (e) {} } }
                 intervals.push(setInterval(checkRadarStatus, 480000)); intervals.push(setInterval(updateSpcOutlooks, 480000)); await Promise.all([refreshNwsAlerts(true), updatePlacefileAlerts(true)]); isInitialLoad = false;
-                intervals.push(setInterval(refreshNwsAlerts, 60000)); intervals.push(setInterval(updatePlacefileAlerts, 300000)); intervals.push(setInterval(updateRadar, 90000)); intervals.push(setInterval(updateSingleSiteRadar, 60000));
+                startAlertIntervals();
+                intervals.push(setInterval(updateRadar, 90000)); intervals.push(setInterval(updateSingleSiteRadar, 60000));
                 map.on("moveend", () => { if (saveSettingsEnabled) { localStorage.setItem("lastZoom", map.getZoom()); localStorage.setItem("lastCenter", JSON.stringify(map.getCenter())); } });
                 map.on("contextmenu", (e) => {
                     e.preventDefault(); closeAllPopups(); let nearest = null, min = Infinity;
@@ -3562,7 +3640,15 @@
             document.addEventListener("contextmenu", (e) => e.preventDefault());
             (function () {
                 const sidebarBtn = document.getElementById("fab-alerts"), sidebar = document.getElementById("alerts-sidebar"), closeBtn = document.getElementById("alerts-sidebar-close"), listEl = document.getElementById("alerts-sidebar-list"), emptyEl = document.getElementById("alerts-sidebar-empty"), countEl = document.getElementById("alerts-sidebar-count");
-                function openSidebar() { if (window.closeSettings) window.closeSettings(); if (window.closeAlertSettings) window.closeAlertSettings(); if (window.closeHiddenAlertsPanel) window.closeHiddenAlertsPanel(); if (window.closeAlertSoundsPanel) window.closeAlertSoundsPanel(); if (window.closeLocationSearch) window.closeLocationSearch(); if (window.closeSpcOutlookPanel) window.closeSpcOutlookPanel(); if (window.closeFullAlertPopup) window.closeFullAlertPopup(); if (sidebar) sidebar.classList.add("open"); if (sidebarBtn) sidebarBtn.classList.add("active"); if (listEl) listEl.scrollTop = 0; renderSidebar(); }
+                
+                function openSidebar(isBack = false) { 
+                    if (!isBack) menuHistory = [];
+                    closeAllMenus(); 
+                    if (sidebar) sidebar.classList.add("open"); 
+                    if (sidebarBtn) sidebarBtn.classList.add("active"); 
+                    if (listEl) listEl.scrollTop = 0; 
+                    renderSidebar(); 
+                }
                 function closeSidebar() { if (sidebar) sidebar.classList.remove("open"); if (sidebarBtn) sidebarBtn.classList.remove("active"); if (listEl) listEl.querySelectorAll(".sidebar-alert-group.open").forEach((g) => g.classList.remove("open")); }
                 window.closeSidebar = closeSidebar; window.openSidebar = openSidebar;
                 if (sidebarBtn) sidebarBtn.addEventListener("click", (e) => { e.stopPropagation(); if (sidebar) sidebar.classList.contains("open") ? closeSidebar() : openSidebar(); });
