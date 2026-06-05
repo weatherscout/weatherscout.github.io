@@ -1,404 +1,775 @@
 <!doctype html>
-<!-- WeatherScout App v1.7.0 (Apr 17, 2026) -->
-<!-- https://weatherscout.github.io/app -->
 <html>
-    <head>
-        <title>WeatherScout</title>
-        <link
-            rel="icon"
-            href="https://raw.githubusercontent.com/microsoft/fluentui-emoji/refs/heads/main/assets/Sun%20behind%20small%20cloud/3D/sun_behind_small_cloud_3d.png"
-        />
-        <meta charset="utf-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <link rel="preconnect" href="https://cdnjs.cloudflare.com" />
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-        <link rel="preconnect" href="https://basemaps.cartocdn.com" />
-        <link
-            rel="preload"
-            href="https://cdnjs.cloudflare.com/ajax/libs/maplibre-gl/4.1.2/maplibre-gl.js"
-            as="script"
-        />
-        <link
-            rel="preload"
-            href="https://cdnjs.cloudflare.com/ajax/libs/maplibre-gl/4.1.2/maplibre-gl.css"
-            as="style"
-        />
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/maplibre-gl/4.1.2/maplibre-gl.js"></script>
-        <link href="https://cdnjs.cloudflare.com/ajax/libs/maplibre-gl/4.1.2/maplibre-gl.css" rel="stylesheet" />
-        <link
-            href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0&display=block"
-            rel="stylesheet"
-        />
-        <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600&display=swap" rel="stylesheet" />
-        
-        <!-- External Modular Stylesheet -->
-        <link rel="stylesheet" href="css/styles.css" />
-    </head>
-    <body oncontextmenu="return false;">
-        <div id="map"></div>
-        
-        <div id="attribution-bubble">
-            <i class="material-symbols-rounded">info</i>
-            <div class="attribution-text">
-                <a href="https://maplibre.org/" target="_blank">MapLibre</a>
-                |
-                <a href="https://carto.com/" target="_blank">CARTO</a>,
-                <a href="https://mesonet.agron.iastate.edu/" target="_blank">IEM</a>,
-                <a href="https://noaa.gov/" target="_blank">NOAA</a>,
-                <a href="https://weather.gov/" target="_blank">NWS</a>
-            </div>
+  <head>
+    <title>WeatherScout</title>
+    <link
+      rel="icon"
+      href="https://raw.githubusercontent.com/microsoft/fluentui-emoji/refs/heads/main/assets/Sun%20behind%20small%20cloud/3D/sun_behind_small_cloud_3d.png"
+    />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="preconnect" href="https://basemaps.cartocdn.com" />
+    <link
+      rel="preload"
+      href="https://cdnjs.cloudflare.com/ajax/libs/maplibre-gl/4.1.2/maplibre-gl.js"
+      as="script"
+    />
+    <link
+      rel="preload"
+      href="https://cdnjs.cloudflare.com/ajax/libs/maplibre-gl/4.1.2/maplibre-gl.css"
+      as="style"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/maplibre-gl/4.1.2/maplibre-gl.js"></script>
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/maplibre-gl/4.1.2/maplibre-gl.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0&display=block"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="css/styles.css" />
+  </head>
+  <body oncontextmenu="return false;">
+    <div id="map"></div>
+
+    <div id="attribution-bubble">
+      <i class="material-symbols-rounded">info</i>
+      <div class="attribution-text">
+        <a href="https://maplibre.org/" target="_blank">MapLibre</a>
+        |
+        <a href="https://carto.com/" target="_blank">CARTO</a>,
+        <a href="https://mesonet.agron.iastate.edu/" target="_blank">IEM</a>,
+        <a href="https://noaa.gov/" target="_blank">NOAA</a>,
+        <a href="https://weather.gov/" target="_blank">NWS</a>
+      </div>
+    </div>
+
+    <div id="alert-popup-container"></div>
+    <div id="toast-container"></div>
+
+    <div id="alerts-sidebar" class="standard-glass">
+      <div id="alerts-sidebar-header">
+        <div id="alerts-sidebar-title">
+          <i class="material-symbols-rounded">warning</i>
+          Alerts
+          <span id="alerts-sidebar-count"></span>
         </div>
-        
-        <div id="alert-popup-container"></div>
-        <div id="toast-container"></div>
-        
-        <div id="alerts-sidebar" class="standard-glass">
-            <div id="alerts-sidebar-header">
-                <div id="alerts-sidebar-title">
-                    <i class="material-symbols-rounded">warning</i>
-                    Alerts
-                    <span id="alerts-sidebar-count"></span>
-                </div>
-                <div style="display:flex;gap:6px;align-items:center;">
-                    <div id="alerts-sidebar-toggle" class="settings-toggle active" title="Toggle Alerts" style="cursor:pointer;"></div>
-                    <button id="alerts-sidebar-settings" aria-label="Open settings">
-                        <i class="material-symbols-rounded">settings</i>
-                    </button>
-                    <button id="alerts-sidebar-close" aria-label="Close alerts sidebar">
-                        <i class="material-symbols-rounded">close</i>
-                    </button>
-                </div>
-            </div>
-            <div id="alerts-sidebar-search-wrap">
-                <input id="alerts-sidebar-search" type="text" placeholder="Search for alerts..." autocomplete="off" spellcheck="false" />
-            </div>
-            <div id="alerts-sidebar-list">
-                <div id="alerts-sidebar-empty">
-                    <i id="alerts-sidebar-empty-icon" class="material-symbols-rounded">check_circle</i>
-                    <span id="alerts-sidebar-empty-text">No active alerts</span>
-                </div>
-            </div>
+        <div style="display: flex; gap: 6px; align-items: center">
+          <div
+            id="alerts-sidebar-toggle"
+            class="settings-toggle active"
+            title="Toggle Alerts"
+            style="cursor: pointer"
+          ></div>
+          <button id="alerts-sidebar-settings" aria-label="Open settings">
+            <i class="material-symbols-rounded">settings</i>
+          </button>
+          <button id="alerts-sidebar-close" aria-label="Close alerts sidebar">
+            <i class="material-symbols-rounded">close</i>
+          </button>
         </div>
-        
-        <button id="fab-menu-btn"><i class="material-symbols-rounded">menu</i></button>
-        <button id="fab-search-btn"><i class="material-symbols-rounded">search</i></button>
-        
-        <div id="location-search-panel" class="standard-glass">
-            <div class="settings-header">
-                <div class="settings-header-title">
-                    <i class="material-symbols-rounded">search</i>
-                    Search
-                </div>
-                <button class="settings-close-btn" id="location-search-close-btn" aria-label="Close location search">
-                    <i class="material-symbols-rounded">close</i>
-                </button>
-            </div>
-            <div style="padding:10px 20px 4px;flex-shrink:0;">
-                <input id="location-search-input" type="text" placeholder="Search for anything..." autocomplete="off" spellcheck="false" />
-            </div>
-            <div id="location-search-results">
-                <div id="location-search-empty">
-                    <i class="material-symbols-rounded">travel_explore</i>
-                    <span id="location-search-empty-text">Results show up here</span>
-                </div>
-            </div>
+      </div>
+      <div id="alerts-sidebar-search-wrap">
+        <input
+          id="alerts-sidebar-search"
+          type="text"
+          placeholder="Search for alerts..."
+          autocomplete="off"
+          spellcheck="false"
+        />
+      </div>
+      <div id="alerts-sidebar-list">
+        <div id="alerts-sidebar-empty">
+          <i id="alerts-sidebar-empty-icon" class="material-symbols-rounded"
+            >check_circle</i
+          >
+          <span id="alerts-sidebar-empty-text">No active alerts</span>
         </div>
-        
-        <div id="fab-menu">
-            <div class="fab-action" id="fab-outlooks" title="Outlooks"><i class="material-symbols-rounded">map</i></div>
-            <div class="fab-action" id="fab-mosaic" title="Radar"><i class="material-symbols-rounded">radar</i></div>
-            <div class="fab-action" id="fab-alerts" title="Alerts"><i class="material-symbols-rounded">warning</i></div>
-            <div class="fab-action" id="fab-my-location" title="My Location"><i class="material-symbols-rounded">location_disabled</i></div>
-            <div class="fab-action" id="fab-settings" title="Settings"><i class="material-symbols-rounded">settings</i></div>
+      </div>
+    </div>
+
+    <button id="fab-menu-btn">
+      <i class="material-symbols-rounded">menu</i>
+    </button>
+    <button id="fab-search-btn">
+      <i class="material-symbols-rounded">search</i>
+    </button>
+
+    <div id="location-search-panel" class="standard-glass">
+      <div class="settings-header">
+        <div class="settings-header-title">
+          <i class="material-symbols-rounded">search</i>
+          Search
         </div>
-        
-        <div id="fab-side"></div>
-        
-        <div id="radar-info-pill">
-            <button id="pill-info-btn">
-                <div id="pill-id-time"></div>
-                <div id="pill-product"></div>
+        <div style="display: flex; gap: 6px; align-items: center">
+          <button
+            class="settings-close-btn"
+            id="location-search-settings-btn"
+            aria-label="Search Settings"
+          >
+            <i class="material-symbols-rounded">settings</i>
+          </button>
+          <button
+            class="settings-close-btn"
+            id="location-search-close-btn"
+            aria-label="Close location search"
+          >
+            <i class="material-symbols-rounded">close</i>
+          </button>
+        </div>
+      </div>
+      <div style="padding: 10px 20px 4px; flex-shrink: 0">
+        <input
+          id="location-search-input"
+          type="text"
+          placeholder="Search for anything..."
+          autocomplete="off"
+          spellcheck="false"
+        />
+      </div>
+      <div id="location-search-results">
+        <div id="location-search-empty">
+          <i class="material-symbols-rounded">travel_explore</i>
+          <span id="location-search-empty-text">Results show up here</span>
+        </div>
+      </div>
+    </div>
+
+    <div id="fab-menu">
+      <div class="fab-action" id="fab-outlooks" title="Outlooks">
+        <i class="material-symbols-rounded">map</i>
+      </div>
+      <div class="fab-action" id="fab-mosaic" title="Radar">
+        <i class="material-symbols-rounded">radar</i>
+      </div>
+      <div class="fab-action" id="fab-alerts" title="Alerts">
+        <i class="material-symbols-rounded">warning</i>
+      </div>
+      <div class="fab-action" id="fab-my-location" title="My Location">
+        <i class="material-symbols-rounded">location_disabled</i>
+      </div>
+      <div class="fab-action" id="fab-settings" title="Settings">
+        <i class="material-symbols-rounded">settings</i>
+      </div>
+    </div>
+
+    <div id="fab-side"></div>
+
+    <div id="radar-info-pill">
+      <button id="pill-info-btn">
+        <div id="pill-id-time"></div>
+        <div id="pill-product"></div>
+      </button>
+    </div>
+
+    <div class="settings-popup" id="settings-popup">
+      <div class="settings-header">
+        <div class="settings-header-title">
+          <i class="material-symbols-rounded">settings</i>
+          Settings
+        </div>
+        <button
+          class="settings-close-btn"
+          id="settings-close-btn"
+          aria-label="Close settings"
+        >
+          <i class="material-symbols-rounded">close</i>
+        </button>
+      </div>
+      <div class="settings-body">
+        <div class="settings-section-label">Jump To</div>
+        <button class="settings-row" id="settings-open-alerts-btn">
+          <i class="material-symbols-rounded">warning</i>
+          <div class="settings-row-label">Alert Settings</div>
+          <i
+            class="material-symbols-rounded"
+            style="font-size: 18px; color: #ffffff61"
+            >chevron_right</i
+          >
+        </button>
+        <button class="settings-row" id="settings-open-radar-btn">
+          <i class="material-symbols-rounded">radar</i>
+          <div class="settings-row-label">Radar Settings</div>
+          <i
+            class="material-symbols-rounded"
+            style="font-size: 18px; color: #ffffff61"
+            >chevron_right</i
+          >
+        </button>
+        <button class="settings-row" id="settings-open-search-btn">
+          <i class="material-symbols-rounded">search</i>
+          <div class="settings-row-label">Search Settings</div>
+          <i
+            class="material-symbols-rounded"
+            style="font-size: 18px; color: #ffffff61"
+            >chevron_right</i
+          >
+        </button>
+        <div class="settings-divider"></div>
+        <div class="settings-section-label">Time</div>
+        <div class="settings-row" style="cursor: default">
+          <i class="material-symbols-rounded">schedule</i>
+          <div class="settings-row-label">Time Zone</div>
+          <div class="tz-selector" id="tz-selector">
+            <button
+              class="tz-selector-btn tz-option selected"
+              data-value="local"
+            >
+              Local
             </button>
+            <button class="tz-selector-btn tz-option" data-value="UTC">
+              UTC
+            </button>
+            <input
+              class="tz-custom-input"
+              id="tz-custom-input"
+              type="text"
+              placeholder="Custom"
+              autocomplete="off"
+              spellcheck="false"
+            />
+          </div>
         </div>
-        
-        <div class="settings-popup" id="settings-popup">
-            <div class="settings-header">
-                <div class="settings-header-title">
-                    <i class="material-symbols-rounded">settings</i>
-                    Settings
-                </div>
-                <button class="settings-close-btn" id="settings-close-btn" aria-label="Close settings">
-                    <i class="material-symbols-rounded">close</i>
-                </button>
-            </div>
-            <div class="settings-body">
-                <div class="settings-section-label">Jump To</div>
-                <button class="settings-row" id="settings-open-alerts-btn">
-                    <i class="material-symbols-rounded">warning</i>
-                    <div class="settings-row-label">Alert Settings</div>
-                    <i class="material-symbols-rounded" style="font-size:18px;color:#ffffff61;">chevron_right</i>
-                </button>
-                <button class="settings-row" id="settings-open-radar-btn">
-                    <i class="material-symbols-rounded">radar</i>
-                    <div class="settings-row-label">Radar Settings</div>
-                    <i class="material-symbols-rounded" style="font-size:18px;color:#ffffff61;">chevron_right</i>
-                </button>
-                <div class="settings-divider"></div>
-                <div class="settings-section-label">Time</div>
-                <div class="settings-row" style="cursor: default">
-                    <i class="material-symbols-rounded">schedule</i>
-                    <div class="settings-row-label">Time Zone</div>
-                    <div class="tz-selector" id="tz-selector">
-                        <button class="tz-selector-btn tz-option selected" data-value="local">Local</button>
-                        <button class="tz-selector-btn tz-option" data-value="UTC">UTC</button>
-                        <input class="tz-custom-input" id="tz-custom-input" type="text" placeholder="Custom" autocomplete="off" spellcheck="false" />
-                    </div>
-                </div>
-                <div class="settings-row" style="cursor: default">
-                    <i class="material-symbols-rounded">wb_sunny</i>
-                    <div class="settings-row-label">Time Mode</div>
-                    <div class="tz-selector" id="dst-selector">
-                        <button class="tz-selector-btn dst-option selected" data-value="auto">Default</button>
-                        <button class="tz-selector-btn dst-option" data-value="daylight">Daylight</button>
-                        <button class="tz-selector-btn dst-option" data-value="standard">Standard</button>
-                    </div>
-                </div>
-                <div class="settings-row" style="cursor: default">
-                    <i class="material-symbols-rounded">access_time</i>
-                    <div class="settings-row-label">Hour Format</div>
-                    <div class="site-selector" id="hour-selector">
-                        <button class="site-selector-btn hour-option selected" data-value="auto">Default</button>
-                        <button class="site-selector-btn hour-option" data-value="12">AM/PM</button>
-                        <button class="site-selector-btn hour-option" data-value="24">24-Hour</button>
-                    </div>
-                </div>
-                <div class="settings-divider"></div>
-                <div class="settings-section-label">App</div>
-                <button class="settings-row" id="debug-settings-btn">
-                    <i class="material-symbols-rounded">bug_report</i>
-                    <div class="settings-row-label">Debug Mode</div>
-                    <div class="settings-toggle" id="debug-settings-toggle-ui"></div>
-                </button>
-                <button class="settings-row" id="save-settings-btn">
-                    <i class="material-symbols-rounded">save</i>
-                    <div class="settings-row-label">Save Settings</div>
-                    <div class="settings-toggle" id="save-settings-toggle-ui"></div>
-                </button>
-                <button class="settings-row" id="reset-app-settings-btn">
-                    <i class="material-symbols-rounded">restart_alt</i>
-                    <div class="settings-row-label">Reset App</div>
-                    <i class="material-symbols-rounded" style="font-size:18px;color:#ff6b6b;">delete_forever</i>
-                </button>
-            </div>
+        <div class="settings-row" style="cursor: default">
+          <i class="material-symbols-rounded">wb_sunny</i>
+          <div class="settings-row-label">Time Mode</div>
+          <div class="tz-selector" id="dst-selector">
+            <button
+              class="tz-selector-btn dst-option selected"
+              data-value="auto"
+            >
+              Default
+            </button>
+            <button class="tz-selector-btn dst-option" data-value="daylight">
+              Daylight
+            </button>
+            <button class="tz-selector-btn dst-option" data-value="standard">
+              Standard
+            </button>
+          </div>
         </div>
-        
-        <div class="settings-popup" id="alert-settings-popup">
-            <div class="settings-header">
-                <div class="settings-header-title">
-                    <i class="material-symbols-rounded">warning</i>
-                    Alert Settings
-                </div>
-                <div style="display:flex;gap:6px;align-items:center;">
-                    <button class="settings-close-btn" id="alert-settings-back-btn" aria-label="Back">
-                        <i class="material-symbols-rounded">arrow_back</i>
-                    </button>
-                    <button class="settings-close-btn" id="alert-settings-close-btn" aria-label="Close alert settings">
-                        <i class="material-symbols-rounded">close</i>
-                    </button>
-                </div>
-            </div>
-            <div class="settings-body">
-                <div class="settings-section-label">Alerts</div>
-                <button class="settings-row" id="zone-alerts-settings-btn">
-                    <i class="material-symbols-rounded">grid_view</i>
-                    <div class="settings-row-label">Zone Alerts</div>
-                    <div class="settings-toggle active" id="zone-alerts-settings-toggle-ui"></div>
-                </button>
-                <button class="settings-row" id="meso-discussions-settings-btn">
-                    <i class="material-symbols-rounded">comment</i>
-                    <div class="settings-row-label">Mesoscale Discussions</div>
-                    <div class="settings-toggle active" id="meso-discussions-settings-toggle-ui"></div>
-                </button>
-                <button class="settings-row" id="faster-updates-settings-btn">
-                    <i class="material-symbols-rounded">speed</i>
-                    <div class="settings-row-label">Faster Updates</div>
-                    <div class="settings-toggle" id="faster-updates-settings-toggle-ui"></div>
-                </button>
-                <button class="settings-row" id="hidden-alert-types-btn">
-                    <i class="material-symbols-rounded">visibility_off</i>
-                    <div class="settings-row-label">Hidden Alerts</div>
-                    <span id="hidden-alert-types-count" style="font-size:12px;color:#ffffff61;font-weight:500;flex-shrink:0;"></span>
-                    <i class="material-symbols-rounded" style="font-size:18px;color:#ffffff61;">chevron_right</i>
-                </button>
-                <button class="settings-row" id="alert-sounds-btn">
-                    <i class="material-symbols-rounded">notification_important</i>
-                    <div class="settings-row-label">Alert Sounds</div>
-                    <span id="alert-sounds-count" style="font-size:12px;color:#ffffff61;font-weight:500;flex-shrink:0;"></span>
-                    <i class="material-symbols-rounded" style="font-size:18px;color:#ffffff61;">chevron_right</i>
-                </button>
-            </div>
+        <div class="settings-row" style="cursor: default">
+          <i class="material-symbols-rounded">access_time</i>
+          <div class="settings-row-label">Hour Format</div>
+          <div class="site-selector" id="hour-selector">
+            <button
+              class="site-selector-btn hour-option selected"
+              data-value="auto"
+            >
+              Default
+            </button>
+            <button class="site-selector-btn hour-option" data-value="12">
+              AM/PM
+            </button>
+            <button class="site-selector-btn hour-option" data-value="24">
+              24-Hour
+            </button>
+          </div>
         </div>
-        
-        <div class="settings-popup" id="radar-panel">
-            <div class="settings-header">
-                <div class="settings-header-title">
-                    <i class="material-symbols-rounded">radar</i>
-                    Radar
-                </div>
-                <div style="display:flex;gap:6px;align-items:center;">
-                    <div id="radar-panel-toggle" class="settings-toggle" title="Toggle Mosaic" style="cursor:pointer;"></div>
-                    <button id="radar-panel-settings-btn" class="settings-close-btn" aria-label="Radar Settings">
-                        <i class="material-symbols-rounded">settings</i>
-                    </button>
-                    <button class="settings-close-btn" id="radar-panel-close-btn" aria-label="Close Radar">
-                        <i class="material-symbols-rounded">close</i>
-                    </button>
-                </div>
-            </div>
-            <div id="radar-panel-search-wrap">
-                <input id="radar-panel-search" type="text" placeholder="Search for radars..." autocomplete="off" spellcheck="false" />
-            </div>
-            <div id="radar-panel-list">
-                <div id="radar-panel-empty">
-                    <i class="material-symbols-rounded">radar</i>
-                    <span id="radar-panel-empty-text">Loading radar sites...</span>
-                </div>
-            </div>
+        <div class="settings-divider"></div>
+        <div class="settings-section-label">App</div>
+        <button class="settings-row" id="debug-settings-btn">
+          <i class="material-symbols-rounded">bug_report</i>
+          <div class="settings-row-label">Debug Mode</div>
+          <div class="settings-toggle" id="debug-settings-toggle-ui"></div>
+        </button>
+        <button class="settings-row" id="save-settings-btn">
+          <i class="material-symbols-rounded">save</i>
+          <div class="settings-row-label">Save Settings</div>
+          <div class="settings-toggle" id="save-settings-toggle-ui"></div>
+        </button>
+        <button class="settings-row" id="reset-app-settings-btn">
+          <i class="material-symbols-rounded">restart_alt</i>
+          <div class="settings-row-label">Reset App</div>
+          <i
+            class="material-symbols-rounded"
+            style="font-size: 18px; color: #ff6b6b"
+            >delete_forever</i
+          >
+        </button>
+      </div>
+    </div>
+
+    <div class="settings-popup" id="alert-settings-popup">
+      <div class="settings-header">
+        <div class="settings-header-title">
+          <i class="material-symbols-rounded">warning</i>
+          Alert Settings
         </div>
-        
-        <div class="settings-popup" id="radar-settings-popup">
-            <div class="settings-header">
-                <div class="settings-header-title">
-                    <i class="material-symbols-rounded">radar</i>
-                    Radar Settings
-                </div>
-                <div style="display:flex;gap:6px;align-items:center;">
-                    <button class="settings-close-btn" id="radar-settings-back-btn" aria-label="Back">
-                        <i class="material-symbols-rounded">arrow_back</i>
-                    </button>
-                    <button class="settings-close-btn" id="radar-settings-close-btn" aria-label="Close Radar Settings">
-                        <i class="material-symbols-rounded">close</i>
-                    </button>
-                </div>
-            </div>
-            <div class="settings-body">
-                <div class="settings-section-label">Radar</div>
-                <div class="settings-row" style="cursor: default">
-                    <i class="material-symbols-rounded">location_on</i>
-                    <div class="settings-row-label">Show Sites</div>
-                    <div class="site-selector">
-                        <button class="site-selector-btn show-sites-option" data-value="Both">Both</button>
-                        <button class="site-selector-btn show-sites-option" data-value="WSR-88D">WSR-88D</button>
-                        <button class="site-selector-btn show-sites-option" data-value="TDWR">TDWR</button>
-                        <button class="site-selector-btn show-sites-option" data-value="None">None</button>
-                    </div>
-                </div>
-                <div class="settings-row" style="cursor: default">
-                    <i class="material-symbols-rounded">my_location</i>
-                    <div class="settings-row-label">Site Selection</div>
-                    <div class="site-selector">
-                        <button class="site-selector-btn site-select-option" data-value="Both">Both</button>
-                        <button class="site-selector-btn site-select-option" data-value="WSR-88D">WSR-88D</button>
-                        <button class="site-selector-btn site-select-option" data-value="TDWR">TDWR</button>
-                        <button class="site-selector-btn site-select-option" data-value="None">None</button>
-                    </div>
-                </div>
-                <button class="settings-row" id="fly-settings-btn">
-                    <i class="material-symbols-rounded">fit_screen</i>
-                    <div class="settings-row-label">Fly to Radar</div>
-                    <div class="settings-toggle" id="fly-settings-toggle-ui"></div>
-                </button>
-                <div class="settings-divider"></div>
-                <div class="settings-section-label">Loop</div>
-                <div class="settings-row" style="cursor: default">
-                    <i class="material-symbols-rounded">history</i>
-                    <div class="settings-row-label">Loop Time</div>
-                    <div class="tz-selector" id="loop-time-selector">
-                        <button class="tz-selector-btn loop-time-option selected" data-value="30">30 min</button>
-                        <button class="tz-selector-btn loop-time-option" data-value="60">60 min</button>
-                        <input class="tz-custom-input" id="loop-time-custom-input" type="text" inputmode="numeric" placeholder="Custom" autocomplete="off" spellcheck="false" />
-                    </div>
-                </div>
-            </div>
+        <div style="display: flex; gap: 6px; align-items: center">
+          <button
+            class="settings-close-btn"
+            id="alert-settings-back-btn"
+            aria-label="Back"
+          >
+            <i class="material-symbols-rounded">arrow_back</i>
+          </button>
+          <button
+            class="settings-close-btn"
+            id="alert-settings-close-btn"
+            aria-label="Close alert settings"
+          >
+            <i class="material-symbols-rounded">close</i>
+          </button>
         </div>
-        
-        <div id="hidden-alerts-panel" class="standard-glass">
-            <div id="hidden-alerts-panel-header">
-                <div id="hidden-alerts-panel-title">
-                    <i class="material-symbols-rounded">visibility_off</i>
-                    Hidden Alerts
-                </div>
-                <div style="display:flex;gap:6px;align-items:center;">
-                    <button class="settings-close-btn" id="hidden-alerts-back-btn" aria-label="Back">
-                        <i class="material-symbols-rounded">arrow_back</i>
-                    </button>
-                    <button class="settings-close-btn" id="hidden-alerts-close-btn" aria-label="Close">
-                        <i class="material-symbols-rounded">close</i>
-                    </button>
-                </div>
-            </div>
-            <div id="hidden-alerts-search-wrap">
-                <input id="hidden-alerts-search" type="text" placeholder="Search for alerts..." autocomplete="off" spellcheck="false" />
-            </div>
-            <div id="hidden-alerts-list"></div>
-            <div id="hidden-alerts-footer">
-                <span id="hidden-alerts-count-label"></span>
-                <button id="hidden-alerts-reset-btn">Show All</button>
-            </div>
+      </div>
+      <div class="settings-body">
+        <div class="settings-section-label">Alerts</div>
+        <button class="settings-row" id="zone-alerts-settings-btn">
+          <i class="material-symbols-rounded">grid_view</i>
+          <div class="settings-row-label">Zone Alerts</div>
+          <div
+            class="settings-toggle active"
+            id="zone-alerts-settings-toggle-ui"
+          ></div>
+        </button>
+        <button class="settings-row" id="meso-discussions-settings-btn">
+          <i class="material-symbols-rounded">comment</i>
+          <div class="settings-row-label">Mesoscale Discussions</div>
+          <div
+            class="settings-toggle active"
+            id="meso-discussions-settings-toggle-ui"
+          ></div>
+        </button>
+        <button class="settings-row" id="faster-updates-settings-btn">
+          <i class="material-symbols-rounded">speed</i>
+          <div class="settings-row-label">Faster Updates</div>
+          <div
+            class="settings-toggle"
+            id="faster-updates-settings-toggle-ui"
+          ></div>
+        </button>
+        <button class="settings-row" id="hidden-alert-types-btn">
+          <i class="material-symbols-rounded">visibility_off</i>
+          <div class="settings-row-label">Hidden Alerts</div>
+          <span
+            id="hidden-alert-types-count"
+            style="
+              font-size: 12px;
+              color: #ffffff61;
+              font-weight: 500;
+              flex-shrink: 0;
+            "
+          ></span>
+          <i
+            class="material-symbols-rounded"
+            style="font-size: 18px; color: #ffffff61"
+            >chevron_right</i
+          >
+        </button>
+        <button class="settings-row" id="alert-sounds-btn">
+          <i class="material-symbols-rounded">notification_important</i>
+          <div class="settings-row-label">Alert Sounds</div>
+          <span
+            id="alert-sounds-count"
+            style="
+              font-size: 12px;
+              color: #ffffff61;
+              font-weight: 500;
+              flex-shrink: 0;
+            "
+          ></span>
+          <i
+            class="material-symbols-rounded"
+            style="font-size: 18px; color: #ffffff61"
+            >chevron_right</i
+          >
+        </button>
+      </div>
+    </div>
+
+    <div class="settings-popup" id="radar-panel">
+      <div class="settings-header">
+        <div class="settings-header-title">
+          <i class="material-symbols-rounded">radar</i>
+          Radar
         </div>
-        
-        <div id="alert-sounds-panel" class="standard-glass">
-            <div id="alert-sounds-panel-header">
-                <div id="alert-sounds-panel-title">
-                    <i class="material-symbols-rounded">notification_important</i>
-                    Alert Sounds
-                </div>
-                <div style="display:flex;gap:6px;align-items:center;">
-                    <button class="settings-close-btn" id="alert-sounds-back-btn" aria-label="Back">
-                        <i class="material-symbols-rounded">arrow_back</i>
-                    </button>
-                    <button class="settings-close-btn" id="alert-sounds-close-btn" aria-label="Close">
-                        <i class="material-symbols-rounded">close</i>
-                    </button>
-                </div>
-            </div>
-            <div id="alert-sounds-search-wrap">
-                <input id="alert-sounds-search" type="text" placeholder="Search for alerts..." autocomplete="off" spellcheck="false" />
-            </div>
-            <div id="alert-sounds-list"></div>
-            <div id="alert-sounds-footer">
-                <span id="alert-sounds-count-label"></span>
-                <button id="alert-sounds-reset-btn">Reset All</button>
-            </div>
+        <div style="display: flex; gap: 6px; align-items: center">
+          <button
+            id="radar-panel-settings-btn"
+            class="settings-close-btn"
+            aria-label="Radar Settings"
+          >
+            <i class="material-symbols-rounded">settings</i>
+          </button>
+          <button
+            class="settings-close-btn"
+            id="radar-panel-close-btn"
+            aria-label="Close Radar"
+          >
+            <i class="material-symbols-rounded">close</i>
+          </button>
         </div>
-        
-        <div id="spc-outlook-panel" class="standard-glass">
-            <div class="settings-header">
-                <div class="settings-header-title">
-                    <i class="material-symbols-rounded">map</i>
-                    Outlooks
-                </div>
-                <div style="display:flex;gap:6px;align-items:center;">
-                    <div id="spc-outlook-toggle" class="settings-toggle" title="Toggle Outlook" style="cursor:pointer;"></div>
-                    <button class="settings-close-btn" id="spc-outlook-close-btn" aria-label="Close Outlooks">
-                        <i class="material-symbols-rounded">close</i>
-                    </button>
-                </div>
-            </div>
-            <div id="spc-outlook-body" class="settings-body"></div>
+      </div>
+      <div id="radar-panel-search-wrap">
+        <input
+          id="radar-panel-search"
+          type="text"
+          placeholder="Search for radars..."
+          autocomplete="off"
+          spellcheck="false"
+        />
+      </div>
+      <div id="radar-panel-list">
+        <div id="radar-panel-empty">
+          <i class="material-symbols-rounded">radar</i>
+          <span id="radar-panel-empty-text">Loading radar sites...</span>
         </div>
-        
-        <div style="display: none">
-            <input type="checkbox" id="radar-toggle" checked />
-            <input type="checkbox" id="radar-sites-toggle" checked />
-            <input type="file" id="debug-file-input" accept=".json, .geojson" />
+      </div>
+    </div>
+
+    <div class="settings-popup" id="radar-settings-popup">
+      <div class="settings-header">
+        <div class="settings-header-title">
+          <i class="material-symbols-rounded">radar</i>
+          Radar Settings
         </div>
-        
-        <!-- JavaScript Modular Dependencies (Loaded sequentially to preserve global references) -->
-        <script src="js/config-utils.js"></script>
-        <script src="js/radar.js"></script>
-        <script src="js/alerts.js"></script>
-        <script src="js/app-ui.js"></script>
-    </body>
+        <div style="display: flex; gap: 6px; align-items: center">
+          <button
+            class="settings-close-btn"
+            id="radar-settings-back-btn"
+            aria-label="Back"
+          >
+            <i class="material-symbols-rounded">arrow_back</i>
+          </button>
+          <button
+            class="settings-close-btn"
+            id="radar-settings-close-btn"
+            aria-label="Close Radar Settings"
+          >
+            <i class="material-symbols-rounded">close</i>
+          </button>
+        </div>
+      </div>
+      <div class="settings-body">
+        <div class="settings-section-label">Radar</div>
+        <div class="settings-row" style="cursor: default">
+          <i class="material-symbols-rounded">location_on</i>
+          <div class="settings-row-label">Show Sites</div>
+          <div class="site-selector">
+            <button
+              class="site-selector-btn show-sites-option"
+              data-value="Both"
+            >
+              Both
+            </button>
+            <button
+              class="site-selector-btn show-sites-option"
+              data-value="WSR-88D"
+            >
+              WSR-88D
+            </button>
+            <button
+              class="site-selector-btn show-sites-option"
+              data-value="TDWR"
+            >
+              TDWR
+            </button>
+            <button
+              class="site-selector-btn show-sites-option"
+              data-value="None"
+            >
+              None
+            </button>
+          </div>
+        </div>
+        <div class="settings-row" style="cursor: default">
+          <i class="material-symbols-rounded">my_location</i>
+          <div class="settings-row-label">Site Selection</div>
+          <div class="site-selector">
+            <button
+              class="site-selector-btn site-select-option"
+              data-value="Both"
+            >
+              Both
+            </button>
+            <button
+              class="site-selector-btn site-select-option"
+              data-value="WSR-88D"
+            >
+              WSR-88D
+            </button>
+            <button
+              class="site-selector-btn site-select-option"
+              data-value="TDWR"
+            >
+              TDWR
+            </button>
+            <button
+              class="site-selector-btn site-select-option"
+              data-value="None"
+            >
+              None
+            </button>
+          </div>
+        </div>
+        <button class="settings-row" id="mosaic-toggle-settings-btn">
+          <i class="material-symbols-rounded">radar</i>
+          <div class="settings-row-label">Radar Mosaic</div>
+          <div
+            class="settings-toggle"
+            id="mosaic-toggle-settings-toggle-ui"
+          ></div>
+        </button>
+        <button class="settings-row" id="fly-settings-btn">
+          <i class="material-symbols-rounded">fit_screen</i>
+          <div class="settings-row-label">Fly to Radar</div>
+          <div class="settings-toggle" id="fly-settings-toggle-ui"></div>
+        </button>
+        <div class="settings-divider"></div>
+        <div class="settings-section-label">Loop</div>
+        <div class="settings-row" style="cursor: default">
+          <i class="material-symbols-rounded">history</i>
+          <div class="settings-row-label">Loop Time</div>
+          <div class="tz-selector" id="loop-time-selector">
+            <button
+              class="tz-selector-btn loop-time-option selected"
+              data-value="30"
+            >
+              30 min
+            </button>
+            <button class="tz-selector-btn loop-time-option" data-value="60">
+              60 min
+            </button>
+            <input
+              class="tz-custom-input"
+              id="loop-time-custom-input"
+              type="text"
+              inputmode="numeric"
+              placeholder="Custom"
+              autocomplete="off"
+              spellcheck="false"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="settings-popup" id="search-settings-popup">
+      <div class="settings-header">
+        <div class="settings-header-title">
+          <i class="material-symbols-rounded">search</i>
+          Search Settings
+        </div>
+        <div style="display: flex; gap: 6px; align-items: center">
+          <button
+            class="settings-close-btn"
+            id="search-settings-back-btn"
+            aria-label="Back"
+          >
+            <i class="material-symbols-rounded">arrow_back</i>
+          </button>
+          <button
+            class="settings-close-btn"
+            id="search-settings-close-btn"
+            aria-label="Close search settings"
+          >
+            <i class="material-symbols-rounded">close</i>
+          </button>
+        </div>
+      </div>
+      <div class="settings-body">
+        <div class="settings-section-label">Search Results</div>
+
+        <button class="settings-row" id="search-locations-toggle-btn">
+          <i class="material-symbols-rounded">travel_explore</i>
+          <div class="settings-row-label">Locations</div>
+          <div
+            class="settings-toggle active"
+            id="search-locations-toggle-ui"
+          ></div>
+        </button>
+
+        <div class="settings-row" style="cursor: default">
+          <i class="material-symbols-rounded">radar</i>
+          <div class="settings-row-label">Radar Sites</div>
+          <select
+            class="alert-sound-select"
+            id="search-radars-limit"
+            style="max-width: 80px"
+          >
+            <option value="0">0 (None)</option>
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+          </select>
+        </div>
+
+        <div class="settings-row" style="cursor: default">
+          <i class="material-symbols-rounded">warning</i>
+          <div class="settings-row-label">Active Alerts</div>
+          <select
+            class="alert-sound-select"
+            id="search-alerts-limit"
+            style="max-width: 80px"
+          >
+            <option value="0">0 (None)</option>
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+          </select>
+        </div>
+
+        <div class="settings-row" style="cursor: default">
+          <i class="material-symbols-rounded">map</i>
+          <div class="settings-row-label">SPC Outlooks</div>
+          <select
+            class="alert-sound-select"
+            id="search-outlooks-limit"
+            style="max-width: 80px"
+          >
+            <option value="0">0 (None)</option>
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+          </select>
+        </div>
+
+        <div class="settings-row" style="cursor: default">
+          <i class="material-symbols-rounded">settings</i>
+          <div class="settings-row-label">Settings</div>
+          <select
+            class="alert-sound-select"
+            id="search-settings-limit"
+            style="max-width: 80px"
+          >
+            <option value="0">0 (None)</option>
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div id="hidden-alerts-panel" class="standard-glass">
+      <div id="hidden-alerts-panel-header">
+        <div id="hidden-alerts-panel-title">
+          <i class="material-symbols-rounded">visibility_off</i>
+          Hidden Alerts
+        </div>
+        <div style="display: flex; gap: 6px; align-items: center">
+          <button
+            class="settings-close-btn"
+            id="hidden-alerts-back-btn"
+            aria-label="Back"
+          >
+            <i class="material-symbols-rounded">arrow_back</i>
+          </button>
+          <button
+            class="settings-close-btn"
+            id="hidden-alerts-close-btn"
+            aria-label="Close"
+          >
+            <i class="material-symbols-rounded">close</i>
+          </button>
+        </div>
+      </div>
+      <div id="hidden-alerts-search-wrap">
+        <input
+          id="hidden-alerts-search"
+          type="text"
+          placeholder="Search for alerts..."
+          autocomplete="off"
+          spellcheck="false"
+        />
+      </div>
+      <div id="hidden-alerts-list"></div>
+      <div id="hidden-alerts-footer">
+        <span id="hidden-alerts-count-label"></span>
+        <button id="hidden-alerts-reset-btn">Show All</button>
+      </div>
+    </div>
+
+    <div id="alert-sounds-panel" class="standard-glass">
+      <div id="alert-sounds-panel-header">
+        <div id="alert-sounds-panel-title">
+          <i class="material-symbols-rounded">notification_important</i>
+          Alert Sounds
+        </div>
+        <div style="display: flex; gap: 6px; align-items: center">
+          <button
+            class="settings-close-btn"
+            id="alert-sounds-back-btn"
+            aria-label="Back"
+          >
+            <i class="material-symbols-rounded">arrow_back</i>
+          </button>
+          <button
+            class="settings-close-btn"
+            id="alert-sounds-close-btn"
+            aria-label="Close"
+          >
+            <i class="material-symbols-rounded">close</i>
+          </button>
+        </div>
+      </div>
+      <div id="alert-sounds-search-wrap">
+        <input
+          id="alert-sounds-search"
+          type="text"
+          placeholder="Search for alerts..."
+          autocomplete="off"
+          spellcheck="false"
+        />
+      </div>
+      <div id="alert-sounds-list"></div>
+      <div id="alert-sounds-footer">
+        <span id="alert-sounds-count-label"></span>
+        <button id="alert-sounds-reset-btn">Reset All</button>
+      </div>
+    </div>
+
+    <div id="spc-outlook-panel" class="standard-glass">
+      <div class="settings-header">
+        <div class="settings-header-title">
+          <i class="material-symbols-rounded">map</i>
+          Outlooks
+        </div>
+        <div style="display: flex; gap: 6px; align-items: center">
+          <div
+            id="spc-outlook-toggle"
+            class="settings-toggle"
+            title="Toggle Outlook"
+            style="cursor: pointer"
+          ></div>
+          <button
+            class="settings-close-btn"
+            id="spc-outlook-close-btn"
+            aria-label="Close Outlooks"
+          >
+            <i class="material-symbols-rounded">close</i>
+          </button>
+        </div>
+      </div>
+      <div id="spc-outlook-body" class="settings-body"></div>
+    </div>
+
+    <div style="display: none">
+      <input type="checkbox" id="radar-toggle" checked />
+      <input type="checkbox" id="radar-sites-toggle" checked />
+      <input type="file" id="debug-file-input" accept=".json, .geojson" />
+    </div>
+
+    <script src="js/config-utils.js"></script>
+    <script src="js/radar.js"></script>
+    <script src="js/alerts.js"></script>
+    <script src="js/app-ui.js"></script>
+  </body>
 </html>
