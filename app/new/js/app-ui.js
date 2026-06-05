@@ -225,6 +225,45 @@ window.updateGreenStatusIndicators = function () {
   window.updateSpcOutlookPanelState();
 };
 
+window.unselectRadar = function () {
+  if (window.activeSiteIdForData) {
+    window.removeSingleSiteLayer();
+    window.activeRadarProductCode = window.activeSiteIdForData = null;
+    if (window.map.getLayer(window.layerIds.radarSites)) {
+      window.map.setPaintProperty(
+        window.layerIds.radarSites,
+        "circle-color",
+        window.radarSiteDefaultColor,
+      );
+    }
+    window.updateMosaicVisibility();
+    if (window.saveCurrentState) window.saveCurrentState();
+    if (window.updateGreenStatusIndicators)
+      window.updateGreenStatusIndicators();
+    window.showToast("Radar Unselected");
+  }
+};
+
+window.applyMapConstraints = function () {
+  if (window.lockNorth) {
+    window.map.setBearing(0);
+    window.map.touchZoomRotate.disableRotation();
+  } else {
+    window.map.touchZoomRotate.enableRotation();
+  }
+  if (window.lockTilt) {
+    window.map.setPitch(0);
+    window.map.setMaxPitch(0);
+  } else {
+    window.map.setMaxPitch(60);
+  }
+  if (window.lockNorth && window.lockTilt) {
+    window.map.dragRotate.disable();
+  } else {
+    window.map.dragRotate.enable();
+  }
+};
+
 window.toggleFabMenu = function () {
   const menu = document.getElementById("fab-menu");
   const btn = document.getElementById("fab-menu-btn");
@@ -964,6 +1003,8 @@ document.addEventListener("DOMContentLoaded", () => {
       localStorage.getItem("selectOfflineSites") === "true";
     window.showOfflineSites =
       localStorage.getItem("showOfflineSites") !== "false";
+    window.lockNorth = localStorage.getItem("lockNorth") !== "false";
+    window.lockTilt = localStorage.getItem("lockTilt") !== "false";
     window.flyToRadarSetting = localStorage.getItem("flyToRadar") === "true";
 
     if (localStorage.getItem("zoneAlertsVisible") === "false")
@@ -1173,6 +1214,19 @@ document.addEventListener("DOMContentLoaded", () => {
   if (window.showOfflineSites) showOfflineToggleUI.classList.add("active");
   else showOfflineToggleUI.classList.remove("active");
 
+  const lockNorthToggleUI = document.getElementById(
+    "settings-lock-north-toggle-ui",
+  );
+  const lockTiltToggleUI = document.getElementById(
+    "settings-lock-tilt-toggle-ui",
+  );
+
+  if (window.lockNorth) lockNorthToggleUI.classList.add("active");
+  else lockNorthToggleUI.classList.remove("active");
+
+  if (window.lockTilt) lockTiltToggleUI.classList.add("active");
+  else lockTiltToggleUI.classList.remove("active");
+
   if (window.flyToRadarSetting) flySettingsToggleUI.classList.add("active");
   else flySettingsToggleUI.classList.remove("active");
 
@@ -1266,6 +1320,8 @@ document.addEventListener("DOMContentLoaded", () => {
       localStorage.setItem("showSites", window.showSitesMode);
       localStorage.setItem("selectOfflineSites", window.selectOfflineSites);
       localStorage.setItem("showOfflineSites", window.showOfflineSites);
+      localStorage.setItem("lockNorth", window.lockNorth);
+      localStorage.setItem("lockTilt", window.lockTilt);
       localStorage.setItem("flyToRadar", window.flyToRadarSetting);
       localStorage.setItem("zoneAlertsVisible", window.zoneAlertsEnabled);
       localStorage.setItem(
@@ -1369,6 +1425,24 @@ document.addEventListener("DOMContentLoaded", () => {
     window.showToast(
       `Show Offline Sites: ${window.showOfflineSites ? "On" : "Off"}`,
     );
+  });
+
+  const lockNorthBtn = document.getElementById("settings-lock-north-btn");
+  lockNorthBtn.addEventListener("click", () => {
+    window.lockNorth = !window.lockNorth;
+    lockNorthToggleUI.classList.toggle("active", window.lockNorth);
+    window.applyMapConstraints();
+    window.saveCurrentState();
+    window.showToast(`Lock North: ${window.lockNorth ? "On" : "Off"}`);
+  });
+
+  const lockTiltBtn = document.getElementById("settings-lock-tilt-btn");
+  lockTiltBtn.addEventListener("click", () => {
+    window.lockTilt = !window.lockTilt;
+    lockTiltToggleUI.classList.toggle("active", window.lockTilt);
+    window.applyMapConstraints();
+    window.saveCurrentState();
+    window.showToast(`Lock Tilt: ${window.lockTilt ? "On" : "Off"}`);
   });
 
   if (fabLocBtn) {
@@ -2594,6 +2668,7 @@ window.showAlertMapPopup = function (
         } else {
           window.showFullSpcTextPopup(item);
         }
+        window.closeAllPopups();
       };
     }
     const fitBtn = dom.querySelector("#fit-screen-button");
@@ -2601,6 +2676,7 @@ window.showAlertMapPopup = function (
       fitBtn.onclick = (e) => {
         e.stopPropagation();
         window.flyToAlert(item.type === "alert" ? item.feature : item);
+        window.closeAllPopups();
       };
     }
     const sumBtn = dom.querySelector("#summarize-button");
@@ -2627,435 +2703,64 @@ window.showAlertMapPopup = function (
             "manual",
           );
         }
+        window.closeAllPopups();
       };
     }
-    const prevBtn = dom.querySelector("#prev-alert-button");
-    if (prevBtn) {
-      prevBtn.onclick = (e) => {
+    const radBtn = dom.querySelector("#radar-site-button");
+    if (radBtn) {
+      radBtn.onclick = (e) => {
         e.stopPropagation();
-        window.showAlertMapPopup(
-          items,
-          clicked,
-          (window.currentStackedAlertIndex - 1 + items.length) % items.length,
-          "prev",
-        );
-      };
-    }
-    const nextBtn = dom.querySelector("#next-alert-button");
-    if (nextBtn) {
-      nextBtn.onclick = (e) => {
-        e.stopPropagation();
-        window.showAlertMapPopup(
-          items,
-          clicked,
-          (window.currentStackedAlertIndex + 1) % items.length,
-          "next",
-        );
-      };
-    }
-  };
-
-  const cur = renderContent(index);
-  const existingPopup = document.querySelector(".custom-map-popup-container");
-
-  if (existingPopup && currentStackedAlertsOnMap === items) {
-    const header = existingPopup.querySelector(".map-popup-header");
-    const titleSpan = existingPopup.querySelector(".map-popup-title span");
-    const titleIcon = existingPopup.querySelector(".map-popup-title i");
-    const scroller = existingPopup.querySelector("#popup-text-scroller");
-    const wrapper = existingPopup.querySelector("#popup-text-wrapper");
-    const progressLayer = existingPopup.querySelector("#action-bar-progress");
-
-    if (header && scroller && wrapper && progressLayer) {
-      const curHeight = scroller.offsetHeight;
-      wrapper.style.height = `${curHeight}px`;
-      scroller.style.transition =
-        "transform 0.22s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.22s ease";
-      scroller.style.transform =
-        direction === "next" ? "translateX(-40px)" : "translateX(40px)";
-      scroller.style.opacity = "0";
-
-      setTimeout(() => {
-        header.style.background = `${cur.color}1a`;
-        if (titleSpan) titleSpan.textContent = cur.title;
-        if (titleIcon) titleIcon.textContent = cur.icon;
-        scroller.style.transition = "none";
-        scroller.style.transform =
-          direction === "next" ? "translateX(40px)" : "translateX(-40px)";
-        scroller.innerHTML = cur.metaHtml;
-        wrapper.style.transition = "height 0.25s cubic-bezier(0.25, 1, 0.5, 1)";
-        wrapper.style.height = `${scroller.offsetHeight}px`;
-        progressLayer.style.background = getGradientBg(index, cur.color);
-        setTimeout(() => {
-          scroller.style.transition =
-            "transform 0.22s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.22s ease";
-          scroller.style.transform = "translateX(0)";
-          scroller.style.opacity = "1";
-        }, 30);
-        bindButtons(existingPopup, cur.item);
-      }, 20);
-      return;
-    }
-  }
-
-  window.closeAllPopups();
-  currentStackedAlertsOnMap = items;
-  const div = document.createElement("div");
-  div.className = "map-popup-base";
-  div.style.width = "260px";
-  div.style.boxSizing = "border-box";
-  div.innerHTML = `
-        <div class="map-popup-header" style="display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; border-bottom: 1px solid var(--glass-border-color); background: ${cur.color}1a; transition: background 0.3s ease;">
-            <div class="map-popup-title" style="display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 15px; color: white; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 85%;">
-                <i class="material-symbols-rounded" style="font-size: 18px; color: #ffffffb2;">${cur.icon}</i>
-                <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${cur.title}</span>
-            </div>
-            <button class="map-popup-close-btn" aria-label="Close" style="width: 24px; height: 24px; border-radius: 50%; border: none; background: #ffffff14; color: #ffffffb2; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.18s; padding: 0;"><i class="material-symbols-rounded" style="font-size: 14px;">close</i></button>
-        </div>
-        <div class="map-popup-body" style="padding: 14px; display: flex; flex-direction: column; gap: 4px; box-sizing: border-box;">
-            <div id="popup-text-wrapper" style="margin-bottom: 6px; position: relative; overflow: hidden; height: auto; user-select: none; -webkit-user-select: none; display: flex; align-items: center; justify-content: center; min-height: 48px;"><div id="popup-text-scroller" style="text-align: center; line-height: 1.4; transform: translateX(0); opacity: 1;">${cur.metaHtml}</div></div>
-            <div style="display: flex; align-items: center; justify-content: center; gap: 6px; margin: 4px auto 0;">
-                ${items.length > 1 ? `<button id="prev-alert-button" style="width: 32px; height: 32px; border-radius: 50%; background: #ffffff14; border: 1px solid var(--glass-border-color); color: #ffffffb2; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: background 0.15s; outline: none;"><i class="material-symbols-rounded" style="font-size: 18px;">chevron_left</i></button>` : ""}
-                <div style="position: relative; display: flex; align-items: center; gap: 6px; width: max-content; padding: 4px; border-radius: 22px; border: 1px solid var(--glass-border-color); box-sizing: border-box; overflow: hidden; height: 42px;">
-                    <div id="action-bar-progress" style="position: absolute; top: -5px; left: -5px; right: -5px; bottom: -5px; background: ${getGradientBg(index, cur.color)}; z-index: 0; transition: background 0.4s cubic-bezier(0.25, 1, 0.5, 1); filter: blur(6px); opacity: 0.7; pointer-events: none;"></div>
-                    <button id="full-text-button" style="position: relative; z-index: 1; width: 32px; height: 32px; padding: 0; border-radius: 50%; background: transparent; border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: background 0.15s; outline: none; box-sizing: border-box;"><i class="material-symbols-rounded" style="font-size: 18px; color: #ffffffb2;">description</i></button>
-                    <button id="fit-screen-button" style="position: relative; z-index: 1; width: 32px; height: 32px; padding: 0; border-radius: 50%; background: transparent; border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: background 0.15s; outline: none; box-sizing: border-box;"><i class="material-symbols-rounded" style="font-size: 18px; color: #ffffffb2;">fit_screen</i></button>
-                    <button id="summarize-button" style="position: relative; z-index: 1; width: 32px; height: 32px; padding: 0; border-radius: 50%; background: transparent; border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: background 0.15s; outline: none; box-sizing: border-box;"><i class="material-symbols-rounded" style="font-size: 18px; color: #ffffffb2;">summarize</i></button>
-                </div>
-                ${items.length > 1 ? `<button id="next-alert-button" style="width: 32px; height: 32px; border-radius: 50%; background: #ffffff14; border: 1px solid var(--glass-border-color); color: #ffffffb2; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: background 0.15s; outline: none;"><i class="material-symbols-rounded" style="font-size: 18px;">chevron_right</i></button>` : ""}
-            </div>
-        </div>
-    `;
-
-  bindButtons(div, cur.item);
-
-  if (items.length > 1) {
-    let tX = 0,
-      mX = 0,
-      isM = false,
-      lInt = 0;
-    div.addEventListener(
-      "touchstart",
-      (e) => {
-        tX = e.touches[0].clientX;
-      },
-      { passive: true },
-    );
-    div.addEventListener(
-      "touchend",
-      (e) => {
-        const d = e.changedTouches[0].clientX - tX;
-        if (Math.abs(d) > 35)
-          window.showAlertMapPopup(
-            items,
-            clicked,
-            (window.currentStackedAlertIndex +
-              (d > 0 ? -1 : 1) +
-              items.length) %
-              items.length,
-            d > 0 ? "prev" : "next",
-          );
-      },
-      { passive: true },
-    );
-    div.addEventListener("mousedown", (e) => {
-      mX = e.clientX;
-      isM = true;
-    });
-    div.addEventListener("mouseup", (e) => {
-      if (!isM) return;
-      isM = false;
-      const d = e.clientX - mX;
-      if (Math.abs(d) > 35)
-        window.showAlertMapPopup(
-          items,
-          clicked,
-          (window.currentStackedAlertIndex + (d > 0 ? -1 : 1) + items.length) %
-            items.length,
-          d > 0 ? "prev" : "next",
-        );
-    });
-    div.addEventListener(
-      "wheel",
-      (e) => {
-        const n = Date.now();
-        if (n - lInt < 120) return;
-        const d = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
-        if (Math.abs(d) > 5) {
-          lInt = n;
-          window.showAlertMapPopup(
-            items,
-            clicked,
-            (window.currentStackedAlertIndex +
-              (d > 0 ? 1 : -1) +
-              items.length) %
-              items.length,
-            d > 0 ? "next" : "prev",
-          );
-        }
-      },
-      { passive: true },
-    );
-  }
-
-  const setH = (btn) => {
-    if (btn) {
-      btn.onmouseenter = () => (btn.style.background = "#ffffff1f");
-      btn.onmouseleave = () => (btn.style.background = "transparent");
-    }
-  };
-  [
-    div.querySelector("#full-text-button"),
-    div.querySelector("#fit-screen-button"),
-    div.querySelector("#summarize-button"),
-  ].forEach(setH);
-  const closeBtn = div.querySelector(".map-popup-close-btn");
-  closeBtn.onclick = (e) => {
-    e.stopPropagation();
-    window.closeAllPopups();
-  };
-  closeBtn.onmouseenter = () => {
-    closeBtn.style.background = "#ffffff29";
-    closeBtn.style.color = "white";
-  };
-  closeBtn.onmouseleave = () => {
-    closeBtn.style.background = "#ffffff14";
-    closeBtn.style.color = "#ffffffb2";
-  };
-  currentMapPopup = new maplibregl.Popup({
-    closeOnClick: true,
-    closeButton: false,
-    offset: 10,
-    className: "custom-map-popup-container",
-  })
-    .setLngLat(clicked)
-    .setDOMContent(div)
-    .addTo(window.map);
-};
-window.showAlertMapPopup = function (
-  items,
-  clicked,
-  index = 0,
-  direction = "next",
-) {
-  window.currentStackedAlertIndex = index;
-
-  const renderContent = (idx) => {
-    const targetItem = items[idx];
-    const targetProps = targetItem.properties;
-    const targetParams = targetProps.parameters || {};
-    let targetTitle,
-      targetMetaHtml = "",
-      targetColor,
-      targetIcon;
-
-    if (targetItem.type === "alert") {
-      targetTitle = targetProps.specificEventName || targetProps.event;
-      targetColor = targetProps.displayColor || "#808080";
-      targetIcon = "warning";
-
-      let sentenceParts = [];
-      let phenomenon = "";
-      let adjectives = [];
-
-      if (targetParams.tornadoDetection || targetParams.tornadoDamageThreat) {
-        phenomenon = "tornado";
-        if (targetParams.tornadoDetection)
-          adjectives.push(targetParams.tornadoDetection[0].toLowerCase());
-        if (targetParams.tornadoDamageThreat)
-          adjectives.push(targetParams.tornadoDamageThreat[0].toLowerCase());
-      } else if (
-        targetParams.flashFloodDetection ||
-        targetParams.flashFloodDamageThreat
-      ) {
-        phenomenon = "flash flooding";
-        if (targetParams.flashFloodDetection)
-          adjectives.push(targetParams.flashFloodDetection[0].toLowerCase());
-        if (targetParams.flashFloodDamageThreat)
-          adjectives.push(targetParams.flashFloodDamageThreat[0].toLowerCase());
-      } else if (targetParams.waterspoutDetection) {
-        phenomenon = "waterspout";
-        if (targetParams.waterspoutDetection)
-          adjectives.push(targetParams.waterspoutDetection[0].toLowerCase());
-      } else if (targetParams.thunderstormDamageThreat) {
-        phenomenon = "thunderstorm";
-        if (targetParams.thunderstormDamageThreat)
-          adjectives.push(
-            targetParams.thunderstormDamageThreat[0].toLowerCase(),
-          );
-      }
-
-      let corePhenomenon = "";
-      if (phenomenon) {
-        const cleanAdjs = adjectives
-          .filter((a) => a && a !== "n/a" && a !== "none")
-          .filter((v, i, a) => a.indexOf(v) === i);
-        const mappedAdjs = cleanAdjs.map((a) => {
-          if (a === "possible")
-            return `${phenomenon.replace(" flooding", "")} possible`;
-          if (a === "radar indicated" && phenomenon === "tornado")
-            return "radar indicated rotation";
-          if (a === "destructive" && phenomenon === "thunderstorm")
-            return "destructive thunderstorm";
-          return a;
-        });
-
-        if (mappedAdjs.length > 0) {
+        window.closeAllPopups();
+        let nearest = null;
+        let min = Infinity;
+        window.allRadarSitesData.forEach((s) => {
+          const props = s.properties;
+          if (props.isOffline && !window.selectOfflineSites) return;
           if (
-            mappedAdjs.some(
-              (a) =>
-                a.includes(phenomenon) ||
-                a.includes("rotation") ||
-                a.includes("thunderstorm"),
-            )
+            window.radarSiteSelectionMode === "Both" ||
+            window.radarSiteSelectionMode === props.stationType
           ) {
-            corePhenomenon = mappedAdjs.join(", ");
-          } else {
-            corePhenomenon = `${mappedAdjs.join(", ")} ${phenomenon}`;
+            const dist = clicked.distanceTo(
+              new maplibregl.LngLat(
+                s.geometry.coordinates[0],
+                s.geometry.coordinates[1],
+              ),
+            );
+            if (dist < min) {
+              min = dist;
+              nearest = s;
+            }
+          }
+        });
+        if (nearest) {
+          const id = nearest.properties.id.toLowerCase(),
+            type = nearest.properties.stationType;
+          let prod = window.activeRadarProductCode
+            ? window.activeRadarProductCode.includes("vel")
+              ? type === "TDWR"
+                ? "bvel"
+                : "sr_bvel"
+              : window.activeRadarProductCode === "brefl"
+                ? type === "TDWR"
+                  ? "brefl"
+                  : "sr_bref"
+                : type === "TDWR"
+                  ? "bref1"
+                  : "sr_bref"
+            : type === "TDWR"
+              ? "bref1"
+              : "sr_bref";
+          if (window.flyToRadarSetting) {
+            window.map.flyTo({
+              center: nearest.geometry.coordinates,
+              zoom: 7,
+              essential: true,
+            });
+          }
+          if (window.activeSiteIdForData !== id) {
+            window.toggleRadarProduct(id, prod);
           }
         }
-      }
-      if (corePhenomenon) sentenceParts.push(corePhenomenon);
-      if (targetParams.maxWindGust && targetParams.maxWindGust[0] !== "0 MPH") {
-        sentenceParts.push(
-          `${targetParams.maxWindGust[0].toLowerCase()} winds`,
-        );
-      }
-      if (targetParams.maxHailSize && targetParams.maxHailSize[0] !== "0.00") {
-        sentenceParts.push(
-          `${targetParams.maxHailSize[0].toLowerCase()}" hail`,
-        );
-      }
-      let mainSentence = "";
-      if (sentenceParts.length > 1) {
-        const last = sentenceParts.pop();
-        mainSentence = sentenceParts.join(", ") + " and " + last;
-      } else if (sentenceParts.length === 1) {
-        mainSentence = sentenceParts[0];
-      }
-      if (mainSentence)
-        mainSentence =
-          mainSentence.charAt(0).toUpperCase() + mainSentence.slice(1);
-      if (targetProps.expires) {
-        const sentDate = window.parseApiDate(targetProps.sent);
-        const expireDate = window.parseApiDate(targetProps.expires);
-        const timeStr = window.formatDateWithTz(
-          expireDate,
-          window.getEffectiveTz(),
-          window.getSmartDateOptions(expireDate, sentDate),
-        );
-        mainSentence = mainSentence
-          ? `${mainSentence}; expires ${timeStr}`
-          : `Expires ${timeStr}`;
-      }
-      targetMetaHtml = `${mainSentence}.`;
-    } else {
-      targetTitle = `Day ${window.activeSpcDay} Outlook`;
-      targetColor = targetProps.fill || "#FFFFFF";
-      targetIcon = "map";
-      const rawLabel = (
-        targetProps.LABEL ||
-        targetProps.LABEL2 ||
-        ""
-      ).toUpperCase();
-      const type = window.activeSpcType;
-      let finalRiskPhrase = "";
-      if (rawLabel.startsWith("CIG")) {
-        const num = rawLabel.replace("CIG", "");
-        const cigIntensityMap = {
-          1: { torn: "strong", wind: "damaging", hail: "large" },
-          2: { torn: "intense", wind: "destructive", hail: "very large" },
-          3: { torn: "violent", wind: "extreme", hail: "giant" },
-        };
-        const intensity =
-          cigIntensityMap[num]?.[type] || rawLabel.toLowerCase();
-        const phenom =
-          { torn: "tornado", wind: "wind", hail: "hail" }[type] || "";
-        finalRiskPhrase = `${intensity} ${phenom}`;
-      } else {
-        const riskVal = window.formatSpcLabel(rawLabel);
-        let riskTypeSuffix = "";
-        if (type === "torn") riskTypeSuffix = " tornado";
-        else if (type === "wind") riskTypeSuffix = " wind";
-        else if (type === "hail") riskTypeSuffix = " hail";
-        else if (type === "prob") riskTypeSuffix = " severe";
-        finalRiskPhrase = `${riskVal.toLowerCase()}${riskTypeSuffix}`;
-      }
-      targetMetaHtml = `There is a ${finalRiskPhrase} risk for this location.`;
-    }
-    return {
-      title: targetTitle,
-      metaHtml: targetMetaHtml,
-      color: targetColor,
-      icon: targetIcon,
-      item: targetItem,
-    };
-  };
-
-  const getGradientBg = (idx, col) => {
-    const segWidth = 100 / items.length;
-    const start = idx * segWidth;
-    const end = (idx + 1) * segWidth;
-    const fade = Math.min(segWidth / 2, 8);
-    let stops = [];
-    if (items.length === 1) stops.push(`${col}33 0%, ${col}33 100%`);
-    else {
-      if (idx > 0) {
-        stops.push(`transparent ${start - fade}%`);
-        stops.push(`${col}33 ${start}%`);
-      } else stops.push(`${col}33 0%`);
-      stops.push(`${col}33 ${start}%`, `${col}33 ${end}%`);
-      if (idx < items.length - 1) {
-        stops.push(`${col}33 ${end}%`);
-        stops.push(`transparent ${end + fade}%`);
-      } else stops.push(`${col}33 100%`);
-    }
-    return `linear-gradient(to right, ${stops.join(", ")})`;
-  };
-
-  const bindButtons = (dom, item) => {
-    const fullBtn = dom.querySelector("#full-text-button");
-    if (fullBtn) {
-      fullBtn.onclick = (e) => {
-        e.stopPropagation();
-        if (item.type === "alert") {
-          window.showFullAlertTextPopup(item.feature || item);
-        } else {
-          window.showFullSpcTextPopup(item);
-        }
-      };
-    }
-    const fitBtn = dom.querySelector("#fit-screen-button");
-    if (fitBtn) {
-      fitBtn.onclick = (e) => {
-        e.stopPropagation();
-        window.flyToAlert(item.type === "alert" ? item.feature : item);
-      };
-    }
-    const sumBtn = dom.querySelector("#summarize-button");
-    if (sumBtn) {
-      sumBtn.onclick = (e) => {
-        e.stopPropagation();
-        if (item.type === "alert") {
-          window.createAndShowAlertPopup(item.feature, "manual");
-        } else {
-          const highest = window.getSpcSourceHighest(
-            `spc-day${window.activeSpcDay}-${window.activeSpcType || "cat"}`,
-          );
-          window.createAndShowAlertPopup(
-            {
-              properties: {
-                event: "SPC Outlook",
-                specificEventName: `Day ${window.activeSpcDay} Outlook`,
-                displayColor: highest ? highest.fill : "#FFFFFF",
-                spcTopLabel: highest ? highest.label : "N/A",
-                spcDay: window.activeSpcDay,
-                spcType: window.activeSpcType,
-              },
-            },
-            "manual",
-          );
-        }
       };
     }
     const prevBtn = dom.querySelector("#prev-alert-button");
@@ -3150,6 +2855,7 @@ window.showAlertMapPopup = function (
                     <button id="full-text-button" style="position: relative; z-index: 1; width: 32px; height: 32px; padding: 0; border-radius: 50%; background: transparent; border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: background 0.15s; outline: none; box-sizing: border-box;"><i class="material-symbols-rounded" style="font-size: 18px; color: #ffffffb2;">description</i></button>
                     <button id="fit-screen-button" style="position: relative; z-index: 1; width: 32px; height: 32px; padding: 0; border-radius: 50%; background: transparent; border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: background 0.15s; outline: none; box-sizing: border-box;"><i class="material-symbols-rounded" style="font-size: 18px; color: #ffffffb2;">fit_screen</i></button>
                     <button id="summarize-button" style="position: relative; z-index: 1; width: 32px; height: 32px; padding: 0; border-radius: 50%; background: transparent; border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: background 0.15s; outline: none; box-sizing: border-box;"><i class="material-symbols-rounded" style="font-size: 18px; color: #ffffffb2;">summarize</i></button>
+                    <button id="radar-site-button" style="position: relative; z-index: 1; width: 32px; height: 32px; padding: 0; border-radius: 50%; background: transparent; border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: background 0.15s; outline: none; box-sizing: border-box;"><i class="material-symbols-rounded" style="font-size: 18px; color: #ffffffb2;">radar</i></button>
                 </div>
                 ${items.length > 1 ? `<button id="next-alert-button" style="width: 32px; height: 32px; border-radius: 50%; background: #ffffff14; border: 1px solid var(--glass-border-color); color: #ffffffb2; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: background 0.15s; outline: none;"><i class="material-symbols-rounded" style="font-size: 18px;">chevron_right</i></button>` : ""}
             </div>
@@ -3237,6 +2943,7 @@ window.showAlertMapPopup = function (
     div.querySelector("#full-text-button"),
     div.querySelector("#fit-screen-button"),
     div.querySelector("#summarize-button"),
+    div.querySelector("#radar-site-button"),
   ].forEach(setH);
   const closeBtn = div.querySelector(".map-popup-close-btn");
   closeBtn.onclick = (e) => {
@@ -3732,6 +3439,7 @@ window.map.on("load", async () => {
   window.updateSpcOutlooks();
   window.geocodeAndPlaceMarker();
   window.checkRadarStatus();
+  window.applyMapConstraints();
 
   let urlRadarRequest = null;
   const sParam = urlParams.get("s");
@@ -3872,9 +3580,8 @@ window.map.on("load", async () => {
           zoom: 7,
           essential: true,
         });
-        if (window.activeSiteIdForData !== id)
-          window.toggleRadarProduct(id, prod);
-      } else {
+      }
+      if (window.activeSiteIdForData !== id) {
         window.toggleRadarProduct(id, prod);
       }
     }
@@ -4033,6 +3740,10 @@ document.addEventListener("keydown", (e) => {
   }
 
   if (!e.shiftKey) return;
+  if (e.code === "KeyX") {
+    window.unselectRadar();
+    return;
+  }
   if (e.code === "KeyU") {
     if (window.debugModeEnabled) {
       const dbgIn = document.getElementById("debug-file-input");
