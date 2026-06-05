@@ -1212,6 +1212,19 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
+  if (window.updateShowSitesFilter) {
+    window.updateShowSitesFilter();
+  }
+
+  document.querySelectorAll(".show-sites-option").forEach((option) => {
+    option.addEventListener("click", () => {
+      window.showSitesMode = option.dataset.value;
+      window.showToast(`Show Sites: ${window.showSitesMode}`);
+      if (window.updateShowSitesFilter) window.updateShowSitesFilter();
+      window.saveCurrentState();
+    });
+  });
+
   window.saveCurrentState = function () {
     const radarToggle = document.getElementById("radar-toggle");
     const sitesToggle = document.getElementById("radar-sites-toggle");
