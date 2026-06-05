@@ -75,15 +75,17 @@ window.updateShowSitesFilter = function () {
         "visibility",
         "visible",
       );
-      if (window.showSitesMode === "Both") {
-        window.map.setFilter(window.layerIds.radarSites, null);
-      } else {
-        window.map.setFilter(window.layerIds.radarSites, [
-          "==",
-          ["get", "stationType"],
-          window.showSitesMode,
-        ]);
+      let filter = ["all"];
+      if (window.showSitesMode !== "Both") {
+        filter.push(["==", ["get", "stationType"], window.showSitesMode]);
       }
+      if (!window.showOfflineSites) {
+        filter.push(["!=", ["get", "isOffline"], true]);
+      }
+      window.map.setFilter(
+        window.layerIds.radarSites,
+        filter.length > 1 ? filter : null,
+      );
     }
   }
   const sitesToggle = document.getElementById("radar-sites-toggle");
@@ -110,6 +112,12 @@ window.removeSingleSiteLayer = function () {
 
 window.toggleRadarProduct = function (stationId, productCode) {
   window.removeSingleSiteLayer();
+  const site = window.allRadarSitesData.find(
+    (s) => s.properties.id.toLowerCase() === stationId.toLowerCase(),
+  );
+  if (site && site.properties.isOffline && !window.selectOfflineSites) {
+    return;
+  }
   if (
     window.activeSiteIdForData === stationId &&
     window.activeRadarProductCode === productCode
@@ -247,12 +255,10 @@ window.checkRadarStatus = async function (prefetchedData) {
       return site;
     });
     if (changed && window.map.getSource("radar-sites")) {
-      window.map
-        .getSource("radar-sites")
-        .setData({
-          type: "FeatureCollection",
-          features: window.allRadarSitesData,
-        });
+      window.map.getSource("radar-sites").setData({
+        type: "FeatureCollection",
+        features: window.allRadarSitesData,
+      });
     }
   } catch (e) {
     console.error(e);

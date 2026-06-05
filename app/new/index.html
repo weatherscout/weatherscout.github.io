@@ -63,12 +63,9 @@
           <span id="alerts-sidebar-count"></span>
         </div>
         <div style="display: flex; gap: 6px; align-items: center">
-          <div
-            id="alerts-sidebar-toggle"
-            class="settings-toggle active"
-            title="Toggle Alerts"
-            style="cursor: pointer"
-          ></div>
+          <button id="alerts-sidebar-toggle" title="Toggle Alerts">
+            <i class="material-symbols-rounded">check_box</i>
+          </button>
           <button id="alerts-sidebar-settings" aria-label="Open settings">
             <i class="material-symbols-rounded">settings</i>
           </button>
@@ -519,6 +516,16 @@
             id="mosaic-toggle-settings-toggle-ui"
           ></div>
         </button>
+        <button class="settings-row" id="select-offline-toggle-btn">
+          <i class="material-symbols-rounded">cloud_off</i>
+          <div class="settings-row-label">Select Offline Sites</div>
+          <div class="settings-toggle" id="select-offline-toggle-ui"></div>
+        </button>
+        <button class="settings-row" id="show-offline-toggle-btn">
+          <i class="material-symbols-rounded">cloud_off</i>
+          <div class="settings-row-label">Show Offline Sites</div>
+          <div class="settings-toggle" id="show-offline-toggle-ui"></div>
+        </button>
         <button class="settings-row" id="fly-settings-btn">
           <i class="material-symbols-rounded">fit_screen</i>
           <div class="settings-row-label">Fly to Radar</div>
@@ -743,12 +750,6 @@
           Outlooks
         </div>
         <div style="display: flex; gap: 6px; align-items: center">
-          <div
-            id="spc-outlook-toggle"
-            class="settings-toggle"
-            title="Toggle Outlook"
-            style="cursor: pointer"
-          ></div>
           <button
             class="settings-close-btn"
             id="spc-outlook-close-btn"

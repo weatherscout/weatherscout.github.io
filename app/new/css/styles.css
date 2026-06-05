@@ -1123,7 +1123,8 @@ html {
 }
 
 #alerts-sidebar-close,
-#alerts-sidebar-settings {
+#alerts-sidebar-settings,
+#alerts-sidebar-toggle {
   width: 30px;
   height: 30px;
   border-radius: 50%;
@@ -1139,12 +1140,14 @@ html {
 }
 
 #alerts-sidebar-close .material-symbols-rounded,
-#alerts-sidebar-settings .material-symbols-rounded {
+#alerts-sidebar-settings .material-symbols-rounded,
+#alerts-sidebar-toggle .material-symbols-rounded {
   font-size: 18px;
 }
 
 #alerts-sidebar-close:hover,
-#alerts-sidebar-settings:hover {
+#alerts-sidebar-settings:hover,
+#alerts-sidebar-toggle:hover {
   background: #ffffff29;
   color: white;
 }

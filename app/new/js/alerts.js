@@ -526,6 +526,8 @@ window.addNewAlertToQueue = function (feature, type, isSilent = false) {
 
 window.refreshNwsAlerts = async function (isSilent = false) {
   if (!window.alertsEnabled) return;
+  window.isAlertsLoading = true;
+  if (window.renderAlertsSidebar) window.renderAlertsSidebar();
   try {
     const response = await fetch(
       "https://api.weather.gov/alerts/active?status=actual&message_type=alert,update",
@@ -554,11 +556,13 @@ window.refreshNwsAlerts = async function (isSilent = false) {
     }
     window.displayNextAlert();
     window.updateGreenStatusIndicators();
+  } catch (e) {
+    console.error("NWS alerts refresh ingestion failed.", e);
+  } finally {
+    window.isAlertsLoading = false;
     if (window.renderAlertsSidebar) {
       window.renderAlertsSidebar();
     }
-  } catch (e) {
-    console.error("NWS alerts refresh ingestion failed.", e);
   }
 };
 
@@ -1063,9 +1067,12 @@ window.toggleAllAlerts = async function () {
 
   if (window.alertsEnabled) {
     window.showToast("Alerts: On");
+    window.isAlertsLoading = true;
+    if (window.renderAlertsSidebar) window.renderAlertsSidebar();
     await window.refreshNwsAlerts(true);
     await window.updatePlacefileAlerts(true);
   } else {
+    window.isAlertsLoading = false;
     window.showToast("Alerts: Off");
     ["alerts-poly", "alerts-zone", "alerts-md", "alerts-poly-watch"].forEach(
       (s) => {

@@ -209,17 +209,18 @@ window.updateGreenStatusIndicators = function () {
   }
   const sidebarToggle = document.getElementById("alerts-sidebar-toggle");
   if (sidebarToggle) {
-    sidebarToggle.classList.toggle("active", window.alertsEnabled);
+    const icon = sidebarToggle.querySelector("i");
+    if (icon) {
+      icon.textContent = window.alertsEnabled
+        ? "check_box"
+        : "check_box_outline_blank";
+    }
   }
   const spcActive =
     window.activeSpcDay !== "none" && window.activeSpcType !== "none";
   const outlooksBtn = document.getElementById("fab-outlooks");
   if (outlooksBtn) {
     outlooksBtn.classList.toggle("status-on", spcActive);
-  }
-  const spcToggle = document.getElementById("spc-outlook-toggle");
-  if (spcToggle) {
-    spcToggle.classList.toggle("active", spcActive);
   }
   window.updateSpcOutlookPanelState();
 };
@@ -329,6 +330,12 @@ document.addEventListener("DOMContentLoaded", () => {
     "save-settings-toggle-ui",
   );
   const resetAppBtn = document.getElementById("reset-app-settings-btn");
+  const selectOfflineBtn = document.getElementById("select-offline-toggle-btn");
+  const selectOfflineToggleUI = document.getElementById(
+    "select-offline-toggle-ui",
+  );
+  const showOfflineBtn = document.getElementById("show-offline-toggle-btn");
+  const showOfflineToggleUI = document.getElementById("show-offline-toggle-ui");
   const flySettingsBtn = document.getElementById("fly-settings-btn");
   const flySettingsToggleUI = document.getElementById("fly-settings-toggle-ui");
   const zoneAlertsBtn = document.getElementById("zone-alerts-settings-btn");
@@ -953,6 +960,10 @@ document.addEventListener("DOMContentLoaded", () => {
     window.radarSiteSelectionMode =
       localStorage.getItem("siteSelection") || "Both";
     window.showSitesMode = localStorage.getItem("showSites") || "Both";
+    window.selectOfflineSites =
+      localStorage.getItem("selectOfflineSites") === "true";
+    window.showOfflineSites =
+      localStorage.getItem("showOfflineSites") !== "false";
     window.flyToRadarSetting = localStorage.getItem("flyToRadar") === "true";
 
     if (localStorage.getItem("zoneAlertsVisible") === "false")
@@ -1156,6 +1167,12 @@ document.addEventListener("DOMContentLoaded", () => {
   if (window.debugModeEnabled) debugSettingsToggleUI.classList.add("active");
   else debugSettingsToggleUI.classList.remove("active");
 
+  if (window.selectOfflineSites) selectOfflineToggleUI.classList.add("active");
+  else selectOfflineToggleUI.classList.remove("active");
+
+  if (window.showOfflineSites) showOfflineToggleUI.classList.add("active");
+  else showOfflineToggleUI.classList.remove("active");
+
   if (window.flyToRadarSetting) flySettingsToggleUI.classList.add("active");
   else flySettingsToggleUI.classList.remove("active");
 
@@ -1247,6 +1264,8 @@ document.addEventListener("DOMContentLoaded", () => {
       );
       localStorage.setItem("siteSelection", window.radarSiteSelectionMode);
       localStorage.setItem("showSites", window.showSitesMode);
+      localStorage.setItem("selectOfflineSites", window.selectOfflineSites);
+      localStorage.setItem("showOfflineSites", window.showOfflineSites);
       localStorage.setItem("flyToRadar", window.flyToRadarSetting);
       localStorage.setItem("zoneAlertsVisible", window.zoneAlertsEnabled);
       localStorage.setItem(
@@ -1331,6 +1350,25 @@ document.addEventListener("DOMContentLoaded", () => {
     debugSettingsToggleUI.classList.toggle("active");
     window.saveCurrentState();
     window.showToast(`Debug Mode: ${window.debugModeEnabled ? "On" : "Off"}`);
+  });
+
+  selectOfflineBtn.addEventListener("click", () => {
+    window.selectOfflineSites = !window.selectOfflineSites;
+    selectOfflineToggleUI.classList.toggle("active", window.selectOfflineSites);
+    window.saveCurrentState();
+    window.showToast(
+      `Select Offline Sites: ${window.selectOfflineSites ? "On" : "Off"}`,
+    );
+  });
+
+  showOfflineBtn.addEventListener("click", () => {
+    window.showOfflineSites = !window.showOfflineSites;
+    showOfflineToggleUI.classList.toggle("active", window.showOfflineSites);
+    if (window.updateShowSitesFilter) window.updateShowSitesFilter();
+    window.saveCurrentState();
+    window.showToast(
+      `Show Offline Sites: ${window.showOfflineSites ? "On" : "Off"}`,
+    );
   });
 
   if (fabLocBtn) {
@@ -2051,12 +2089,6 @@ document.addEventListener("DOMContentLoaded", () => {
       document
         .querySelectorAll("#spc-outlook-body .sidebar-alert-group")
         .forEach((g) => g.classList.remove("open"));
-      const spcToggle = document.getElementById("spc-outlook-toggle");
-      if (spcToggle)
-        spcToggle.classList.toggle(
-          "active",
-          window.activeSpcDay !== "none" && window.activeSpcType !== "none",
-        );
       if (fabOutlooks) fabOutlooks.classList.add("active");
     }
   };
@@ -2074,42 +2106,6 @@ document.addEventListener("DOMContentLoaded", () => {
   if (spcCloseBtn)
     spcCloseBtn.addEventListener("click", window.closeSpcOutlookPanel);
 
-  const spcTglBtn = document.getElementById("spc-outlook-toggle");
-  if (spcTglBtn) {
-    spcTglBtn.addEventListener("click", () => {
-      if (window.activeSpcDay !== "none") {
-        window.activeSpcDay = "none";
-        window.activeSpcType = "none";
-        window.showToast("Outlook: Off");
-      } else {
-        const dayConfigs = [
-          { id: "1", types: ["cat", "torn", "wind", "hail"] },
-          { id: "2", types: ["cat", "torn", "wind", "hail"] },
-          { id: "3", types: ["cat", "prob"] },
-          { id: "4", types: ["prob"] },
-          { id: "5", types: ["prob"] },
-          { id: "6", types: ["prob"] },
-          { id: "7", types: ["prob"] },
-          { id: "8", types: ["prob"] },
-        ];
-        for (const { id, types } of dayConfigs) {
-          const primaryType = types[0];
-          if (window.getSpcSourceHighest(`spc-day${id}-${primaryType}`)) {
-            window.activeSpcDay = id;
-            window.activeSpcType = primaryType;
-            window.showToast(
-              `Outlook: Day ${id} ${window.typeLabels[primaryType] || "Prob."}`,
-            );
-            break;
-          }
-        }
-      }
-      window.updateSpcLayerVisibility();
-      if (window.saveCurrentState) window.saveCurrentState();
-      window.updateGreenStatusIndicators();
-      window.renderSpcOutlookPanel();
-    });
-  }
   if (fabOutlooks)
     fabOutlooks.addEventListener("click", (e) => {
       e.stopPropagation();
@@ -2162,8 +2158,10 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     const filtered = window.allRadarSitesData
       .filter((site) => {
-        const id = (site.properties.id || "").toLowerCase(),
-          name = (site.properties.name || "").toLowerCase();
+        const props = site.properties;
+        if (props.isOffline && !window.showOfflineSites) return false;
+        const id = (props.id || "").toLowerCase(),
+          name = (props.name || "").toLowerCase();
         return !query || id.includes(query) || name.includes(query);
       })
       .slice()
@@ -3833,7 +3831,7 @@ window.map.on("load", async () => {
     let min = Infinity;
     window.allRadarSitesData.forEach((s) => {
       const props = s.properties;
-      if (props.isOffline) return;
+      if (props.isOffline && !window.selectOfflineSites) return;
       if (
         window.radarSiteSelectionMode === "Both" ||
         window.radarSiteSelectionMode === props.stationType
@@ -3906,7 +3904,7 @@ window.map.on("click", (e) => {
     const site = window.allRadarSitesData.find(
       (s) => s.properties.id === top.properties.id,
     );
-    if (site && !site.properties.isOffline) {
+    if (site && (!site.properties.isOffline || window.selectOfflineSites)) {
       const id = site.properties.id.toLowerCase(),
         type = site.properties.stationType;
       if (window.activeSiteIdForData === id) {
@@ -4250,7 +4248,7 @@ document.addEventListener("keydown", (e) => {
       if (!window.alertsEnabled) {
         if (icon) icon.textContent = "notifications_off";
         if (text) text.textContent = "Alerts are off";
-      } else if (window.isInitialLoad) {
+      } else if (window.isInitialLoad || window.isAlertsLoading) {
         if (icon) icon.textContent = "hourglass_empty";
         if (text) text.textContent = "Loading alerts...";
       } else {
