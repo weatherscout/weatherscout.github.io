@@ -2499,78 +2499,87 @@ window.showAlertMapPopup = function (
       targetColor = targetProps.displayColor || "#808080";
       targetIcon = "warning";
 
-      let phenomenon = "";
-      let adjectives = [];
-
-      if (targetParams.tornadoDetection || targetParams.tornadoDamageThreat) {
-        phenomenon = "tornado";
-        if (targetParams.tornadoDetection)
-          adjectives.push(targetParams.tornadoDetection[0].toLowerCase());
-        if (targetParams.tornadoDamageThreat) {
-          const threatVal = targetParams.tornadoDamageThreat[0].toLowerCase();
-          const detectionStr =
-            targetParams.tornadoDetection?.[0]?.toLowerCase() || "";
-          if (!detectionStr.includes(threatVal)) {
-            adjectives.push(threatVal);
-          }
-        }
-      } else if (
-        targetParams.flashFloodDetection ||
-        targetParams.flashFloodDamageThreat
-      ) {
-        phenomenon = "flash flooding";
-        if (targetParams.flashFloodDetection)
-          adjectives.push(targetParams.flashFloodDetection[0].toLowerCase());
-        if (targetParams.flashFloodDamageThreat) {
-          const threatVal =
-            targetParams.flashFloodDamageThreat[0].toLowerCase();
-          const detectionStr =
-            targetParams.flashFloodDetection?.[0]?.toLowerCase() || "";
-          if (!detectionStr.includes(threatVal)) {
-            adjectives.push(threatVal);
-          }
-        }
-      } else if (targetParams.waterspoutDetection) {
-        phenomenon = "waterspout";
-        if (targetParams.waterspoutDetection)
-          adjectives.push(targetParams.waterspoutDetection[0].toLowerCase());
-      } else if (targetParams.thunderstormDamageThreat) {
-        phenomenon = "thunderstorm";
-        if (targetParams.thunderstormDamageThreat)
-          adjectives.push(
-            targetParams.thunderstormDamageThreat[0].toLowerCase(),
-          );
-      }
-
       let corePhenomenon = "";
-      if (phenomenon) {
-        const cleanAdjs = adjectives
-          .filter((a) => a && a !== "n/a" && a !== "none")
-          .filter((v, i, a) => a.indexOf(v) === i);
-        const mappedAdjs = cleanAdjs.map((a) => {
-          if (a === "possible")
-            return `${phenomenon.replace(" flooding", "")} possible`;
-          if (a === "destructive" && phenomenon === "thunderstorm")
-            return "destructive thunderstorm";
-          return a;
-        });
 
-        if (mappedAdjs.length > 0) {
-          if (
-            targetProps.customTornadoSource ||
-            targetProps.customFlashFloodSource ||
-            mappedAdjs.some(
-              (a) =>
-                a.includes(phenomenon) ||
-                a.includes("rotation") ||
-                a.includes("thunderstorm") ||
-                a.includes("flooding") ||
-                a.includes("flood"),
-            )
-          ) {
-            corePhenomenon = mappedAdjs.join(", ");
-          } else {
-            corePhenomenon = `${mappedAdjs.join(", ")} ${phenomenon}`;
+      if (targetProps.event === "Flash Flood Warning") {
+        let rawSource = (
+          targetParams.flashFloodDetection?.[0] || "Radar"
+        ).trim();
+        if (rawSource.endsWith(".")) {
+          rawSource = rawSource.slice(0, -1).trim();
+        }
+        let sourceStr = rawSource;
+        const lowerSource = rawSource.toLowerCase();
+        if (
+          !lowerSource.endsWith("reported") &&
+          !lowerSource.endsWith("indicated")
+        ) {
+          sourceStr = rawSource + " indicated";
+        }
+        const threat = (targetParams.flashFloodDamageThreat?.[0] || "")
+          .trim()
+          .toLowerCase();
+        if (threat && threat !== "n/a" && threat !== "none") {
+          corePhenomenon = `${sourceStr} ${threat} flash flooding`;
+        } else {
+          corePhenomenon = `${sourceStr} flash flooding`;
+        }
+      } else {
+        let phenomenon = "";
+        let adjectives = [];
+
+        if (targetParams.tornadoDetection || targetParams.tornadoDamageThreat) {
+          phenomenon = "tornado";
+          if (targetParams.tornadoDetection)
+            adjectives.push(targetParams.tornadoDetection[0].toLowerCase());
+          if (targetParams.tornadoDamageThreat) {
+            const threatVal = targetParams.tornadoDamageThreat[0].toLowerCase();
+            const detectionStr =
+              targetParams.tornadoDetection?.[0]?.toLowerCase() || "";
+            if (!detectionStr.includes(threatVal)) {
+              adjectives.push(threatVal);
+            }
+          }
+        } else if (targetParams.waterspoutDetection) {
+          phenomenon = "waterspout";
+          if (targetParams.waterspoutDetection)
+            adjectives.push(targetParams.waterspoutDetection[0].toLowerCase());
+        } else if (targetParams.thunderstormDamageThreat) {
+          phenomenon = "thunderstorm";
+          if (targetParams.thunderstormDamageThreat)
+            adjectives.push(
+              targetParams.thunderstormDamageThreat[0].toLowerCase(),
+            );
+        }
+
+        if (phenomenon) {
+          const cleanAdjs = adjectives
+            .filter((a) => a && a !== "n/a" && a !== "none")
+            .filter((v, i, a) => a.indexOf(v) === i);
+          const mappedAdjs = cleanAdjs.map((a) => {
+            if (a === "possible")
+              return `${phenomenon.replace(" flooding", "")} possible`;
+            if (a === "destructive" && phenomenon === "thunderstorm")
+              return "destructive thunderstorm";
+            return a;
+          });
+
+          if (mappedAdjs.length > 0) {
+            if (
+              targetProps.customTornadoSource ||
+              mappedAdjs.some(
+                (a) =>
+                  a.includes(phenomenon) ||
+                  a.includes("rotation") ||
+                  a.includes("thunderstorm") ||
+                  a.includes("flooding") ||
+                  a.includes("flood"),
+              )
+            ) {
+              corePhenomenon = mappedAdjs.join(", ");
+            } else {
+              corePhenomenon = `${mappedAdjs.join(", ")} ${phenomenon}`;
+            }
           }
         }
       }
