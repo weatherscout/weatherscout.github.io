@@ -2521,8 +2521,15 @@ window.showAlertMapPopup = function (
         phenomenon = "flash flooding";
         if (targetParams.flashFloodDetection)
           adjectives.push(targetParams.flashFloodDetection[0].toLowerCase());
-        if (targetParams.flashFloodDamageThreat)
-          adjectives.push(targetParams.flashFloodDamageThreat[0].toLowerCase());
+        if (targetParams.flashFloodDamageThreat) {
+          const threatVal =
+            targetParams.flashFloodDamageThreat[0].toLowerCase();
+          const detectionStr =
+            targetParams.flashFloodDetection?.[0]?.toLowerCase() || "";
+          if (!detectionStr.includes(threatVal)) {
+            adjectives.push(threatVal);
+          }
+        }
       } else if (targetParams.waterspoutDetection) {
         phenomenon = "waterspout";
         if (targetParams.waterspoutDetection)
@@ -2551,11 +2558,14 @@ window.showAlertMapPopup = function (
         if (mappedAdjs.length > 0) {
           if (
             targetProps.customTornadoSource ||
+            targetProps.customFlashFloodSource ||
             mappedAdjs.some(
               (a) =>
                 a.includes(phenomenon) ||
                 a.includes("rotation") ||
-                a.includes("thunderstorm"),
+                a.includes("thunderstorm") ||
+                a.includes("flooding") ||
+                a.includes("flood"),
             )
           ) {
             corePhenomenon = mappedAdjs.join(", ");
@@ -2567,8 +2577,9 @@ window.showAlertMapPopup = function (
 
       let mainSentence = "";
       const isTornadoWarning = targetProps.event === "Tornado Warning";
+      const isFlashFloodWarning = targetProps.event === "Flash Flood Warning";
 
-      if (isTornadoWarning) {
+      if (isTornadoWarning || isFlashFloodWarning) {
         let additionalThreatParts = [];
         if (
           targetParams.maxWindGust &&

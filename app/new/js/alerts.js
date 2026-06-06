@@ -161,7 +161,7 @@ window.processRawAlertFeatures = async function (
       if (!f.properties.parameters) f.properties.parameters = {};
       const params = f.properties.parameters;
       const desc = f.properties.description || "";
-      const sourceMatch = desc.match(/SOURCE\.\.\.([^.]+)/i);
+      const sourceMatch = desc.match(/SOURCE\.+\s*([^.\n\r]+)/i);
       let finalSource =
         sourceMatch && sourceMatch[1]
           ? sourceMatch[1].trim()
@@ -182,6 +182,21 @@ window.processRawAlertFeatures = async function (
         if (sourceMatch && sourceMatch[1]) {
           f.properties.customTornadoSource = true;
         }
+      }
+    }
+
+    if (f.properties.event === "Flash Flood Warning") {
+      if (!f.properties.parameters) f.properties.parameters = {};
+      const params = f.properties.parameters;
+      const desc = f.properties.description || "";
+      const sourceMatch = desc.match(/SOURCE\.+\s*([^.\n\r]+)/i);
+      let finalSource =
+        sourceMatch && sourceMatch[1]
+          ? sourceMatch[1].trim()
+          : params.flashFloodDetection?.[0] || "";
+      params.flashFloodDetection = [finalSource];
+      if (sourceMatch && sourceMatch[1]) {
+        f.properties.customFlashFloodSource = true;
       }
     }
 
@@ -625,73 +640,6 @@ window.refreshNwsAlerts = async function (isSilent = false) {
     if (window.renderAlertsSidebar) {
       window.renderAlertsSidebar();
     }
-  }
-};
-
-window.processRawAlertFeatures = async function (
-  raw,
-  filterType,
-  isSilent = false,
-) {
-  if (!window.alertsEnabled) return;
-  const valid = raw.filter(window.isValidAlert);
-  const poly = [];
-  const zone = [];
-
-  valid.forEach((f) => {
-    f.properties.specificEventName = window.getSpecificAlertName(f.properties);
-    f.properties.displayColor = window.getAlertColor(f.properties);
-
-    if (f.properties.event === "Tornado Warning") {
-      if (!f.properties.parameters) f.properties.parameters = {};
-      const params = f.properties.parameters;
-      const desc = f.properties.description || "";
-      const sourceMatch = desc.match(/SOURCE\.\.\.([^.]+)/i);
-      let finalSource =
-        sourceMatch && sourceMatch[1]
-          ? sourceMatch[1].trim()
-          : params.tornadoDetection?.[0] || "";
-      if (finalSource) {
-        const threat = (params.tornadoDamageThreat?.[0] || "").toUpperCase();
-        if (threat === "CONSIDERABLE" || threat === "CATASTROPHIC") {
-          const lowerThreat = threat.toLowerCase();
-          const tornadoRegex = /\s+(tornado)/i;
-          if (tornadoRegex.test(finalSource)) {
-            finalSource = finalSource.replace(
-              tornadoRegex,
-              ", " + lowerThreat + " $1",
-            );
-          }
-        }
-        params.tornadoDetection = [finalSource];
-        if (sourceMatch && sourceMatch[1]) {
-          f.properties.customTornadoSource = true;
-        }
-      }
-    }
-
-    if (!!f.geometry) {
-      f.properties.geometryType = "polygon";
-      poly.push(f);
-    } else {
-      f.properties.geometryType = "zone";
-      zone.push(f);
-    }
-  });
-
-  if (filterType === "polygon") {
-    poly.forEach((f) => {
-      f.properties.priorityScore = window.getAlertPriorityScore(f);
-    });
-    if (window.map.getSource("alerts-poly")) {
-      window.map
-        .getSource("alerts-poly")
-        .setData({ type: "FeatureCollection", features: poly });
-    }
-    window.globalPolyAlerts = poly;
-    poly.forEach((f) => window.addNewAlertToQueue(f, "alert", isSilent));
-  } else if (filterType === "zone" && window.zoneAlertsEnabled) {
-    await window.processZoneAlerts(zone, isSilent);
   }
 };
 
