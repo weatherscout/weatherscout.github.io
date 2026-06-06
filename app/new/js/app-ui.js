@@ -2499,7 +2499,6 @@ window.showAlertMapPopup = function (
       targetColor = targetProps.displayColor || "#808080";
       targetIcon = "warning";
 
-      let sentenceParts = [];
       let phenomenon = "";
       let adjectives = [];
 
@@ -2507,8 +2506,14 @@ window.showAlertMapPopup = function (
         phenomenon = "tornado";
         if (targetParams.tornadoDetection)
           adjectives.push(targetParams.tornadoDetection[0].toLowerCase());
-        if (targetParams.tornadoDamageThreat)
-          adjectives.push(targetParams.tornadoDamageThreat[0].toLowerCase());
+        if (targetParams.tornadoDamageThreat) {
+          const threatVal = targetParams.tornadoDamageThreat[0].toLowerCase();
+          const detectionStr =
+            targetParams.tornadoDetection?.[0]?.toLowerCase() || "";
+          if (!detectionStr.includes(threatVal)) {
+            adjectives.push(threatVal);
+          }
+        }
       } else if (
         targetParams.flashFloodDetection ||
         targetParams.flashFloodDamageThreat
@@ -2538,8 +2543,6 @@ window.showAlertMapPopup = function (
         const mappedAdjs = cleanAdjs.map((a) => {
           if (a === "possible")
             return `${phenomenon.replace(" flooding", "")} possible`;
-          if (a === "radar indicated" && phenomenon === "tornado")
-            return "radar indicated rotation";
           if (a === "destructive" && phenomenon === "thunderstorm")
             return "destructive thunderstorm";
           return a;
@@ -2547,6 +2550,7 @@ window.showAlertMapPopup = function (
 
         if (mappedAdjs.length > 0) {
           if (
+            targetProps.customTornadoSource ||
             mappedAdjs.some(
               (a) =>
                 a.includes(phenomenon) ||
@@ -2560,24 +2564,72 @@ window.showAlertMapPopup = function (
           }
         }
       }
-      if (corePhenomenon) sentenceParts.push(corePhenomenon);
-      if (targetParams.maxWindGust && targetParams.maxWindGust[0] !== "0 MPH") {
-        sentenceParts.push(
-          `${targetParams.maxWindGust[0].toLowerCase()} winds`,
-        );
-      }
-      if (targetParams.maxHailSize && targetParams.maxHailSize[0] !== "0.00") {
-        sentenceParts.push(
-          `${targetParams.maxHailSize[0].toLowerCase()}" hail`,
-        );
-      }
+
       let mainSentence = "";
-      if (sentenceParts.length > 1) {
-        const last = sentenceParts.pop();
-        mainSentence = sentenceParts.join(", ") + " and " + last;
-      } else if (sentenceParts.length === 1) {
-        mainSentence = sentenceParts[0];
+      const isTornadoWarning = targetProps.event === "Tornado Warning";
+
+      if (isTornadoWarning) {
+        let additionalThreatParts = [];
+        if (
+          targetParams.maxWindGust &&
+          targetParams.maxWindGust[0] !== "0 MPH"
+        ) {
+          additionalThreatParts.push(
+            `${targetParams.maxWindGust[0].toLowerCase()} winds`,
+          );
+        }
+        if (
+          targetParams.maxHailSize &&
+          targetParams.maxHailSize[0] !== "0.00"
+        ) {
+          additionalThreatParts.push(
+            `${targetParams.maxHailSize[0].toLowerCase()}" hail`,
+          );
+        }
+
+        if (corePhenomenon) {
+          mainSentence = corePhenomenon;
+          if (additionalThreatParts.length > 0) {
+            mainSentence +=
+              "; additional threats include " +
+              additionalThreatParts.join(" and ");
+          }
+        } else if (additionalThreatParts.length > 0) {
+          if (additionalThreatParts.length > 1) {
+            const last = additionalThreatParts.pop();
+            mainSentence = additionalThreatParts.join(", ") + " and " + last;
+          } else {
+            mainSentence = additionalThreatParts[0];
+          }
+        }
+      } else {
+        let sentenceParts = [];
+        if (corePhenomenon) sentenceParts.push(corePhenomenon);
+        if (
+          targetParams.maxWindGust &&
+          targetParams.maxWindGust[0] !== "0 MPH"
+        ) {
+          sentenceParts.push(
+            `${targetParams.maxWindGust[0].toLowerCase()} winds`,
+          );
+        }
+        if (
+          targetParams.maxHailSize &&
+          targetParams.maxHailSize[0] !== "0.00"
+        ) {
+          sentenceParts.push(
+            `${targetParams.maxHailSize[0].toLowerCase()}" hail`,
+          );
+        }
+
+        if (sentenceParts.length > 1) {
+          const last = sentenceParts.pop();
+          mainSentence = sentenceParts.join(", ") + " and " + last;
+        } else if (sentenceParts.length === 1) {
+          mainSentence = sentenceParts[0];
+        }
       }
+
       if (mainSentence)
         mainSentence =
           mainSentence.charAt(0).toUpperCase() + mainSentence.slice(1);

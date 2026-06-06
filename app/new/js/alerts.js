@@ -121,10 +121,7 @@ window.getSpecificAlertName = function (props) {
     }
   }
   if (event === "Tornado Warning") {
-    const threat = params.tornadoDamageThreat?.[0];
-    if (threat === "CATASTROPHIC") return "Catastrophic Tornado";
-    if (threat === "CONSIDERABLE") return "Considerable Tornado";
-    if (params.tornadoDetection?.[0] === "OBSERVED") return "Confirmed Tornado";
+    return "Tornado Warning";
   }
   if (event === "Severe Thunderstorm Warning") {
     const threat = params.thunderstormDamageThreat?.[0];
@@ -141,11 +138,76 @@ window.getSpecificAlertName = function (props) {
     if (threat === "POSSIBLE") return "Waterspout Possible";
   }
   if (event === "Flash Flood Warning") {
-    const threat = params.flashFloodDamageThreat?.[0];
-    if (threat === "CATASTROPHIC") return "Catastrophic Flash Flood";
-    if (threat === "CONSIDERABLE") return "Considerable Flash Flood";
+    return "Flash Flood Warning";
   }
   return event + watchSuffix;
+};
+
+window.processRawAlertFeatures = async function (
+  raw,
+  filterType,
+  isSilent = false,
+) {
+  if (!window.alertsEnabled) return;
+  const valid = raw.filter(window.isValidAlert);
+  const poly = [];
+  const zone = [];
+
+  valid.forEach((f) => {
+    f.properties.specificEventName = window.getSpecificAlertName(f.properties);
+    f.properties.displayColor = window.getAlertColor(f.properties);
+
+    if (f.properties.event === "Tornado Warning") {
+      if (!f.properties.parameters) f.properties.parameters = {};
+      const params = f.properties.parameters;
+      const desc = f.properties.description || "";
+      const sourceMatch = desc.match(/SOURCE\.\.\.([^.]+)/i);
+      let finalSource =
+        sourceMatch && sourceMatch[1]
+          ? sourceMatch[1].trim()
+          : params.tornadoDetection?.[0] || "";
+      if (finalSource) {
+        const threat = (params.tornadoDamageThreat?.[0] || "").toUpperCase();
+        if (threat === "CONSIDERABLE" || threat === "CATASTROPHIC") {
+          const lowerThreat = threat.toLowerCase();
+          const tornadoRegex = /\s+(tornado)/i;
+          if (tornadoRegex.test(finalSource)) {
+            finalSource = finalSource.replace(
+              tornadoRegex,
+              ", " + lowerThreat + " $1",
+            );
+          }
+        }
+        params.tornadoDetection = [finalSource];
+        if (sourceMatch && sourceMatch[1]) {
+          f.properties.customTornadoSource = true;
+        }
+      }
+    }
+
+    if (!!f.geometry) {
+      f.properties.geometryType = "polygon";
+      poly.push(f);
+    } else {
+      f.properties.geometryType = "zone";
+      zone.push(f);
+    }
+  });
+
+  if (filterType === "polygon") {
+    poly.forEach((f) => {
+      f.properties.priorityScore = window.getAlertPriorityScore(f);
+    });
+    if (window.map.getSource("alerts-poly")) {
+      window.map
+        .getSource("alerts-poly")
+        .setData({ type: "FeatureCollection", features: poly });
+    }
+    window.globalPolyAlerts = poly;
+    poly.forEach((f) => window.addNewAlertToQueue(f, "alert", isSilent));
+  } else if (filterType === "zone" && window.zoneAlertsEnabled) {
+    await window.processZoneAlerts(zone, isSilent);
+  }
 };
 
 window.isValidAlert = function (feature) {
@@ -579,6 +641,35 @@ window.processRawAlertFeatures = async function (
   valid.forEach((f) => {
     f.properties.specificEventName = window.getSpecificAlertName(f.properties);
     f.properties.displayColor = window.getAlertColor(f.properties);
+
+    if (f.properties.event === "Tornado Warning") {
+      if (!f.properties.parameters) f.properties.parameters = {};
+      const params = f.properties.parameters;
+      const desc = f.properties.description || "";
+      const sourceMatch = desc.match(/SOURCE\.\.\.([^.]+)/i);
+      let finalSource =
+        sourceMatch && sourceMatch[1]
+          ? sourceMatch[1].trim()
+          : params.tornadoDetection?.[0] || "";
+      if (finalSource) {
+        const threat = (params.tornadoDamageThreat?.[0] || "").toUpperCase();
+        if (threat === "CONSIDERABLE" || threat === "CATASTROPHIC") {
+          const lowerThreat = threat.toLowerCase();
+          const tornadoRegex = /\s+(tornado)/i;
+          if (tornadoRegex.test(finalSource)) {
+            finalSource = finalSource.replace(
+              tornadoRegex,
+              ", " + lowerThreat + " $1",
+            );
+          }
+        }
+        params.tornadoDetection = [finalSource];
+        if (sourceMatch && sourceMatch[1]) {
+          f.properties.customTornadoSource = true;
+        }
+      }
+    }
+
     if (!!f.geometry) {
       f.properties.geometryType = "polygon";
       poly.push(f);
