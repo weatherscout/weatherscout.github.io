@@ -1297,3 +1297,22 @@
   max-width: none !important;
   width: 260px !important;
 }
+
+#prev-alert-button,
+#next-alert-button {
+  background: #ffffff14;
+  border: 1px solid var(--glass-border-color);
+  color: #ffffffb2;
+  cursor: pointer;
+  transition:
+    background 0.2s,
+    border-color 0.2s,
+    color 0.2s;
+}
+
+#prev-alert-button:hover,
+#next-alert-button:hover {
+  background: var(--glass-hover) !important;
+  border-color: #ffffff80 !important;
+  color: white !important;
+}

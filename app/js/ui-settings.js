@@ -930,32 +930,68 @@ document.addEventListener("DOMContentLoaded", () => {
     if (window.closeAllMenus) window.closeAllMenus();
 
     let sentD = null,
+      effectiveD = null,
       onsetD = null,
-      expireD = null;
+      expireD = null,
+      endsD = null;
+
     if (window.parseApiDate) {
-      sentD = window.parseApiDate(props.sent);
+      sentD = props.sent ? window.parseApiDate(props.sent) : null;
+      effectiveD = props.effective
+        ? window.parseApiDate(props.effective)
+        : null;
       onsetD = props.onset ? window.parseApiDate(props.onset) : null;
-      expireD = window.parseApiDate(props.expires);
+      expireD = props.expires ? window.parseApiDate(props.expires) : null;
+      endsD = props.ends ? window.parseApiDate(props.ends) : null;
     }
 
+    // Get time values in milliseconds for exact comparison
+    const sentTime = sentD && !isNaN(sentD.getTime()) ? sentD.getTime() : null;
+    const effectiveTime =
+      effectiveD && !isNaN(effectiveD.getTime()) ? effectiveD.getTime() : null;
+    const onsetTime =
+      onsetD && !isNaN(onsetD.getTime()) ? onsetD.getTime() : null;
+    const expiresTime =
+      expireD && !isNaN(expireD.getTime()) ? expireD.getTime() : null;
+    const endsTime = endsD && !isNaN(endsD.getTime()) ? endsD.getTime() : null;
+
+    // Apply prioritization rules to skip redundant timestamps
+    const showSent = sentTime !== null;
+    const showEffective =
+      effectiveTime !== null &&
+      effectiveTime !== sentTime &&
+      effectiveTime !== onsetTime;
+    const showOnset = onsetTime !== null && onsetTime !== sentTime;
+    const showExpires = expiresTime !== null;
+    const showEnds = endsTime !== null && endsTime !== expiresTime;
+
     const effTz = window.getEffectiveTz ? window.getEffectiveTz() : "local";
+
     const sentStr =
-      props.sent && window.formatDateFull
+      showSent && window.formatDateFull
         ? `<div class="full-alert-meta-row"><strong>Sent:</strong> ${window.formatDateFull(sentD, effTz)}</div>`
         : "";
+    const effectiveStr =
+      showEffective && window.formatDateFull
+        ? `<div class="full-alert-meta-row"><strong>Effective:</strong> ${window.formatDateFull(effectiveD, effTz)}</div>`
+        : "";
     const onsetStr =
-      onsetD && !isNaN(onsetD.getTime()) && window.formatDateFull
+      showOnset && window.formatDateFull
         ? `<div class="full-alert-meta-row"><strong>Onset:</strong> ${window.formatDateFull(onsetD, effTz)}</div>`
         : "";
     const expiresStr =
-      props.expires && window.formatDateFull
+      showExpires && window.formatDateFull
         ? `<div class="full-alert-meta-row"><strong>Expires:</strong> ${window.formatDateFull(expireD, effTz)}</div>`
+        : "";
+    const endsStr =
+      showEnds && window.formatDateFull
+        ? `<div class="full-alert-meta-row"><strong>Ends:</strong> ${window.formatDateFull(endsD, effTz)}</div>`
         : "";
     const areaStr = props.areaDesc
       ? `<div class="full-alert-meta-row"><strong>Affected:</strong> ${props.areaDesc}</div>`
       : "";
 
-    const metaHTML = `${sentStr}${onsetStr}${expiresStr}${areaStr}<div class="full-alert-section-label" style="padding-top:10px;">Description</div>`;
+    const metaHTML = `${sentStr}${effectiveStr}${onsetStr}${expiresStr}${endsStr}${areaStr}<div class="full-alert-section-label" style="padding-top:10px;">Description</div>`;
 
     const color = props.displayColor || "#808080";
     const iconName =
