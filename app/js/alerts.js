@@ -157,6 +157,25 @@ window.processRawAlertFeatures = async function (
     f.properties.specificEventName = window.getSpecificAlertName(f.properties);
     f.properties.displayColor = window.getAlertColor(f.properties);
 
+    if (
+      f.properties.event === "Tornado Watch" ||
+      f.properties.event === "Severe Thunderstorm Watch"
+    ) {
+      const params = f.properties.parameters || {};
+      if (params.VTEC && params.VTEC[0]) {
+        const parts = params.VTEC[0].split(".");
+        if (parts.length >= 6) {
+          const watchNum = parts[5];
+          const url = `https://www.spc.noaa.gov/products/watch/ww${watchNum}.html`;
+          const isNewOrUpdated =
+            !window.knownAlertIds.has(f.properties.id) ||
+            (f.properties.messageType === "Update" &&
+              !window.updatedAlertIds.has(f.properties.id));
+          window.fetchMdWatchText(`ww${watchNum}`, url, isNewOrUpdated);
+        }
+      }
+    }
+
     if (f.properties.event === "Tornado Warning") {
       if (!f.properties.parameters) f.properties.parameters = {};
       const params = f.properties.parameters;
@@ -579,10 +598,20 @@ window.addNewAlertToQueue = function (feature, type, isSilent = false) {
   const isUpdate = msgType === "Update";
   const isNew = msgType === "Alert";
 
+  const triggerPrefetch = () => {
+    if (id.startsWith("md") && feature.properties.url) {
+      window.fetchMdWatchText(id, feature.properties.url, true);
+    }
+    if (id.startsWith("ww") && feature.properties.url) {
+      window.fetchMdWatchText(id, feature.properties.url, true);
+    }
+  };
+
   if (!window.knownAlertIds.has(id)) {
     window.knownAlertIds.add(id);
     if (isNew) window.newAlertIds.add(id);
     if (isUpdate) window.updatedAlertIds.add(id);
+    triggerPrefetch();
     if (!window.isInitialLoad && !isSilent && window.alertsEnabled) {
       const score = window.getAlertPriorityScore(feature);
       feature.properties.priorityScore = score;
@@ -592,6 +621,7 @@ window.addNewAlertToQueue = function (feature, type, isSilent = false) {
   } else if (isUpdate && !window.updatedAlertIds.has(id)) {
     window.updatedAlertIds.add(id);
     window.newAlertIds.delete(id);
+    triggerPrefetch();
     if (!window.isInitialLoad && !isSilent && window.alertsEnabled) {
       const score = window.getAlertPriorityScore(feature);
       feature.properties.priorityScore = score;
@@ -861,22 +891,45 @@ window.processZoneAlerts = async function (features, isSilent = false) {
   window.globalZoneAlerts = resolvedFeatures;
 };
 
-window.fetchSpcOutlookText = async function (day) {
+window.spcOutlookTextCache = {};
+window.fetchSpcOutlookText = async function (day, force = false) {
+  if (!force && window.spcOutlookTextCache[day]) {
+    return window.spcOutlookTextCache[day];
+  }
   let url =
     parseInt(day) >= 4
       ? "https://www.spc.noaa.gov/products/exper/day4-8/index.html"
       : `https://www.spc.noaa.gov/products/outlook/day${day}otlk.html`;
   try {
-    const res = await fetch(
-      `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
-    );
+    const res = await fetch(`${url}?t=${Date.now()}`);
     const text = await res.text();
     const pre = new DOMParser()
       .parseFromString(text, "text/html")
       .querySelector("pre");
-    return pre ? pre.textContent : "Not found.";
+    const result = pre ? pre.textContent : "Not found.";
+    window.spcOutlookTextCache[day] = result;
+    return result;
   } catch (e) {
-    return "Failed to load.";
+    return window.spcOutlookTextCache[day] || "Failed to load.";
+  }
+};
+
+window.mdWatchTextCache = {};
+window.fetchMdWatchText = async function (id, url, force = false) {
+  if (!force && window.mdWatchTextCache[id]) {
+    return window.mdWatchTextCache[id];
+  }
+  try {
+    const res = await fetch(`${url}?t=${Date.now()}`);
+    const text = await res.text();
+    const pre = new DOMParser()
+      .parseFromString(text, "text/html")
+      .querySelector("pre");
+    const result = pre ? pre.textContent : "Not found.";
+    window.mdWatchTextCache[id] = result;
+    return result;
+  } catch (e) {
+    return window.mdWatchTextCache[id] || "Failed to load.";
   }
 };
 
@@ -908,6 +961,9 @@ window.spcGetIssueValue = function (feature) {
 };
 
 window.updateSpcOutlooks = async function () {
+  for (let d = 1; d <= 8; d++) {
+    window.fetchSpcOutlookText(d, true);
+  }
   await Promise.all(
     window.spcSources.map(async (s) => {
       if (!window.map.getSource(s.id)) return;

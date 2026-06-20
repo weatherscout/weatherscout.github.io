@@ -3102,15 +3102,9 @@ window.showFullAlertTextPopup = async function (f) {
       return;
     }
     try {
-      const res = await fetch(
-        `https://api.allorigins.win/raw?url=${encodeURIComponent(validatedUrl)}`,
-      );
-      const text = await res.text();
-      const pre = new DOMParser()
-        .parseFromString(text, "text/html")
-        .querySelector("pre");
+      const text = await window.fetchMdWatchText(props.id, validatedUrl, false);
       if (contentEl)
-        contentEl.innerHTML = `${metaHTML}<p>${window.formatNwsText(pre ? pre.textContent : "Not found.")}</p>`;
+        contentEl.innerHTML = `${metaHTML}<p>${window.formatNwsText(text)}</p>`;
     } catch (e) {
       if (contentEl)
         contentEl.innerHTML = `${metaHTML}<p>Failed to load text.</p><p><a href="${validatedUrl}" target="_blank" style="color:#6cb8ff;text-decoration:underline;">View original page</a></p>`;
@@ -3139,19 +3133,16 @@ window.showFullAlertTextPopup = async function (f) {
   if (watchNumber) {
     try {
       const url = `https://www.spc.noaa.gov/products/watch/ww${watchNumber}.html`;
-      const res = await fetch(
-        `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+      const text = await window.fetchMdWatchText(
+        `ww${watchNumber}`,
+        url,
+        false,
       );
-      const text = await res.text();
-      const pre = new DOMParser()
-        .parseFromString(text, "text/html")
-        .querySelector("pre");
-      const spcText = pre ? pre.textContent : null;
       const descContainer = document.getElementById(
         "alert-description-container",
       );
-      if (spcText && descContainer)
-        descContainer.innerHTML = `<p>${window.formatNwsText(spcText)}</p>`;
+      if (text && descContainer)
+        descContainer.innerHTML = `<p>${window.formatNwsText(text)}</p>`;
       else if (descContainer) descContainer.innerHTML = `<p>${formattedD}</p>`;
     } catch (e) {
       const descContainer = document.getElementById(
@@ -3196,8 +3187,8 @@ window.showFullSpcTextPopup = async function (item) {
   const body = document.getElementById("full-alert-text-popup-body");
   if (body) body.scrollTop = 0;
 
-  const text = await window.fetchSpcOutlookText(window.activeSpcDay);
-  if (text === "Failed to load.") {
+  const text = await window.fetchSpcOutlookText(window.activeSpcDay, false);
+  if (text === "Failed to load." || text === "Not found.") {
     const url =
       parseInt(window.activeSpcDay) >= 4
         ? "https://www.spc.noaa.gov/products/exper/day4-8/index.html"
