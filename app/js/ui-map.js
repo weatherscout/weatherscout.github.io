@@ -1202,3 +1202,9 @@ if (window.layerIds && window.allSpcLayerIds) {
     );
   });
 }
+
+window.map.on("movestart", (e) => {
+  if (e.originalEvent) {
+    window.myLocationZoomIndex = 0;
+  }
+});

@@ -96,6 +96,8 @@ window.updateGreenStatusIndicators = function () {
   if (window.updateSpcOutlookPanelState) window.updateSpcOutlookPanelState();
 };
 
+window.myLocationZoomIndex = 0;
+
 window.updateMyLocation = function () {
   if (!window.myLocationEnabled) return;
   navigator.geolocation.getCurrentPosition(
@@ -106,15 +108,25 @@ window.updateMyLocation = function () {
       if (!window.myLocationMarker) {
         const el = document.createElement("div");
         el.className = "my-location-dot";
+
+        const zoomCycle = [13, 11, 9];
+
         el.addEventListener("click", (e) => {
           e.stopPropagation();
+          let targetZoom = zoomCycle[window.myLocationZoomIndex];
+          window.myLocationZoomIndex =
+            (window.myLocationZoomIndex + 1) % zoomCycle.length;
+
           window.map.flyTo({
             center: window.myLocationMarker.getLngLat(),
-            zoom: 9,
+            zoom: targetZoom,
             essential: true,
           });
         });
-        window.myLocationMarker = new maplibregl.Marker({ element: el })
+        window.myLocationMarker = new maplibregl.Marker({
+          element: el,
+          anchor: "center",
+        })
           .setLngLat([longitude, latitude])
           .addTo(window.map);
       } else {
