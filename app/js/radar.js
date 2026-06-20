@@ -1,7 +1,7 @@
 window.allRadarSitesData = [];
 window.activeSiteIdForData = null;
 window.activeRadarProductCode = null;
-window.radarSiteSelectionMode = "Both";
+window.radarSiteSelectionMode = "WSR-88D";
 window.showSitesMode = "Both";
 window.flyToRadarSetting = false;
 window.radarLoopMinutes = 30;

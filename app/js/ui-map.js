@@ -921,6 +921,7 @@ window.map.on("load", async () => {
     });
   }
 
+  if (window.updateShowSitesFilter) window.updateShowSitesFilter();
   if (window.applyMapAlertFilters) window.applyMapAlertFilters();
   if (window.updateSpcLayerVisibility) window.updateSpcLayerVisibility();
   if (window.updateSpcOutlooks) window.updateSpcOutlooks();

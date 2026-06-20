@@ -409,7 +409,7 @@ document.addEventListener("DOMContentLoaded", () => {
     window.activeRadarProductCode =
       localStorage.getItem("activeProduct") || null;
     window.radarSiteSelectionMode =
-      localStorage.getItem("siteSelection") || "Both";
+      localStorage.getItem("siteSelection") || "WSR-88D";
     window.showSitesMode = localStorage.getItem("showSites") || "Both";
     window.selectOfflineSites =
       localStorage.getItem("selectOfflineSites") === "true";
