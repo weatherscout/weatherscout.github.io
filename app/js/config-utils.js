@@ -249,10 +249,13 @@ window.PersistentCache = {
   DB_NAME: "WeatherScoutDB",
   STORE_NAME: "ZoneGeometries",
   DB_VERSION: 1,
-  EXPIRY: 86400000,
+  EXPIRY: 1209600000,
   db: null,
   init: () => {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
+      if (navigator.storage && navigator.storage.persist) {
+        navigator.storage.persist().catch(() => {});
+      }
       const req = indexedDB.open(
         window.PersistentCache.DB_NAME,
         window.PersistentCache.DB_VERSION,
@@ -264,7 +267,9 @@ window.PersistentCache = {
         window.PersistentCache.db = e.target.result;
         resolve();
       };
-      req.onerror = (e) => reject(e);
+      req.onerror = () => {
+        resolve();
+      };
     });
   },
   get: (key) => {

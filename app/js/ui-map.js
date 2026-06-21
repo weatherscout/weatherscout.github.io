@@ -4,6 +4,7 @@ window.map = new maplibregl.Map({
   center: [-97, 39],
   zoom: 3,
   attributionControl: false,
+  maxTileCacheSize: 1000,
 });
 
 let currentMapPopup = null;

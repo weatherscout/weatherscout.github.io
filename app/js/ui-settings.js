@@ -576,6 +576,15 @@ document.addEventListener("DOMContentLoaded", () => {
     if (hiddenAlertsCountLabel) {
       hiddenAlertsCountLabel.textContent =
         n === 0 ? "No alerts hidden" : `${n} alert${n >= 2 ? "s" : ""} hidden`;
+      if (n === 0) {
+        hiddenAlertsCountLabel.style.width = "100%";
+        hiddenAlertsCountLabel.style.textAlign = "center";
+        if (hiddenAlertsResetBtn) hiddenAlertsResetBtn.style.display = "none";
+      } else {
+        hiddenAlertsCountLabel.style.width = "";
+        hiddenAlertsCountLabel.style.textAlign = "";
+        if (hiddenAlertsResetBtn) hiddenAlertsResetBtn.style.display = "block";
+      }
     }
   }
 

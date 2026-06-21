@@ -26,7 +26,13 @@ window.mosaicVisible = function () {
 
 window.isMosaicVisible = function () {
   const toggle = document.getElementById("radar-toggle");
-  return toggle && toggle.checked && window.map.getSource("weather-radar");
+  const mosaicOn = toggle && toggle.checked;
+  const isSingleActive = !!window.map.getLayer(window.layerIds.singleSiteRadar);
+  return !!(
+    mosaicOn &&
+    !isSingleActive &&
+    window.map.getSource("weather-radar")
+  );
 };
 
 window.isSingleSiteVisible = function () {
@@ -41,14 +47,22 @@ window.isAnyRadarVisible = function () {
   return window.isMosaicVisible() || window.isSingleSiteVisible();
 };
 
+window.activeMosaicLayerId = window.layerIds.radar;
+window.activeMosaicSourceId = "weather-radar";
+window.activeSingleSiteLayerId = null;
+window.activeSingleSiteSourceId = null;
+
 window.updateMosaicVisibility = function () {
   const radarToggle = document.getElementById("radar-toggle");
   const mosaicOn = radarToggle ? radarToggle.checked : true;
-  const siteActive = window.map.getLayer(window.layerIds.singleSiteRadar);
+  const siteActive = window.map.getLayer(
+    window.activeSingleSiteLayerId || window.layerIds.singleSiteRadar,
+  );
+  const activeLayer = window.activeMosaicLayerId || window.layerIds.radar;
 
-  if (window.map.getLayer(window.layerIds.radar)) {
+  if (window.map.getLayer(activeLayer)) {
     window.map.setLayoutProperty(
-      window.layerIds.radar,
+      activeLayer,
       "visibility",
       siteActive ? "none" : mosaicOn ? "visible" : "none",
     );
@@ -97,21 +111,44 @@ window.updateShowSitesFilter = function () {
   }
 };
 
-window.removeSingleSiteLayer = function () {
+window.removeSingleSiteLayer = function (preventLoopRestart = false) {
+  const activeLayer =
+    window.activeSingleSiteLayerId || window.layerIds.singleSiteRadar;
+  const activeSource =
+    window.activeSingleSiteSourceId || "single-site-radar-source";
+
+  if (window.map.getLayer(activeLayer)) {
+    window.map.removeLayer(activeLayer);
+  }
   if (window.map.getLayer(window.layerIds.singleSiteRadar)) {
     window.map.removeLayer(window.layerIds.singleSiteRadar);
+  }
+  if (window.map.getSource(activeSource)) {
+    window.map.removeSource(activeSource);
   }
   if (window.map.getSource("single-site-radar-source")) {
     window.map.removeSource("single-site-radar-source");
   }
+
+  window.activeSingleSiteLayerId = null;
+  window.activeSingleSiteSourceId = null;
+
   const pill = document.getElementById("radar-info-pill");
   if (pill) {
     pill.style.display = "none";
   }
+  if (
+    !preventLoopRestart &&
+    window.isRadarLoopActive &&
+    window.isRadarLoopActive()
+  ) {
+    window.stopLoop();
+    window.startLoop();
+  }
 };
 
 window.toggleRadarProduct = function (stationId, productCode) {
-  window.removeSingleSiteLayer();
+  window.removeSingleSiteLayer(true);
   const site = window.allRadarSitesData.find(
     (s) => s.properties.id.toLowerCase() === stationId.toLowerCase(),
   );
@@ -131,6 +168,9 @@ window.toggleRadarProduct = function (stationId, productCode) {
   } else {
     window.activeRadarProductCode = productCode;
     window.activeSiteIdForData = stationId;
+    window.activeSingleSiteLayerId = window.layerIds.singleSiteRadar;
+    window.activeSingleSiteSourceId = "single-site-radar-source";
+
     const ts = Math.floor(Date.now() / 120000) * 120000;
     const tileUrl = `https://opengeo.ncep.noaa.gov/geoserver/${stationId}/ows?service=WMS&version=1.3.0&request=GetMap&layers=${stationId}_${productCode}&styles=&format=image/png&transparent=true&width=256&height=256&crs=EPSG:3857&bbox={bbox-epsg-3857}&_=${ts}`;
 
@@ -174,20 +214,180 @@ window.toggleRadarProduct = function (stationId, productCode) {
     }
   }
   window.updateMosaicVisibility();
+  if (window.isRadarLoopActive && window.isRadarLoopActive()) {
+    window.stopLoop();
+    window.startLoop();
+  }
   if (window.saveCurrentState) {
     window.saveCurrentState();
   }
 };
 
+let mosaicUpdateCount = 0;
 window.updateRadar = function () {
+  if (window.isRadarLoopActive && window.isRadarLoopActive()) return;
   try {
-    if (window.map.getSource("weather-radar")) {
-      const ts = Math.floor(Date.now() / 60000) * 60000;
-      window.map
-        .getSource("weather-radar")
-        .setTiles([
-          `https://mesonet.agron.iastate.edu/cache/tile.py/1.0.0/nexrad-n0q-900913/{z}/{x}/{y}.png?_=${ts}`,
-        ]);
+    const isVisible = window.isMosaicVisible();
+    if (!isVisible) return;
+
+    mosaicUpdateCount++;
+    const ts = Math.floor(Date.now() / 60000) * 60000;
+    const nextSourceId = `weather-radar-base-${mosaicUpdateCount}`;
+    const nextLayerId = `${window.layerIds.radar}-${mosaicUpdateCount}`;
+    const tileUrl = `https://mesonet.agron.iastate.edu/cache/tile.py/1.0.0/nexrad-n0q-900913/{z}/{x}/{y}.png?_=${ts}`;
+
+    window.map.addSource(nextSourceId, {
+      type: "raster",
+      tiles: [tileUrl],
+      tileSize: 256,
+      scheme: "xyz",
+    });
+
+    const currentLayerId = window.activeMosaicLayerId || window.layerIds.radar;
+
+    window.map.addLayer(
+      {
+        id: nextLayerId,
+        type: "raster",
+        source: nextSourceId,
+        paint: {
+          "raster-opacity": 0.0001,
+          "raster-opacity-transition": { duration: 0 },
+        },
+      },
+      currentLayerId,
+    );
+
+    let swapAttempted = false;
+    let fallbackTimeout = null;
+
+    const performSwap = () => {
+      if (swapAttempted) return;
+      swapAttempted = true;
+      if (fallbackTimeout) clearTimeout(fallbackTimeout);
+
+      if (window.isRadarLoopActive && window.isRadarLoopActive()) {
+        if (window.map.getLayer(nextLayerId))
+          window.map.removeLayer(nextLayerId);
+        if (window.map.getSource(nextSourceId))
+          window.map.removeSource(nextSourceId);
+        return;
+      }
+
+      if (window.map.getLayer(nextLayerId)) {
+        window.map.setPaintProperty(nextLayerId, "raster-opacity", 1.0);
+      }
+
+      const oldLayerId = window.activeMosaicLayerId || window.layerIds.radar;
+      const oldSourceId = window.activeMosaicSourceId || "weather-radar";
+
+      window.activeMosaicLayerId = nextLayerId;
+      window.activeMosaicSourceId = nextSourceId;
+
+      if (
+        window.map.getLayer(oldLayerId) &&
+        oldLayerId !== window.layerIds.radar
+      ) {
+        window.map.removeLayer(oldLayerId);
+      }
+      if (
+        window.map.getSource(oldSourceId) &&
+        oldSourceId !== "weather-radar"
+      ) {
+        window.map.removeSource(oldSourceId);
+      }
+    };
+
+    window.map.once("idle", performSwap);
+    fallbackTimeout = setTimeout(performSwap, 6000);
+  } catch (e) {
+    if (e.name !== "AbortError") console.error(e);
+  }
+};
+
+let singleSiteUpdateCount = 0;
+window.updateSingleSiteRadar = function (offsetMinutes) {
+  if (window.isRadarLoopActive && window.isRadarLoopActive()) return;
+  try {
+    if (window.activeSiteIdForData && window.activeRadarProductCode) {
+      singleSiteUpdateCount++;
+      const ts = Math.floor(Date.now() / 120000) * 120000;
+      const timeParam =
+        offsetMinutes && offsetMinutes !== 0
+          ? `&TIME=${encodeURIComponent(new Date(Date.now() + offsetMinutes * 60000).toISOString())}`
+          : "";
+
+      const nextSourceId = `single-site-radar-source-${singleSiteUpdateCount}`;
+      const nextLayerId = `${window.layerIds.singleSiteRadar}-${singleSiteUpdateCount}`;
+      const tileUrl = `https://opengeo.ncep.noaa.gov/geoserver/${window.activeSiteIdForData}/ows?service=WMS&version=1.3.0&request=GetMap&layers=${window.activeSiteIdForData}_${window.activeRadarProductCode}&styles=&format=image/png&transparent=true&width=256&height=256&crs=EPSG:3857&bbox={bbox-epsg-3857}${timeParam}&_=${ts}`;
+
+      window.map.addSource(nextSourceId, {
+        type: "raster",
+        tiles: [tileUrl],
+        tileSize: 256,
+        attribution: "NOAA",
+      });
+
+      const currentLayerId =
+        window.activeSingleSiteLayerId || window.layerIds.singleSiteRadar;
+
+      window.map.addLayer(
+        {
+          id: nextLayerId,
+          type: "raster",
+          source: nextSourceId,
+          paint: {
+            "raster-opacity": 0.0001,
+            "raster-opacity-transition": { duration: 0 },
+          },
+        },
+        currentLayerId,
+      );
+
+      let swapAttempted = false;
+      let fallbackTimeout = null;
+
+      const performSwap = () => {
+        if (swapAttempted) return;
+        swapAttempted = true;
+        if (fallbackTimeout) clearTimeout(fallbackTimeout);
+
+        if (window.isRadarLoopActive && window.isRadarLoopActive()) {
+          if (window.map.getLayer(nextLayerId))
+            window.map.removeLayer(nextLayerId);
+          if (window.map.getSource(nextSourceId))
+            window.map.removeSource(nextSourceId);
+          return;
+        }
+
+        if (window.map.getLayer(nextLayerId)) {
+          window.map.setPaintProperty(nextLayerId, "raster-opacity", 1.0);
+        }
+
+        const oldLayerId =
+          window.activeSingleSiteLayerId || window.layerIds.singleSiteRadar;
+        const oldSourceId =
+          window.activeSingleSiteSourceId || "single-site-radar-source";
+
+        window.activeSingleSiteLayerId = nextLayerId;
+        window.activeSingleSiteSourceId = nextSourceId;
+
+        if (
+          window.map.getLayer(oldLayerId) &&
+          oldLayerId !== window.layerIds.singleSiteRadar
+        ) {
+          window.map.removeLayer(oldLayerId);
+        }
+        if (
+          window.map.getSource(oldSourceId) &&
+          oldSourceId !== "single-site-radar-source"
+        ) {
+          window.map.removeSource(oldSourceId);
+        }
+      };
+
+      window.map.once("idle", performSwap);
+      fallbackTimeout = setTimeout(performSwap, 6000);
     }
   } catch (e) {
     if (e.name !== "AbortError") console.error(e);
@@ -278,11 +478,14 @@ window.checkRadarStatus = async function (prefetchedData) {
     45: "nexrad-n0q-900913-m45m",
     50: "nexrad-n0q-900913-m50m",
   };
-  const FRAME_INTERVAL = 1000;
+  const FRAME_INTERVAL = 600;
   let loopActive = false;
   let stepIndex = 0;
   let loopTimer = null;
   let OFFSETS = buildOffsets(window.radarLoopMinutes);
+  let loopLayers = [];
+  let updateCount = 0;
+  let updateIntervalId = null;
 
   function buildOffsets(totalMinutes) {
     const steps = [];
@@ -311,119 +514,237 @@ window.checkRadarStatus = async function (prefetchedData) {
   window.setRadarLoopMinutes = function (minutes) {
     window.radarLoopMinutes = minutes;
     OFFSETS = buildOffsets(minutes);
-    stepIndex = Math.min(stepIndex, OFFSETS.length - 1);
     if (loopActive) {
-      clearTimeout(loopTimer);
-      stepIndex = 0;
-      applyFrame(stepIndex);
-      scheduleNext();
+      window.stopLoop();
+      window.startLoop();
     }
   };
 
-  function applyMosaicFrame(offset) {
-    try {
-      if (!window.map.getSource("weather-radar")) return;
-      const product = iemProductForOffset(offset);
-      const cacheBuster =
-        offset < -50 ? product : Math.floor(Date.now() / 300000);
-      window.map
-        .getSource("weather-radar")
-        .setTiles([
-          `https://mesonet.agron.iastate.edu/cache/tile.py/1.0.0/${product}/{z}/{x}/{y}.png?_=${cacheBuster}`,
-        ]);
-    } catch (e) {
-      if (e.name !== "AbortError") console.error(e);
-    }
-  }
+  function setupLoopLayers() {
+    cleanupLoopLayers();
+    const isMosaic = window.isMosaicVisible();
+    const isSingle = window.isSingleSiteVisible();
+    if (!isMosaic && !isSingle) return;
 
-  function applySingleSiteFrame(offset) {
-    try {
-      if (
-        !window.map.getSource("single-site-radar-source") ||
-        !window.activeSiteIdForData ||
-        !window.activeRadarProductCode
-      )
-        return;
-      const timeParam =
-        offset !== 0
-          ? `&TIME=${encodeURIComponent(new Date(Date.now() + offset * 60000).toISOString())}`
-          : "";
-      window.map
-        .getSource("single-site-radar-source")
-        .setTiles([
-          `https://opengeo.ncep.noaa.gov/geoserver/${window.activeSiteIdForData}/ows?service=WMS&version=1.3.0&request=GetMap&layers=${window.activeSiteIdForData}_${window.activeRadarProductCode}&styles=&format=image/png&transparent=true&width=256&height=256&crs=EPSG:3857&bbox={bbox-epsg-3857}${timeParam}&_=${Date.now()}`,
-        ]);
-    } catch (e) {
-      if (e.name !== "AbortError") console.error(e);
-    }
-  }
+    const beforeLayer = isSingle
+      ? window.layerIds.singleSiteRadar
+      : window.layerIds.alertsZone;
+    updateCount++;
 
-  function applyFrame(idx) {
-    const offset = OFFSETS[idx];
-    if (window.isMosaicVisible()) applyMosaicFrame(offset);
-    if (window.isSingleSiteVisible()) applySingleSiteFrame(offset);
-  }
+    OFFSETS.forEach((offset) => {
+      const sourceId = `loop-source-${offset}-${updateCount}`;
+      const layerId = `loop-layer-${offset}-${updateCount}`;
+      let tileUrl = "";
 
-  function applyLive() {
-    const ts = Date.now();
-    try {
-      if (window.isMosaicVisible() && window.map.getSource("weather-radar")) {
-        window.map
-          .getSource("weather-radar")
-          .setTiles([
-            `https://mesonet.agron.iastate.edu/cache/tile.py/1.0.0/nexrad-n0q-900913/{z}/{x}/{y}.png?_=${ts}`,
-          ]);
+      if (isMosaic) {
+        const product = iemProductForOffset(offset);
+        const cacheBuster =
+          offset < -50 ? product : Math.floor(Date.now() / 300000);
+        tileUrl = `https://mesonet.agron.iastate.edu/cache/tile.py/1.0.0/${product}/{z}/{x}/{y}.png?_=${cacheBuster}`;
+      } else if (isSingle) {
+        const ts = Math.floor(Date.now() / 120000) * 120000;
+        const timeParam =
+          offset !== 0
+            ? `&TIME=${encodeURIComponent(new Date(Date.now() + offset * 60000).toISOString())}`
+            : "";
+        tileUrl = `https://opengeo.ncep.noaa.gov/geoserver/${window.activeSiteIdForData}/ows?service=WMS&version=1.3.0&request=GetMap&layers=${window.activeSiteIdForData}_${window.activeRadarProductCode}&styles=&format=image/png&transparent=true&width=256&height=256&crs=EPSG:3857&bbox={bbox-epsg-3857}${timeParam}&_=${ts}`;
       }
-    } catch (e) {
-      if (e.name !== "AbortError") console.error(e);
+
+      window.map.addSource(sourceId, {
+        type: "raster",
+        tiles: [tileUrl],
+        tileSize: 256,
+        attribution: "NOAA",
+      });
+
+      window.map.addLayer(
+        {
+          id: layerId,
+          type: "raster",
+          source: sourceId,
+          paint: {
+            "raster-opacity": 0.0001,
+            "raster-opacity-transition": { duration: 0 },
+          },
+        },
+        beforeLayer,
+      );
+
+      loopLayers.push({ sourceId, layerId });
+    });
+
+    if (isMosaic && window.map.getLayer(window.layerIds.radar)) {
+      window.map.setLayoutProperty(window.layerIds.radar, "visibility", "none");
     }
-    try {
-      if (
-        window.isSingleSiteVisible() &&
-        window.map.getSource("single-site-radar-source")
-      ) {
-        window.map
-          .getSource("single-site-radar-source")
-          .setTiles([
-            `https://opengeo.ncep.noaa.gov/geoserver/${window.activeSiteIdForData}/ows?service=WMS&version=1.3.0&request=GetMap&layers=${window.activeSiteIdForData}_${window.activeRadarProductCode}&styles=&format=image/png&transparent=true&width=256&height=256&crs=EPSG:3857&bbox={bbox-epsg-3857}&_=${ts}`,
-          ]);
-      }
-    } catch (e) {
-      if (e.name !== "AbortError") console.error(e);
+    if (isSingle && window.map.getLayer(window.layerIds.singleSiteRadar)) {
+      window.map.setLayoutProperty(
+        window.layerIds.singleSiteRadar,
+        "visibility",
+        "none",
+      );
     }
   }
 
-  function scheduleNext() {
+  function cleanupLoopLayers() {
+    loopLayers.forEach((item) => {
+      if (window.map.getLayer(item.layerId))
+        window.map.removeLayer(item.layerId);
+      if (window.map.getSource(item.sourceId))
+        window.map.removeSource(item.sourceId);
+    });
+    loopLayers = [];
+
+    if (window.map.getLayer(window.layerIds.radar)) {
+      window.map.setLayoutProperty(
+        window.layerIds.radar,
+        "visibility",
+        window.isMosaicVisible() ? "visible" : "none",
+      );
+    }
+    if (window.map.getLayer(window.layerIds.singleSiteRadar)) {
+      window.map.setLayoutProperty(
+        window.layerIds.singleSiteRadar,
+        "visibility",
+        "visible",
+      );
+    }
+  }
+
+  function performSeamlessUpdate() {
     if (!loopActive) return;
-    const isLive = stepIndex === OFFSETS.length - 1;
-    if (isLive) {
-      loopActive = false;
-      return;
-    }
-    loopTimer = setTimeout(() => {
-      if (!loopActive) return;
-      stepIndex += 1;
-      if (stepIndex === OFFSETS.length - 1) {
-        applyLive();
-        loopActive = false;
-      } else {
-        applyFrame(stepIndex);
-        scheduleNext();
+    updateCount++;
+    const isMosaic = window.isMosaicVisible();
+    const isSingle = window.isSingleSiteVisible();
+    if (!isMosaic && !isSingle) return;
+
+    const beforeLayer = isSingle
+      ? window.layerIds.singleSiteRadar
+      : window.layerIds.alertsZone;
+    const nextLayers = [];
+
+    OFFSETS.forEach((offset) => {
+      const sourceId = `loop-source-${offset}-${updateCount}`;
+      const layerId = `loop-layer-${offset}-${updateCount}`;
+      let tileUrl = "";
+
+      if (isMosaic) {
+        const product = iemProductForOffset(offset);
+        const cacheBuster =
+          offset < -50 ? product : Math.floor(Date.now() / 300000);
+        tileUrl = `https://mesonet.agron.iastate.edu/cache/tile.py/1.0.0/${product}/{z}/{x}/{y}.png?_=${cacheBuster}`;
+      } else if (isSingle) {
+        const ts = Math.floor(Date.now() / 120000) * 120000;
+        const timeParam =
+          offset !== 0
+            ? `&TIME=${encodeURIComponent(new Date(Date.now() + offset * 60000).toISOString())}`
+            : "";
+        tileUrl = `https://opengeo.ncep.noaa.gov/geoserver/${window.activeSiteIdForData}/ows?service=WMS&version=1.3.0&request=GetMap&layers=${window.activeSiteIdForData}_${window.activeRadarProductCode}&styles=&format=image/png&transparent=true&width=256&height=256&crs=EPSG:3857&bbox={bbox-epsg-3857}${timeParam}&_=${ts}`;
       }
-    }, FRAME_INTERVAL);
+
+      window.map.addSource(sourceId, {
+        type: "raster",
+        tiles: [tileUrl],
+        tileSize: 256,
+        attribution: "NOAA",
+      });
+
+      window.map.addLayer(
+        {
+          id: layerId,
+          type: "raster",
+          source: sourceId,
+          paint: {
+            "raster-opacity": 0.0001,
+            "raster-opacity-transition": { duration: 0 },
+          },
+        },
+        beforeLayer,
+      );
+
+      nextLayers.push({ sourceId, layerId });
+    });
+
+    let swapAttempted = false;
+    let fallbackTimeout = null;
+
+    const performSwap = () => {
+      if (swapAttempted) return;
+      swapAttempted = true;
+      if (fallbackTimeout) clearTimeout(fallbackTimeout);
+
+      if (!loopActive) {
+        nextLayers.forEach((item) => {
+          if (window.map.getLayer(item.layerId))
+            window.map.removeLayer(item.layerId);
+          if (window.map.getSource(item.sourceId))
+            window.map.removeSource(item.sourceId);
+        });
+        return;
+      }
+
+      const oldLayers = loopLayers;
+      loopLayers = nextLayers;
+
+      loopLayers.forEach((item, idx) => {
+        if (window.map.getLayer(item.layerId)) {
+          window.map.setPaintProperty(
+            item.layerId,
+            "raster-opacity",
+            idx === stepIndex ? 1.0 : 0.0001,
+          );
+        }
+      });
+
+      oldLayers.forEach((item) => {
+        if (window.map.getLayer(item.layerId))
+          window.map.removeLayer(item.layerId);
+        if (window.map.getSource(item.sourceId))
+          window.map.removeSource(item.sourceId);
+      });
+    };
+
+    window.map.once("idle", performSwap);
+    fallbackTimeout = setTimeout(performSwap, 6000);
   }
+
+  function playFrame() {
+    if (!loopActive || loopLayers.length === 0) return;
+
+    loopLayers.forEach((item, idx) => {
+      if (window.map.getLayer(item.layerId)) {
+        window.map.setPaintProperty(
+          item.layerId,
+          "raster-opacity",
+          idx === stepIndex ? 1.0 : 0.0001,
+        );
+      }
+    });
+
+    stepIndex = (stepIndex + 1) % loopLayers.length;
+    loopTimer = setTimeout(playFrame, FRAME_INTERVAL);
+  }
+
+  window.isRadarLoopActive = function () {
+    return loopActive;
+  };
 
   window.startLoop = function () {
+    if (loopActive) return;
     loopActive = true;
+    setupLoopLayers();
     stepIndex = 0;
-    applyFrame(stepIndex);
-    scheduleNext();
+    playFrame();
+    updateIntervalId = setInterval(performSeamlessUpdate, 120000);
   };
 
   window.stopLoop = function () {
     loopActive = false;
     clearTimeout(loopTimer);
-    applyLive();
+    if (updateIntervalId) {
+      clearInterval(updateIntervalId);
+      updateIntervalId = null;
+    }
+    cleanupLoopLayers();
   };
 
   window.toggleRadarLoop = function () {
@@ -432,16 +753,21 @@ window.checkRadarStatus = async function (prefetchedData) {
 
   window.stepFrame = function (direction) {
     if (loopActive) {
-      loopActive = false;
-      clearTimeout(loopTimer);
+      window.stopLoop();
     }
-    if (direction < 0 && stepIndex === 0) return;
-    if (direction > 0 && stepIndex === OFFSETS.length - 1) return;
-    stepIndex += direction;
-    applyFrame(stepIndex);
-    if (stepIndex === OFFSETS.length - 1) {
-      applyLive();
+    if (loopLayers.length === 0) {
+      setupLoopLayers();
     }
+    stepIndex = (stepIndex + direction + OFFSETS.length) % OFFSETS.length;
+    loopLayers.forEach((item, idx) => {
+      if (window.map.getLayer(item.layerId)) {
+        window.map.setPaintProperty(
+          item.layerId,
+          "raster-opacity",
+          idx === stepIndex ? 1.0 : 0.0001,
+        );
+      }
+    });
   };
 
   window.addEventListener("unhandledrejection", (e) => {
