@@ -353,7 +353,43 @@ window.showAlertMapPopup = function (
     if (fitBtn) {
       fitBtn.onclick = (e) => {
         e.stopPropagation();
-        window.flyToAlert(item.type === "alert" ? item.feature : item);
+        if (item.type === "alert") {
+          window.flyToAlert(item.feature);
+        } else {
+          const day = window.activeSpcDay;
+          const type = window.activeSpcType;
+          const sourceId = `spc-day${day}-${type}`;
+          const cachedData = window.spcSourceCache[sourceId];
+          if (
+            cachedData &&
+            cachedData.features &&
+            cachedData.features.length > 0
+          ) {
+            const isCat = sourceId.endsWith("-cat");
+            const topFeature = isCat
+              ? window.getHighestSpcCatFeature(cachedData.features)
+              : cachedData.features.reduce((best, f) => {
+                  const val = parseFloat(
+                    f.properties.LABEL || f.properties.LABEL2 || 0,
+                  );
+                  const bestVal = parseFloat(
+                    best?.properties.LABEL || best?.properties.LABEL2 || 0,
+                  );
+                  return val > bestVal ? f : best;
+                }, null);
+            if (topFeature) {
+              const feat = {
+                type: "Feature",
+                geometry: topFeature.geometry,
+                properties: {
+                  ...topFeature.properties,
+                  geometryType: "polygon",
+                },
+              };
+              window.flyToAlert(feat);
+            }
+          }
+        }
         window.closeAllPopups();
       };
     }
