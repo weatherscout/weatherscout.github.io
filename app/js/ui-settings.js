@@ -16,6 +16,35 @@ document.addEventListener("DOMContentLoaded", () => {
   const zoneAlertsToggleUI = document.getElementById(
     "zone-alerts-settings-toggle-ui",
   );
+  const motionVectorsBtn = document.getElementById(
+    "motion-vectors-settings-btn",
+  );
+  const motionVectorsToggleUI = document.getElementById(
+    "motion-vectors-settings-toggle-ui",
+  );
+
+  if (motionVectorsToggleUI) {
+    motionVectorsToggleUI.classList.toggle(
+      "active",
+      window.motionVectorsEnabled,
+    );
+  }
+
+  if (motionVectorsBtn) {
+    motionVectorsBtn.addEventListener("click", () => {
+      window.motionVectorsEnabled = !window.motionVectorsEnabled;
+      motionVectorsToggleUI.classList.toggle(
+        "active",
+        window.motionVectorsEnabled,
+      );
+      if (window.updateMotionVectorsVisibility)
+        window.updateMotionVectorsVisibility();
+      if (window.saveCurrentState) window.saveCurrentState();
+      window.showToast(
+        `Storm Vectors: ${window.motionVectorsEnabled ? "On" : "Off"}`,
+      );
+    });
+  }
   const mesoDiscussionsBtn = document.getElementById(
     "meso-discussions-settings-btn",
   );
@@ -896,7 +925,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const fullAlertPopup = document.createElement("div");
   fullAlertPopup.id = "full-alert-text-popup";
   fullAlertPopup.className = "standard-glass";
-  fullAlertPopup.innerHTML = `<div id="full-alert-text-popup-header"><div id="full-alert-text-popup-title"><i class="material-symbols-rounded">warning</i><span id="full-alert-text-popup-title-text"></span></div><div style="display:flex;gap:6px;align-items:center;"><button class="settings-close-btn" id="full-alert-text-popup-copy" aria-label="Copy"><i class="material-symbols-rounded">content_copy</i></button><button class="settings-close-btn" id="full-alert-text-popup-close" aria-label="Close"><i class="material-symbols-rounded">close</i></button></div></div><div id="full-alert-text-popup-body"><div id="full-alert-text-content"></div></div>`;
+  fullAlertPopup.innerHTML = `<div id="full-alert-text-popup-header"><div id="full-alert-text-popup-title"><i class="material-symbols-rounded">warning</i><span id="full-alert-text-popup-title-text"></span></div><div style="display:flex;gap:6px;align-items:center;"><button class="settings-close-btn" id="full-alert-text-popup-open-external" aria-label="Open Link" style="display:none;"><i class="material-symbols-rounded">open_in_new</i></button><button class="settings-close-btn" id="full-alert-text-popup-copy" aria-label="Copy"><i class="material-symbols-rounded">content_copy</i></button><button class="settings-close-btn" id="full-alert-text-popup-close" aria-label="Close"><i class="material-symbols-rounded">close</i></button></div></div><div id="full-alert-text-popup-body"><div id="full-alert-text-content"></div></div>`;
   document.body.appendChild(fullAlertPopup);
 
   document
@@ -954,7 +983,6 @@ document.addEventListener("DOMContentLoaded", () => {
       endsD = props.ends ? window.parseApiDate(props.ends) : null;
     }
 
-    // Get time values in milliseconds for exact comparison
     const sentTime = sentD && !isNaN(sentD.getTime()) ? sentD.getTime() : null;
     const effectiveTime =
       effectiveD && !isNaN(effectiveD.getTime()) ? effectiveD.getTime() : null;
@@ -964,7 +992,6 @@ document.addEventListener("DOMContentLoaded", () => {
       expireD && !isNaN(expireD.getTime()) ? expireD.getTime() : null;
     const endsTime = endsD && !isNaN(endsD.getTime()) ? endsD.getTime() : null;
 
-    // Apply prioritization rules to skip redundant timestamps
     const showSent = sentTime !== null;
     const showEffective =
       effectiveTime !== null &&
@@ -1014,6 +1041,33 @@ document.addEventListener("DOMContentLoaded", () => {
       if (iconEl) iconEl.textContent = iconName;
     }
 
+    const isConvectiveWatch =
+      props.event === "Tornado Watch" ||
+      props.event === "Severe Thunderstorm Watch";
+
+    let watchNumber = null;
+    if (isConvectiveWatch && params.VTEC && params.VTEC[0]) {
+      const vtecParts = params.VTEC[0].split(".");
+      if (vtecParts.length >= 6) watchNumber = vtecParts[5];
+    }
+
+    const extBtn = document.getElementById(
+      "full-alert-text-popup-open-external",
+    );
+    let targetUrl = null;
+    if (props.id && (props.id.startsWith("md") || props.id.startsWith("ww"))) {
+      targetUrl = props.url;
+    } else if (watchNumber) {
+      targetUrl = `https://www.spc.noaa.gov/products/watch/ww${watchNumber}.html`;
+    }
+
+    if (targetUrl) {
+      extBtn.style.display = "flex";
+      extBtn.onclick = () => window.open(targetUrl, "_blank");
+    } else {
+      extBtn.style.display = "none";
+    }
+
     if (
       props.url &&
       typeof props.url === "string" &&
@@ -1054,15 +1108,6 @@ document.addEventListener("DOMContentLoaded", () => {
       window.formatNwsText && props.instruction
         ? window.formatNwsText(props.instruction)
         : props.instruction;
-    const isConvectiveWatch =
-      props.event === "Tornado Watch" ||
-      props.event === "Severe Thunderstorm Watch";
-
-    let watchNumber = null;
-    if (isConvectiveWatch && params.VTEC && params.VTEC[0]) {
-      const vtecParts = params.VTEC[0].split(".");
-      if (vtecParts.length >= 6) watchNumber = vtecParts[5];
-    }
 
     if (titleEl) titleEl.textContent = props.specificEventName || props.event;
     if (contentEl)
@@ -1122,6 +1167,21 @@ document.addEventListener("DOMContentLoaded", () => {
       headerEl.style.background = `${color}1a`;
       const iconEl = headerEl.querySelector(".material-symbols-rounded");
       if (iconEl) iconEl.textContent = "map";
+    }
+
+    const extBtn = document.getElementById(
+      "full-alert-text-popup-open-external",
+    );
+    const targetUrl =
+      spcDay >= 4
+        ? "https://www.spc.noaa.gov/products/exper/day4-8/index.html"
+        : `https://www.spc.noaa.gov/products/outlook/day${window.activeSpcDay}otlk.html`;
+
+    if (targetUrl) {
+      extBtn.style.display = "flex";
+      extBtn.onclick = () => window.open(targetUrl, "_blank");
+    } else {
+      extBtn.style.display = "none";
     }
 
     if (popup) popup.classList.add("open");

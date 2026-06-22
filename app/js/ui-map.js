@@ -890,6 +890,37 @@ window.map.on("load", async () => {
         "line-opacity-transition": { duration: 750 },
       },
     });
+
+  if (!window.map.getSource("alerts-arrows"))
+    window.map.addSource("alerts-arrows", {
+      type: "geojson",
+      data: { type: "FeatureCollection", features: [] },
+    });
+
+  if (!window.map.getLayer("alerts-arrows-layer")) {
+    window.map.addLayer(
+      {
+        id: "alerts-arrows-layer",
+        type: "line",
+        source: "alerts-arrows",
+        minzoom: 8,
+        paint: {
+          "line-color": ["coalesce", ["get", "displayColor"], "#FF0000"],
+          "line-width": 2,
+        },
+        layout: {
+          visibility:
+            window.alertsEnabled && window.motionVectorsEnabled
+              ? "visible"
+              : "none",
+          "line-cap": "round",
+          "line-join": "round",
+        },
+      },
+      symbolId,
+    );
+  }
+
   if (!window.map.getLayer(window.layerIds.radar)) {
     window.map.addLayer(
       {

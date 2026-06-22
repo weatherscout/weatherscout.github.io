@@ -18,6 +18,14 @@ window.spcSourceCache = {};
 window.spcIssueSnapshots = {};
 window.nwsUpdateInterval = null;
 window.placefileUpdateInterval = null;
+window.motionVectorsEnabled = true;
+
+window.updateMotionVectorsVisibility = function () {
+  if (!window.map || !window.map.getLayer("alerts-arrows-layer")) return;
+  const visibility =
+    window.alertsEnabled && window.motionVectorsEnabled ? "visible" : "none";
+  window.map.setLayoutProperty("alerts-arrows-layer", "visibility", visibility);
+};
 
 window.spcSources = [
   {
@@ -238,6 +246,26 @@ window.processRawAlertFeatures = async function (
         .setData({ type: "FeatureCollection", features: poly });
     }
     window.globalPolyAlerts = poly;
+    const arrowFeatures = [];
+    poly.forEach((f) => {
+      if (
+        f.properties.parameters &&
+        f.properties.parameters.eventMotionDescription
+      ) {
+        const motions = window.parseEventMotion(f);
+        if (motions && motions.length > 0) {
+          const color = f.properties.displayColor || "#FF0000";
+          motions.forEach((motion) => {
+            arrowFeatures.push(window.createArrowFeature(motion, color));
+          });
+        }
+      }
+    });
+    if (window.map.getSource("alerts-arrows")) {
+      window.map
+        .getSource("alerts-arrows")
+        .setData({ type: "FeatureCollection", features: arrowFeatures });
+    }
     poly.forEach((f) => window.addNewAlertToQueue(f, "alert", isSilent));
   } else if (filterType === "zone" && window.zoneAlertsEnabled) {
     await window.processZoneAlerts(zone, isSilent);
@@ -255,6 +283,105 @@ window.isValidAlert = function (feature) {
   )
     return false;
   return true;
+};
+
+window.getDestinationCoords = function (lon, lat, bearing, distanceKm) {
+  const R = 6371;
+  const brng = (bearing * Math.PI) / 180;
+  const dR = distanceKm / R;
+  const lat1 = (lat * Math.PI) / 180;
+  const lon1 = (lon * Math.PI) / 180;
+  const lat2 = Math.asin(
+    Math.sin(lat1) * Math.cos(dR) +
+      Math.cos(lat1) * Math.sin(dR) * Math.cos(brng),
+  );
+  const lon2 =
+    lon1 +
+    Math.atan2(
+      Math.sin(brng) * Math.sin(dR) * Math.cos(lat1),
+      Math.cos(dR) - Math.sin(lat1) * Math.sin(lat2),
+    );
+  return [(lon2 * 180) / Math.PI, (lat2 * 180) / Math.PI];
+};
+
+window.parseEventMotion = function (f) {
+  const params = f.properties.parameters || {};
+  const motionArr = params.eventMotionDescription;
+  if (!motionArr || !motionArr[0]) return [];
+  const parts = motionArr[0].split("...");
+  if (parts.length < 5) return [];
+  const bearingMatch = parts[2].match(/^(\d+)DEG$/i);
+  const speedMatch = parts[3].match(/^(\d+)KT$/i);
+  if (!bearingMatch || !speedMatch) return [];
+
+  const bearingFrom = parseFloat(bearingMatch[1]);
+  const speedKnots = parseFloat(speedMatch[1]);
+  const bearing = (bearingFrom + 180) % 360;
+
+  const coordPairs = parts[4].trim().split(/\s+/);
+  const results = [];
+
+  coordPairs.forEach((pair) => {
+    const coords = pair.split(",");
+    if (coords.length >= 2) {
+      const lat = parseFloat(coords[0]);
+      const lon = parseFloat(coords[1]);
+      if (!isNaN(lat) && !isNaN(lon)) {
+        results.push({
+          time: parts[0],
+          type: parts[1],
+          bearing: bearing,
+          speed: speedKnots,
+          lat,
+          lon,
+        });
+      }
+    }
+  });
+
+  return results;
+};
+
+window.createArrowFeature = function (motion, color) {
+  const startLon = motion.lon;
+  const startLat = motion.lat;
+  const bearing = motion.bearing;
+  const distanceKm = motion.speed * 1.852 * 0.5;
+  const end = window.getDestinationCoords(
+    startLon,
+    startLat,
+    bearing,
+    distanceKm,
+  );
+
+  const wingLength = Math.max(0.6, distanceKm * 0.08);
+  const leftWing = window.getDestinationCoords(
+    end[0],
+    end[1],
+    (bearing + 162) % 360,
+    wingLength,
+  );
+  const rightWing = window.getDestinationCoords(
+    end[0],
+    end[1],
+    (bearing - 162 + 360) % 360,
+    wingLength,
+  );
+
+  return {
+    type: "Feature",
+    geometry: {
+      type: "MultiLineString",
+      coordinates: [
+        [[startLon, startLat], end],
+        [end, leftWing],
+        [end, rightWing],
+      ],
+    },
+    properties: {
+      displayColor: color || "#FF0000",
+    },
+  };
 };
 
 window.getAlertPriorityScore = function (feature) {
@@ -1169,14 +1296,18 @@ window.toggleAllAlerts = async function () {
   } else {
     window.isAlertsLoading = false;
     window.showToast("Alerts: Off");
-    ["alerts-poly", "alerts-zone", "alerts-md", "alerts-poly-watch"].forEach(
-      (s) => {
-        if (window.map.getSource(s))
-          window.map
-            .getSource(s)
-            .setData({ type: "FeatureCollection", features: [] });
-      },
-    );
+    [
+      "alerts-poly",
+      "alerts-zone",
+      "alerts-md",
+      "alerts-poly-watch",
+      "alerts-arrows",
+    ].forEach((s) => {
+      if (window.map.getSource(s))
+        window.map
+          .getSource(s)
+          .setData({ type: "FeatureCollection", features: [] });
+    });
     window.globalPolyAlerts = [];
     window.globalZoneAlerts = [];
     window.globalMdAlerts = [];
@@ -1201,6 +1332,9 @@ window.toggleAllAlerts = async function () {
     if (window.map.getLayer(l))
       window.map.setLayoutProperty(l, "visibility", v);
   });
+  if (window.updateMotionVectorsVisibility) {
+    window.updateMotionVectorsVisibility();
+  }
   window.updateGreenStatusIndicators();
   if (window.renderAlertsSidebar) {
     window.renderAlertsSidebar();

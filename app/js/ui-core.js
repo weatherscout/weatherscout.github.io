@@ -340,9 +340,15 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   window.saveCurrentState = function () {
+    localStorage.setItem("motionVectorsEnabled", window.motionVectorsEnabled);
     const radarToggle = document.getElementById("radar-toggle");
     const sitesToggle = document.getElementById("radar-sites-toggle");
     if (window.map && localStorage.getItem("saveSettings") === "true") {
+      if (localStorage.getItem("motionVectorsEnabled") === "false") {
+        window.motionVectorsEnabled = false;
+      } else {
+        window.motionVectorsEnabled = true;
+      }
       localStorage.setItem(
         "radarVisible",
         radarToggle ? radarToggle.checked : true,
