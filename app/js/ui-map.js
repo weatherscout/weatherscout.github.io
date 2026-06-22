@@ -92,6 +92,12 @@ window.showAlertMapPopup = function (
 ) {
   window.currentStackedAlertIndex = index;
 
+  const getArticle = (word) => {
+    if (!word) return "a";
+    const firstChar = word.trim().charAt(0).toLowerCase();
+    return ["a", "e", "i", "o", "u"].includes(firstChar) ? "an" : "a";
+  };
+
   const renderContent = (idx) => {
     const targetItem = items[idx];
     const targetProps = targetItem.properties;
@@ -274,38 +280,79 @@ window.showAlertMapPopup = function (
       }
       targetMetaHtml = `${mainSentence}.`;
     } else {
-      targetTitle = `Day ${window.activeSpcDay} Outlook`;
-      targetColor = targetProps.fill || "#FFFFFF";
-      targetIcon = "map";
-      const rawLabel = (
-        targetProps.LABEL ||
-        targetProps.LABEL2 ||
-        ""
-      ).toUpperCase();
       const type = window.activeSpcType;
-      let finalRiskPhrase = "";
-      if (rawLabel.startsWith("CIG")) {
-        const num = rawLabel.replace("CIG", "");
-        const cigIntensityMap = {
-          1: { torn: "strong", wind: "damaging", hail: "large" },
-          2: { torn: "intense", wind: "destructive", hail: "very large" },
-          3: { torn: "violent", wind: "extreme", hail: "giant" },
-        };
-        const intensity =
-          cigIntensityMap[num]?.[type] || rawLabel.toLowerCase();
-        const phenom =
-          { torn: "tornado", wind: "wind", hail: "hail" }[type] || "";
-        finalRiskPhrase = `${intensity} ${phenom}`;
+      if (type === "fire" || type === "fire-cat" || type === "fire-dryt") {
+        targetTitle = `Day ${window.activeSpcDay} Fire`;
+        targetColor = targetProps.fill || targetProps.FILL || "#ff6600";
+        targetIcon = "local_fire_department";
+        const rawLabel = (
+          targetProps.LABEL ||
+          targetProps.LABEL2 ||
+          targetProps.label ||
+          targetProps.label2 ||
+          ""
+        ).toUpperCase();
+        let finalRiskPhrase = "";
+        if (rawLabel === "EXTM" || rawLabel.includes("EXTREME"))
+          finalRiskPhrase = "extremely critical";
+        else if (
+          rawLabel === "CRIT" ||
+          (rawLabel.includes("CRITICAL") && !rawLabel.includes("40%"))
+        )
+          finalRiskPhrase = "critical";
+        else if (rawLabel === "ELEV" || rawLabel.includes("ELEVATED"))
+          finalRiskPhrase = "elevated";
+        else if (rawLabel.includes("DRY") || rawLabel.includes("TSTM"))
+          finalRiskPhrase = "dry thunderstorm";
+        else finalRiskPhrase = rawLabel.toLowerCase();
+
+        if (finalRiskPhrase.includes("fire weather")) {
+          targetMetaHtml = `There is ${getArticle(finalRiskPhrase)} ${finalRiskPhrase} for this location.`;
+        } else {
+          targetMetaHtml = `There is ${getArticle(finalRiskPhrase)} ${finalRiskPhrase} fire weather risk for this location.`;
+        }
       } else {
-        const riskVal = window.formatSpcLabel(rawLabel);
-        let riskTypeSuffix = "";
-        if (type === "torn") riskTypeSuffix = " tornado";
-        else if (type === "wind") riskTypeSuffix = " wind";
-        else if (type === "hail") riskTypeSuffix = " hail";
-        else if (type === "prob") riskTypeSuffix = " severe";
-        finalRiskPhrase = `${riskVal.toLowerCase()}${riskTypeSuffix}`;
+        targetTitle = `Day ${window.activeSpcDay} Convective`;
+        targetColor = targetProps.fill || targetProps.FILL || "#FFFFFF";
+        targetIcon = "map";
+        const rawLabel = (
+          targetProps.LABEL ||
+          targetProps.LABEL2 ||
+          targetProps.label ||
+          targetProps.label2 ||
+          ""
+        ).toUpperCase();
+        if (rawLabel.includes("CIG1")) {
+          targetColor = "#E60000";
+        } else if (rawLabel.includes("CIG2")) {
+          targetColor = "#E066FF";
+        } else if (rawLabel.includes("CIG3")) {
+          targetColor = "#7F00FF";
+        }
+        let finalRiskPhrase = "";
+        if (rawLabel.startsWith("CIG")) {
+          const num = rawLabel.replace("CIG", "");
+          const cigIntensityMap = {
+            1: { torn: "strong", wind: "damaging", hail: "large" },
+            2: { torn: "intense", wind: "destructive", hail: "very large" },
+            3: { torn: "violent", wind: "extreme", hail: "giant" },
+          };
+          const intensity =
+            cigIntensityMap[num]?.[type] || rawLabel.toLowerCase();
+          const phenom =
+            { torn: "tornado", wind: "wind", hail: "hail" }[type] || "";
+          finalRiskPhrase = `${intensity} ${phenom}`;
+        } else {
+          const riskVal = window.formatSpcLabel(rawLabel);
+          let riskTypeSuffix = "";
+          if (type === "torn") riskTypeSuffix = " tornado";
+          else if (type === "wind") riskTypeSuffix = " wind";
+          else if (type === "hail") riskTypeSuffix = " hail";
+          else if (type === "prob") riskTypeSuffix = " severe";
+          finalRiskPhrase = `${riskVal.toLowerCase()}${riskTypeSuffix}`;
+        }
+        targetMetaHtml = `There is ${getArticle(finalRiskPhrase)} ${finalRiskPhrase} risk for this location.`;
       }
-      targetMetaHtml = `There is a ${finalRiskPhrase} risk for this location.`;
     }
     return {
       title: targetTitle,
@@ -345,7 +392,15 @@ window.showAlertMapPopup = function (
         if (item.type === "alert") {
           window.showFullAlertTextPopup(item.feature || item);
         } else {
-          window.showFullSpcTextPopup(item);
+          if (
+            window.activeSpcType === "fire" ||
+            window.activeSpcType === "fire-cat" ||
+            window.activeSpcType === "fire-dryt"
+          ) {
+            window.showFullSpcFireTextPopup(item);
+          } else {
+            window.showFullSpcTextPopup(item);
+          }
         }
         window.closeAllPopups();
       };
@@ -366,15 +421,28 @@ window.showAlertMapPopup = function (
             cachedData.features &&
             cachedData.features.length > 0
           ) {
-            const isCat = sourceId.endsWith("-cat");
+            const isCat =
+              sourceId.endsWith("-cat") ||
+              sourceId.includes("-fire-cat") ||
+              sourceId.includes("-fire-dryt");
             const topFeature = isCat
               ? window.getHighestSpcCatFeature(cachedData.features)
               : cachedData.features.reduce((best, f) => {
                   const val = parseFloat(
-                    f.properties.LABEL || f.properties.LABEL2 || 0,
+                    f.properties.LABEL ||
+                      f.properties.LABEL2 ||
+                      f.properties.label ||
+                      f.properties.label2 ||
+                      f.properties.dn ||
+                      0,
                   );
                   const bestVal = parseFloat(
-                    best?.properties.LABEL || best?.properties.LABEL2 || 0,
+                    best?.properties.LABEL ||
+                      best?.properties.LABEL2 ||
+                      best?.properties.label ||
+                      best?.properties.label2 ||
+                      best?.properties.dn ||
+                      0,
                   );
                   return val > bestVal ? f : best;
                 }, null);
@@ -404,11 +472,17 @@ window.showAlertMapPopup = function (
           const highest = window.getSpcSourceHighest(
             `spc-day${window.activeSpcDay}-${window.activeSpcType || "cat"}`,
           );
+          const isFire =
+            window.activeSpcType === "fire" ||
+            window.activeSpcType === "fire_dryt" ||
+            window.activeSpcType === "fire_windrh";
           window.createAndShowAlertPopup(
             {
               properties: {
                 event: "SPC Outlook",
-                specificEventName: `Day ${window.activeSpcDay} Outlook`,
+                specificEventName: isFire
+                  ? `Day ${window.activeSpcDay} Fire`
+                  : `Day ${window.activeSpcDay} Convective`,
                 displayColor: highest ? highest.fill : "#FFFFFF",
                 spcTopLabel: highest ? highest.label : "N/A",
                 spcDay: window.activeSpcDay,
@@ -596,10 +670,7 @@ ${items.length > 1 ? `<button id="next-alert-button" style="width: 32px; height:
           window.showAlertMapPopup(
             items,
             clicked,
-            (window.currentStackedAlertIndex +
-              (d > 0 ? -1 : 1) +
-              items.length) %
-              items.length,
+            (window.currentStackedAlertIndex - 1 + items.length) % items.length,
             d > 0 ? "prev" : "next",
           );
       },
@@ -617,8 +688,7 @@ ${items.length > 1 ? `<button id="next-alert-button" style="width: 32px; height:
         window.showAlertMapPopup(
           items,
           clicked,
-          (window.currentStackedAlertIndex + (d > 0 ? -1 : 1) + items.length) %
-            items.length,
+          (window.currentStackedAlertIndex + 1) % items.length,
           d > 0 ? "prev" : "next",
         );
     });
@@ -693,14 +763,6 @@ window.map.on("load", async () => {
       break;
     }
   }
-
-  window.spcSources.forEach((s) => {
-    if (!window.map.getSource(s.id))
-      window.map.addSource(s.id, {
-        type: "geojson",
-        data: { type: "FeatureCollection", features: [] },
-      });
-  });
 
   if (!window.map.getSource("weather-radar")) {
     const ts = Math.floor(Date.now() / 60000) * 60000;
@@ -936,35 +998,172 @@ window.map.on("load", async () => {
   }
 
   window.spcSources.forEach((s) => {
+    if (!window.map.getSource(s.id)) {
+      window.map.addSource(s.id, {
+        type: "geojson",
+        data: { type: "FeatureCollection", features: [] },
+      });
+    }
+
     let isVis =
       window.activeSpcDay !== "none" &&
-      window.layerIds.spc["day" + window.activeSpcDay]?.[
+      (window.layerIds.spc["day" + window.activeSpcDay]?.[
         window.activeSpcType
-      ] === s.id
+      ] === s.id ||
+        window.layerIds.spc["day" + window.activeSpcDay]?.[
+          window.activeSpcType + "-cig"
+        ] === s.id)
         ? "visible"
         : "none";
-    if (!window.map.getLayer(s.id))
+
+    if (!window.map.getLayer(s.id)) {
       window.map.addLayer(
         {
           id: s.id,
           type: "fill",
           source: s.id,
-          paint: { "fill-color": ["get", "fill"], "fill-opacity": 0.05 },
+          paint: {
+            "fill-color": [
+              "case",
+              [
+                "in",
+                "CIG1",
+                [
+                  "upcase",
+                  [
+                    "coalesce",
+                    ["get", "label"],
+                    ["get", "LABEL"],
+                    ["get", "label2"],
+                    ["get", "LABEL2"],
+                    "",
+                  ],
+                ],
+              ],
+              "#E60000",
+              [
+                "in",
+                "CIG2",
+                [
+                  "upcase",
+                  [
+                    "coalesce",
+                    ["get", "label"],
+                    ["get", "LABEL"],
+                    ["get", "label2"],
+                    ["get", "LABEL2"],
+                    "",
+                  ],
+                ],
+              ],
+              "#E066FF",
+              [
+                "in",
+                "CIG3",
+                [
+                  "upcase",
+                  [
+                    "coalesce",
+                    ["get", "label"],
+                    ["get", "LABEL"],
+                    ["get", "label2"],
+                    ["get", "LABEL2"],
+                    "",
+                  ],
+                ],
+              ],
+              "#7F00FF",
+              ["coalesce", ["get", "fill"], ["get", "FILL"], "#808080"],
+            ],
+            "fill-opacity": s.id.endsWith("-cig") ? 0.01 : 0.05,
+          },
           layout: { visibility: isVis },
         },
         window.layerIds.radar,
       );
-    if (!window.map.getLayer(`${s.id}-border`))
+    }
+
+    if (!window.map.getLayer(`${s.id}-border`)) {
+      const linePaint = {
+        "line-color": [
+          "case",
+          [
+            "in",
+            "CIG1",
+            [
+              "upcase",
+              [
+                "coalesce",
+                ["get", "label"],
+                ["get", "LABEL"],
+                ["get", "label2"],
+                ["get", "LABEL2"],
+                "",
+              ],
+            ],
+          ],
+          "#E60000",
+          [
+            "in",
+            "CIG2",
+            [
+              "upcase",
+              [
+                "coalesce",
+                ["get", "label"],
+                ["get", "LABEL"],
+                ["get", "label2"],
+                ["get", "LABEL2"],
+                "",
+              ],
+            ],
+          ],
+          "#E066FF",
+          [
+            "in",
+            "CIG3",
+            [
+              "upcase",
+              [
+                "coalesce",
+                ["get", "label"],
+                ["get", "LABEL"],
+                ["get", "label2"],
+                ["get", "LABEL2"],
+                "",
+              ],
+            ],
+          ],
+          "#7F00FF",
+          [
+            "coalesce",
+            ["get", "stroke"],
+            ["get", "STROKE"],
+            ["get", "fill"],
+            ["get", "FILL"],
+            "#808080",
+          ],
+        ],
+        "line-width": s.id.endsWith("-cig") ? 1.5 : 2,
+      };
+      if (s.id.endsWith("-cig")) {
+        linePaint["line-dasharray"] = [2, 3];
+      }
       window.map.addLayer(
         {
           id: `${s.id}-border`,
           type: "line",
           source: s.id,
-          paint: { "line-color": ["get", "fill"], "line-width": 2 },
-          layout: { visibility: isVis },
+          paint: linePaint,
+          layout: {
+            visibility: isVis,
+            "line-cap": "round",
+            "line-join": "round",
+          },
         },
         window.layerIds.radar,
       );
+    }
   });
 
   const sitesToggle = document.getElementById("radar-sites-toggle");
@@ -1240,9 +1439,18 @@ window.map.on("click", (e) => {
         : [];
     const items = [
       ...new Map(
-        alerts
-          .concat(spc)
-          .map((i) => [i.properties.id || i.properties.LABEL, i]),
+        alerts.concat(spc).map((i) => {
+          const key =
+            i.properties.id ||
+            i.properties.LABEL ||
+            i.properties.label ||
+            i.properties.LABEL2 ||
+            i.properties.label2 ||
+            (i.properties.event
+              ? i.properties.event + "-" + Math.random()
+              : Math.random().toString());
+          return [key, i];
+        }),
       ).values(),
     ];
     if (items.length) window.showAlertMapPopup(items, e.lngLat);

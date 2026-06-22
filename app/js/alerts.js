@@ -30,63 +30,155 @@ window.updateMotionVectorsVisibility = function () {
 window.spcSources = [
   {
     id: "spc-day1-cat",
-    url: "https://www.spc.noaa.gov/products/outlook/day1otlk_cat.nolyr.geojson",
+    url: "https://mapservices.weather.noaa.gov/vector/rest/services/outlooks/SPC_wx_outlks/MapServer/1/query?where=1%3D1&outFields=*&f=geojson",
   },
   {
     id: "spc-day1-torn",
-    url: "https://www.spc.noaa.gov/products/outlook/day1otlk_torn.nolyr.geojson",
+    url: "https://mapservices.weather.noaa.gov/vector/rest/services/outlooks/SPC_wx_outlks/MapServer/3/query?where=1%3D1&outFields=*&f=geojson",
+  },
+  {
+    id: "spc-day1-torn-cig",
+    url: "https://mapservices.weather.noaa.gov/vector/rest/services/outlooks/SPC_wx_outlks/MapServer/2/query?where=1%3D1&outFields=*&f=geojson",
   },
   {
     id: "spc-day1-hail",
-    url: "https://www.spc.noaa.gov/products/outlook/day1otlk_hail.nolyr.geojson",
+    url: "https://mapservices.weather.noaa.gov/vector/rest/services/outlooks/SPC_wx_outlks/MapServer/5/query?where=1%3D1&outFields=*&f=geojson",
+  },
+  {
+    id: "spc-day1-hail-cig",
+    url: "https://mapservices.weather.noaa.gov/vector/rest/services/outlooks/SPC_wx_outlks/MapServer/4/query?where=1%3D1&outFields=*&f=geojson",
   },
   {
     id: "spc-day1-wind",
-    url: "https://www.spc.noaa.gov/products/outlook/day1otlk_wind.nolyr.geojson",
+    url: "https://mapservices.weather.noaa.gov/vector/rest/services/outlooks/SPC_wx_outlks/MapServer/7/query?where=1%3D1&outFields=*&f=geojson",
+  },
+  {
+    id: "spc-day1-wind-cig",
+    url: "https://mapservices.weather.noaa.gov/vector/rest/services/outlooks/SPC_wx_outlks/MapServer/6/query?where=1%3D1&outFields=*&f=geojson",
+  },
+  {
+    id: "spc-day1-fire-cat",
+    url: "https://mapservices.weather.noaa.gov/vector/rest/services/fire_weather/SPC_firewx/MapServer/1/query?where=1%3D1&outFields=*&f=geojson",
+  },
+  {
+    id: "spc-day1-fire-dryt",
+    url: "https://mapservices.weather.noaa.gov/vector/rest/services/fire_weather/SPC_firewx/MapServer/2/query?where=1%3D1&outFields=*&f=geojson",
   },
   {
     id: "spc-day2-cat",
-    url: "https://www.spc.noaa.gov/products/outlook/day2otlk_cat.nolyr.geojson",
+    url: "https://mapservices.weather.noaa.gov/vector/rest/services/outlooks/SPC_wx_outlks/MapServer/9/query?where=1%3D1&outFields=*&f=geojson",
   },
   {
     id: "spc-day2-torn",
-    url: "https://www.spc.noaa.gov/products/outlook/day2otlk_torn.nolyr.geojson",
+    url: "https://mapservices.weather.noaa.gov/vector/rest/services/outlooks/SPC_wx_outlks/MapServer/11/query?where=1%3D1&outFields=*&f=geojson",
+  },
+  {
+    id: "spc-day2-torn-cig",
+    url: "https://mapservices.weather.noaa.gov/vector/rest/services/outlooks/SPC_wx_outlks/MapServer/10/query?where=1%3D1&outFields=*&f=geojson",
   },
   {
     id: "spc-day2-hail",
-    url: "https://www.spc.noaa.gov/products/outlook/day2otlk_hail.nolyr.geojson",
+    url: "https://mapservices.weather.noaa.gov/vector/rest/services/outlooks/SPC_wx_outlks/MapServer/13/query?where=1%3D1&outFields=*&f=geojson",
+  },
+  {
+    id: "spc-day2-hail-cig",
+    url: "https://mapservices.weather.noaa.gov/vector/rest/services/outlooks/SPC_wx_outlks/MapServer/12/query?where=1%3D1&outFields=*&f=geojson",
   },
   {
     id: "spc-day2-wind",
-    url: "https://www.spc.noaa.gov/products/outlook/day2otlk_wind.nolyr.geojson",
+    url: "https://mapservices.weather.noaa.gov/vector/rest/services/outlooks/SPC_wx_outlks/MapServer/15/query?where=1%3D1&outFields=*&f=geojson",
+  },
+  {
+    id: "spc-day2-wind-cig",
+    url: "https://mapservices.weather.noaa.gov/vector/rest/services/outlooks/SPC_wx_outlks/MapServer/14/query?where=1%3D1&outFields=*&f=geojson",
+  },
+  {
+    id: "spc-day2-fire-cat",
+    url: "https://mapservices.weather.noaa.gov/vector/rest/services/fire_weather/SPC_firewx/MapServer/4/query?where=1%3D1&outFields=*&f=geojson",
+  },
+  {
+    id: "spc-day2-fire-dryt",
+    url: "https://mapservices.weather.noaa.gov/vector/rest/services/fire_weather/SPC_firewx/MapServer/5/query?where=1%3D1&outFields=*&f=geojson",
   },
   {
     id: "spc-day3-cat",
-    url: "https://www.spc.noaa.gov/products/outlook/day3otlk_cat.nolyr.geojson",
+    url: "https://mapservices.weather.noaa.gov/vector/rest/services/outlooks/SPC_wx_outlks/MapServer/17/query?where=1%3D1&outFields=*&f=geojson",
   },
   {
     id: "spc-day3-prob",
-    url: "https://www.spc.noaa.gov/products/outlook/day3otlk_prob.nolyr.geojson",
+    url: "https://mapservices.weather.noaa.gov/vector/rest/services/outlooks/SPC_wx_outlks/MapServer/19/query?where=1%3D1&outFields=*&f=geojson",
+  },
+  {
+    id: "spc-day3-prob-cig",
+    url: "https://mapservices.weather.noaa.gov/vector/rest/services/outlooks/SPC_wx_outlks/MapServer/18/query?where=1%3D1&outFields=*&f=geojson",
+  },
+  {
+    id: "spc-day3-fire-cat",
+    url: "https://mapservices.weather.noaa.gov/vector/rest/services/fire_weather/SPC_firewx/MapServer/8/query?where=1%3D1&outFields=*&f=geojson",
+  },
+  {
+    id: "spc-day3-fire-dryt",
+    url: "https://mapservices.weather.noaa.gov/vector/rest/services/fire_weather/SPC_firewx/MapServer/7/query?where=1%3D1&outFields=*&f=geojson",
   },
   {
     id: "spc-day4-prob",
-    url: "https://www.spc.noaa.gov/products/exper/day4-8/day4prob.nolyr.geojson",
+    url: "https://mapservices.weather.noaa.gov/vector/rest/services/outlooks/SPC_wx_outlks/MapServer/21/query?where=1%3D1&outFields=*&f=geojson",
+  },
+  {
+    id: "spc-day4-fire-cat",
+    url: "https://mapservices.weather.noaa.gov/vector/rest/services/fire_weather/SPC_firewx/MapServer/11/query?where=1%3D1&outFields=*&f=geojson",
+  },
+  {
+    id: "spc-day4-fire-dryt",
+    url: "https://mapservices.weather.noaa.gov/vector/rest/services/fire_weather/SPC_firewx/MapServer/10/query?where=1%3D1&outFields=*&f=geojson",
   },
   {
     id: "spc-day5-prob",
-    url: "https://www.spc.noaa.gov/products/exper/day4-8/day5prob.nolyr.geojson",
+    url: "https://mapservices.weather.noaa.gov/vector/rest/services/outlooks/SPC_wx_outlks/MapServer/22/query?where=1%3D1&outFields=*&f=geojson",
+  },
+  {
+    id: "spc-day5-fire-cat",
+    url: "https://mapservices.weather.noaa.gov/vector/rest/services/fire_weather/SPC_firewx/MapServer/14/query?where=1%3D1&outFields=*&f=geojson",
+  },
+  {
+    id: "spc-day5-fire-dryt",
+    url: "https://mapservices.weather.noaa.gov/vector/rest/services/fire_weather/SPC_firewx/MapServer/13/query?where=1%3D1&outFields=*&f=geojson",
   },
   {
     id: "spc-day6-prob",
-    url: "https://www.spc.noaa.gov/products/exper/day4-8/day6prob.nolyr.geojson",
+    url: "https://mapservices.weather.noaa.gov/vector/rest/services/outlooks/SPC_wx_outlks/MapServer/23/query?where=1%3D1&outFields=*&f=geojson",
+  },
+  {
+    id: "spc-day6-fire-cat",
+    url: "https://mapservices.weather.noaa.gov/vector/rest/services/fire_weather/SPC_firewx/MapServer/17/query?where=1%3D1&outFields=*&f=geojson",
+  },
+  {
+    id: "spc-day6-fire-dryt",
+    url: "https://mapservices.weather.noaa.gov/vector/rest/services/fire_weather/SPC_firewx/MapServer/16/query?where=1%3D1&outFields=*&f=geojson",
   },
   {
     id: "spc-day7-prob",
-    url: "https://www.spc.noaa.gov/products/exper/day4-8/day7prob.nolyr.geojson",
+    url: "https://mapservices.weather.noaa.gov/vector/rest/services/outlooks/SPC_wx_outlks/MapServer/24/query?where=1%3D1&outFields=*&f=geojson",
+  },
+  {
+    id: "spc-day7-fire-cat",
+    url: "https://mapservices.weather.noaa.gov/vector/rest/services/fire_weather/SPC_firewx/MapServer/20/query?where=1%3D1&outFields=*&f=geojson",
+  },
+  {
+    id: "spc-day7-fire-dryt",
+    url: "https://mapservices.weather.noaa.gov/vector/rest/services/fire_weather/SPC_firewx/MapServer/19/query?where=1%3D1&outFields=*&f=geojson",
   },
   {
     id: "spc-day8-prob",
-    url: "https://www.spc.noaa.gov/products/exper/day4-8/day8prob.nolyr.geojson",
+    url: "https://mapservices.weather.noaa.gov/vector/rest/services/outlooks/SPC_wx_outlks/MapServer/25/query?where=1%3D1&outFields=*&f=geojson",
+  },
+  {
+    id: "spc-day8-fire-cat",
+    url: "https://mapservices.weather.noaa.gov/vector/rest/services/fire_weather/SPC_firewx/MapServer/23/query?where=1%3D1&outFields=*&f=geojson",
+  },
+  {
+    id: "spc-day8-fire-dryt",
+    url: "https://mapservices.weather.noaa.gov/vector/rest/services/fire_weather/SPC_firewx/MapServer/22/query?where=1%3D1&outFields=*&f=geojson",
   },
 ];
 
@@ -470,14 +562,6 @@ window.getAlertPriorityScore = function (feature) {
   if (event === "High Wind Watch") return 60;
   if (event === "Extreme Heat Watch") return 61;
   if (event === "Extreme Cold Watch") return 62;
-  if (event === "Fire Weather Watch") return 63;
-  if (event === "Hazardous Weather Outlook") return 64;
-  if (event === "Hazardous Seas Watch") return 65;
-  if (event === "Storm Watch") return 66;
-  if (event === "Gale Watch") return 67;
-  if (event === "Coastal Flood Watch") return 68;
-  if (event === "Lakeshore Flood Watch") return 69;
-  if (event === "Flood Watch") return 70;
   if (event === "Freeze Watch") return 71;
   if (event === "Tsunami Advisory") return 72;
   if (event === "Flash Flood Statement") return 73;
@@ -1019,14 +1103,22 @@ window.processZoneAlerts = async function (features, isSilent = false) {
 };
 
 window.spcOutlookTextCache = {};
-window.fetchSpcOutlookText = async function (day, force = false) {
-  if (!force && window.spcOutlookTextCache[day]) {
-    return window.spcOutlookTextCache[day];
+window.fetchSpcOutlookText = async function (
+  day,
+  force = false,
+  customUrl = null,
+) {
+  const cacheKey = customUrl ? customUrl : `${day}_convective`;
+  if (!force && window.spcOutlookTextCache[cacheKey]) {
+    return window.spcOutlookTextCache[cacheKey];
   }
-  let url =
-    parseInt(day) >= 4
-      ? "https://www.spc.noaa.gov/products/exper/day4-8/index.html"
-      : `https://www.spc.noaa.gov/products/outlook/day${day}otlk.html`;
+  let url = customUrl;
+  if (!url) {
+    url =
+      parseInt(day) >= 4
+        ? "https://www.spc.noaa.gov/products/exper/day4-8/index.html"
+        : `https://www.spc.noaa.gov/products/outlook/day${day}otlk.html`;
+  }
   try {
     const res = await fetch(`${url}?t=${Date.now()}`);
     const text = await res.text();
@@ -1034,10 +1126,10 @@ window.fetchSpcOutlookText = async function (day, force = false) {
       .parseFromString(text, "text/html")
       .querySelector("pre");
     const result = pre ? pre.textContent : "Not found.";
-    window.spcOutlookTextCache[day] = result;
+    window.spcOutlookTextCache[cacheKey] = result;
     return result;
   } catch (e) {
-    return window.spcOutlookTextCache[day] || "Failed to load.";
+    return window.spcOutlookTextCache[cacheKey] || "Failed to load.";
   }
 };
 
@@ -1064,13 +1156,38 @@ window.getHighestSpcCatFeature = function (features) {
   if (!features || !features.length) return null;
   let best = null;
   let bestIdx = Infinity;
+  const rankOrder = [
+    "HIGH",
+    "MODERATE",
+    "MDT",
+    "ENHANCED",
+    "ENH",
+    "SLIGHT",
+    "SLGT",
+    "MARGINAL",
+    "MRGL",
+    "THUNDERSTORM",
+    "TSTM",
+    "EXTREMELY CRITICAL",
+    "CRITICAL FIRE WEATHER (40%)",
+    "CRITICAL",
+    "ELEVATED",
+    "EXTM",
+    "CRIT",
+    "ELEV",
+    "DRY TSTM",
+    "SDRY",
+    "MARGINAL FIRE WEATHER (10%)",
+  ];
   for (const f of features) {
     const label = (
       f.properties.LABEL ||
       f.properties.LABEL2 ||
+      f.properties.label ||
+      f.properties.label2 ||
       ""
     ).toUpperCase();
-    const idx = spcCatOrder.indexOf(label);
+    const idx = rankOrder.indexOf(label);
     if (idx !== -1 && idx < bestIdx) {
       bestIdx = idx;
       best = f;
@@ -1083,8 +1200,47 @@ window.spcGetIssueValue = function (feature) {
   return (
     feature.properties.ISSUE ||
     feature.properties.ISSUE_ISO ||
+    feature.properties.issue ||
+    feature.properties.issue_iso ||
     ""
   ).toString();
+};
+
+window.normalizeFireProperties = function (props, sourceId) {
+  if (props.dn !== undefined && !props.LABEL && !props.label) {
+    const dnVal = parseFloat(props.dn);
+    const isProbabilisticDryTstm =
+      sourceId &&
+      !sourceId.startsWith("spc-day1") &&
+      !sourceId.startsWith("spc-day2");
+
+    if (isProbabilisticDryTstm) {
+      if (dnVal === 10 || dnVal === 0.1) {
+        props.LABEL = "Marginal Fire Weather (10%)";
+        props.fill = "#8B5A2B";
+      } else if (dnVal === 40 || dnVal === 0.4) {
+        props.LABEL = "Critical Fire Weather (40%)";
+        props.fill = "#0070ff";
+      } else {
+        props.LABEL = dnVal < 1 ? `${Math.round(dnVal * 100)}%` : `${dnVal}%`;
+        props.fill = "#a0522d";
+      }
+    } else {
+      if (dnVal === 5) {
+        props.LABEL = "Elevated";
+        props.fill = "#e69800";
+      } else if (dnVal === 8) {
+        props.LABEL = "Critical";
+        props.fill = "#ff0000";
+      } else if (dnVal === 10) {
+        props.LABEL = "Extremely Critical";
+        props.fill = "#e600a9";
+      } else {
+        props.LABEL = String(dnVal);
+        props.fill = "#ffaa00";
+      }
+    }
+  }
 };
 
 window.updateSpcOutlooks = async function () {
@@ -1095,16 +1251,32 @@ window.updateSpcOutlooks = async function () {
     window.spcSources.map(async (s) => {
       if (!window.map.getSource(s.id)) return;
       try {
-        const res = await fetch(`${s.url}?t=${new Date().getTime()}`);
+        let fetchUrl = s.url;
+        if (!fetchUrl.includes("mapservices.weather.noaa.gov")) {
+          const separator = fetchUrl.includes("?") ? "&" : "?";
+          fetchUrl = `${fetchUrl}${separator}t=${new Date().getTime()}`;
+        }
+        const res = await fetch(fetchUrl);
         const data = await res.json();
+
+        if (s.id.includes("-fire") && data.features) {
+          data.features.forEach((f) => {
+            if (f.properties) {
+              window.normalizeFireProperties(f.properties, s.id);
+            }
+          });
+        }
+
         window.spcSourceCache[s.id] = data;
         window.map.getSource(s.id).setData(data);
         if (window.isInitialLoad) return;
 
-        const isCat = s.id.endsWith("-cat");
+        const isCat = s.id.endsWith("-cat") || s.id.includes("-fire");
         const isProb = s.id.endsWith("-prob");
         if (!isCat && !isProb) return;
-        const dayMatch = s.id.match(/spc-day(\d+)-(?:cat|prob)/);
+        const dayMatch = s.id.match(
+          /spc-day(\d+)-(?:cat|prob|fire-cat|fire-dryt)/,
+        );
         if (!dayMatch) return;
         const day = dayMatch[1];
         if (isProb && day === "3") return;
@@ -1114,68 +1286,19 @@ window.updateSpcOutlooks = async function () {
           const lbl = (
             f.properties.LABEL ||
             f.properties.LABEL2 ||
+            f.properties.label ||
+            f.properties.label2 ||
             ""
           ).toUpperCase();
           if (lbl) newSnapshot[lbl] = window.spcGetIssueValue(f);
         }
-        const prevSnapshot = window.spcIssueSnapshots[s.id];
-        window.spcIssueSnapshots[s.id] = newSnapshot;
-        if (!prevSnapshot) return;
-
-        const newLabels = Object.keys(newSnapshot).filter(
-          (lbl) => !(lbl in prevSnapshot),
+        const oldSnapshot = window.spcIssueSnapshots[s.id] || {};
+        const changed = Object.keys(newSnapshot).some(
+          (k) => newSnapshot[k] !== oldSnapshot[k],
         );
-        const updatedLabels = Object.keys(newSnapshot).filter(
-          (lbl) =>
-            lbl in prevSnapshot && newSnapshot[lbl] !== prevSnapshot[lbl],
-        );
-        if (newLabels.length === 0 && updatedLabels.length === 0) return;
-
-        let topFeature = isCat
-          ? window.getHighestSpcCatFeature(data.features)
-          : data.features.reduce((best, f) => {
-              const val = parseFloat(
-                f.properties.LABEL || f.properties.LABEL2 || 0,
-              );
-              const bestVal = parseFloat(
-                best?.properties.LABEL || best?.properties.LABEL2 || 0,
-              );
-              return val > bestVal ? f : best;
-            }, null);
-        if (!topFeature) return;
-
-        const topLabel = (
-          topFeature.properties.LABEL ||
-          topFeature.properties.LABEL2 ||
-          ""
-        ).toUpperCase();
-        const spcType = isCat ? "cat" : "prob";
-        const outlookKey = `spc-day${day}-${spcType}-${Date.now()}`;
-
-        const syntheticFeature = {
-          type: "Feature",
-          geometry: topFeature.geometry,
-          properties: {
-            id: outlookKey,
-            event: "SPC Outlook",
-            specificEventName: `SPC Day ${day} Outlook`,
-            displayColor: topFeature.properties.fill || "#808080",
-            geometryType: "polygon",
-            spcDay: day,
-            spcType: spcType,
-            spcTopLabel: topLabel,
-            spcTopFill: topFeature.properties.fill || "#808080",
-          },
-        };
-        const score = window.getAlertPriorityScore(syntheticFeature);
-        syntheticFeature.properties.priorityScore = score;
-        window.alertQueue.push({
-          feature: syntheticFeature,
-          type: "spcOutlook",
-          score,
-        });
-        window.alertQueue.sort((a, b) => a.score - b.score);
-        window.displayNextAlert();
+        if (changed) {
+          window.spcIssueSnapshots[s.id] = newSnapshot;
+        }
       } catch (e) {
         console.error("SPC outlook ingestion failed.", e);
       }
@@ -1190,7 +1313,7 @@ window.getSpcSourceHighest = function (sourceId) {
   const data = window.spcSourceCache[sourceId];
   if (!data || !data.features || !data.features.length) return null;
   const features = data.features;
-  const isCat = sourceId.endsWith("-cat");
+  const isCat = sourceId.endsWith("-cat") || sourceId.includes("-fire");
 
   if (isCat) {
     const best = window.getHighestSpcCatFeature(features);
@@ -1198,26 +1321,68 @@ window.getSpcSourceHighest = function (sourceId) {
     const lbl = (
       best.properties.LABEL ||
       best.properties.LABEL2 ||
+      best.properties.label ||
+      best.properties.label2 ||
       ""
     ).toUpperCase();
-    if (!lbl) return null;
-    return { label: lbl, fill: best.properties.fill || "#808080" };
+    if (
+      !lbl ||
+      lbl.includes("PROBABILITY TOO LOW") ||
+      lbl.trim() === "0%" ||
+      lbl.trim() === "0"
+    )
+      return null;
+    return {
+      label: lbl,
+      fill: best.properties.fill || best.properties.FILL || "#808080",
+    };
   } else {
     const best = features.reduce((b, f) => {
-      const v = parseFloat(f.properties.LABEL || f.properties.LABEL2 || 0);
-      const bv = parseFloat(b?.properties.LABEL || b?.properties.LABEL2 || 0);
+      const v = parseFloat(
+        f.properties.LABEL ||
+          f.properties.LABEL2 ||
+          f.properties.label ||
+          f.properties.label2 ||
+          f.properties.dn ||
+          0,
+      );
+      const bv = parseFloat(
+        b?.properties.LABEL ||
+          b?.properties.LABEL2 ||
+          b?.properties.label ||
+          b?.properties.label2 ||
+          b?.properties.dn ||
+          0,
+      );
       return v > bv ? f : b;
     }, null);
     if (!best) return null;
     const val = parseFloat(
-      best.properties.LABEL || best.properties.LABEL2 || 0,
+      best.properties.LABEL ||
+        best.properties.LABEL2 ||
+        best.properties.label ||
+        best.properties.label2 ||
+        best.properties.dn ||
+        0,
     );
     if (!val || val <= 0) return null;
+    const rawLabel = String(
+      best.properties.LABEL ||
+        best.properties.LABEL2 ||
+        best.properties.label ||
+        best.properties.label2 ||
+        best.properties.dn,
+    );
+    if (
+      rawLabel.toUpperCase().includes("PROBABILITY TOO LOW") ||
+      rawLabel.trim() === "0%" ||
+      rawLabel.trim() === "0" ||
+      rawLabel.trim() === "0 %"
+    )
+      return null;
     return {
-      label: window.formatSpcLabel(
-        String(best.properties.LABEL || best.properties.LABEL2),
-      ),
-      fill: best.properties.fill || "#808080",
+      label: window.formatSpcLabel(rawLabel),
+      fill: best.properties.fill || best.properties.FILL || "#808080",
     };
   }
 };
@@ -1230,16 +1395,31 @@ window.updateSpcLayerVisibility = function () {
   });
   if (window.activeSpcDay !== "none") {
     const dayObj = window.layerIds.spc["day" + window.activeSpcDay];
-    if (dayObj && dayObj[window.activeSpcType]) {
-      const layerId = dayObj[window.activeSpcType];
-      if (window.map.getLayer(layerId))
-        window.map.setLayoutProperty(layerId, "visibility", "visible");
-      if (window.map.getLayer(`${layerId}-border`)) {
-        window.map.setLayoutProperty(
-          `${layerId}-border`,
-          "visibility",
-          "visible",
-        );
+    if (dayObj) {
+      if (dayObj[window.activeSpcType]) {
+        const layerId = dayObj[window.activeSpcType];
+        if (window.map.getLayer(layerId))
+          window.map.setLayoutProperty(layerId, "visibility", "visible");
+        if (window.map.getLayer(`${layerId}-border`)) {
+          window.map.setLayoutProperty(
+            `${layerId}-border`,
+            "visibility",
+            "visible",
+          );
+        }
+      }
+      const cigKey = window.activeSpcType + "-cig";
+      if (dayObj[cigKey]) {
+        const cigLayerId = dayObj[cigKey];
+        if (window.map.getLayer(cigLayerId))
+          window.map.setLayoutProperty(cigLayerId, "visibility", "visible");
+        if (window.map.getLayer(`${cigLayerId}-border`)) {
+          window.map.setLayoutProperty(
+            `${cigLayerId}-border`,
+            "visibility",
+            "visible",
+          );
+        }
       }
     }
   }

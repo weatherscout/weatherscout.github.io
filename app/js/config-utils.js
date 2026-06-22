@@ -34,23 +34,67 @@ window.layerIds = {
     day1: {
       cat: "spc-day1-cat",
       torn: "spc-day1-torn",
+      "torn-cig": "spc-day1-torn-cig",
       hail: "spc-day1-hail",
+      "hail-cig": "spc-day1-hail-cig",
       wind: "spc-day1-wind",
+      "wind-cig": "spc-day1-wind-cig",
+      "fire-cat": "spc-day1-fire-cat",
+      "fire-dryt": "spc-day1-fire-dryt",
     },
     day2: {
       cat: "spc-day2-cat",
       torn: "spc-day2-torn",
+      "torn-cig": "spc-day2-torn-cig",
       hail: "spc-day2-hail",
+      "hail-cig": "spc-day2-hail-cig",
       wind: "spc-day2-wind",
+      "wind-cig": "spc-day2-wind-cig",
+      "fire-cat": "spc-day2-fire-cat",
+      "fire-dryt": "spc-day2-fire-dryt",
     },
-    day3: { cat: "spc-day3-cat", prob: "spc-day3-prob" },
-    day4: { prob: "spc-day4-prob" },
-    day5: { prob: "spc-day5-prob" },
-    day6: { prob: "spc-day6-prob" },
-    day7: { prob: "spc-day7-prob" },
-    day8: { prob: "spc-day8-prob" },
+    day3: {
+      cat: "spc-day3-cat",
+      prob: "spc-day3-prob",
+      "prob-cig": "spc-day3-prob-cig",
+      "fire-cat": "spc-day3-fire-cat",
+      "fire-dryt": "spc-day3-fire-dryt",
+    },
+    day4: {
+      prob: "spc-day4-prob",
+      "fire-cat": "spc-day4-fire-cat",
+      "fire-dryt": "spc-day4-fire-dryt",
+    },
+    day5: {
+      prob: "spc-day5-prob",
+      "fire-cat": "spc-day5-fire-cat",
+      "fire-dryt": "spc-day5-fire-dryt",
+    },
+    day6: {
+      prob: "spc-day6-prob",
+      "fire-cat": "spc-day6-fire-cat",
+      "fire-dryt": "spc-day6-fire-dryt",
+    },
+    day7: {
+      prob: "spc-day7-prob",
+      "fire-cat": "spc-day7-fire-cat",
+      "fire-dryt": "spc-day7-fire-dryt",
+    },
+    day8: {
+      prob: "spc-day8-prob",
+      "fire-cat": "spc-day8-fire-cat",
+      "fire-dryt": "spc-day8-fire-dryt",
+    },
   },
 };
+
+window.baseSpcLayerIds = Object.values(window.layerIds.spc).flatMap((day) =>
+  Object.values(day),
+);
+window.allSpcLayerIds = window.baseSpcLayerIds.flatMap((id) => [
+  id,
+  `${id}-border`,
+]);
 
 window.baseSpcLayerIds = Object.values(window.layerIds.spc).flatMap((day) =>
   Object.values(day),
@@ -191,6 +235,8 @@ window.typeLabels = {
   wind: "Wind",
   hail: "Hail",
   prob: "Prob.",
+  "fire-cat": "Categorical",
+  "fire-dryt": "Dry Thunderstorms",
 };
 
 window.AUDIO_OPTIONS = [
@@ -468,17 +514,44 @@ window.formatThreatValue = function (value) {
 
 window.formatSpcLabel = function (val) {
   if (!val) return "N/A";
-  if (!isNaN(val))
-    return parseFloat(val) < 1 ? parseFloat(val) * 100 + "%" : val + "%";
+  let str = String(val).trim();
+  if (
+    str.toUpperCase().includes("PROBABILITY TOO LOW") ||
+    str === "0%" ||
+    str === "0" ||
+    str === "0 %"
+  ) {
+    return "No Risk";
+  }
+  const cleanStr = str.replace("%", "").trim();
+  if (!isNaN(cleanStr) && cleanStr !== "") {
+    const num = parseFloat(cleanStr);
+    if (num <= 0) return "No Risk";
+    if (num <= 1.0) {
+      return Math.round(num * 100) + "%";
+    }
+    return Math.round(num) + "%";
+  }
   const m = {
     TSTM: "General Thunderstorm",
+    THUNDERSTORM: "General Thunderstorm",
     MRGL: "Marginal",
+    MARGINAL: "Marginal",
     SLGT: "Slight",
+    SLIGHT: "Slight",
     ENH: "Enhanced",
+    ENHANCED: "Enhanced",
     MDT: "Moderate",
+    MODERATE: "Moderate",
     HIGH: "High",
+    ELEV: "Elevated",
+    ELEVATED: "Elevated",
+    CRIT: "Critical",
+    CRITICAL: "Critical",
+    EXTM: "Extremely Critical",
+    "EXTREMELY CRITICAL": "Extremely Critical",
   };
-  return m[val.toUpperCase()] || val;
+  return m[str.toUpperCase()] || str;
 };
 
 window.minsToStoredTz = function (totalMins) {
