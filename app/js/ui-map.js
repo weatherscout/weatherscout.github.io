@@ -304,7 +304,11 @@ window.showAlertMapPopup = function (
           finalRiskPhrase = "elevated";
         else if (rawLabel.includes("DRY") || rawLabel.includes("TSTM"))
           finalRiskPhrase = "dry thunderstorm";
-        else finalRiskPhrase = rawLabel.toLowerCase();
+        else {
+          finalRiskPhrase = window.formatSpcLabel
+            ? window.formatSpcLabel(rawLabel).toLowerCase()
+            : rawLabel.toLowerCase();
+        }
 
         if (finalRiskPhrase.includes("fire weather")) {
           targetMetaHtml = `There is ${getArticle(finalRiskPhrase)} ${finalRiskPhrase} for this location.`;
