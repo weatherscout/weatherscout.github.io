@@ -1,3 +1,4 @@
+window.stormReportsEnabled = false;
 window.debugModeEnabled = false;
 window.appTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 window.appDstMode = "auto";
@@ -87,14 +88,6 @@ window.layerIds = {
     },
   },
 };
-
-window.baseSpcLayerIds = Object.values(window.layerIds.spc).flatMap((day) =>
-  Object.values(day),
-);
-window.allSpcLayerIds = window.baseSpcLayerIds.flatMap((id) => [
-  id,
-  `${id}-border`,
-]);
 
 window.baseSpcLayerIds = Object.values(window.layerIds.spc).flatMap((day) =>
   Object.values(day),

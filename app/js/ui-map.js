@@ -1278,6 +1278,14 @@ window.map.on("load", async () => {
   window.isInitialLoad = false;
   if (window.startAlertIntervals) window.startAlertIntervals();
 
+  if (window.stormReportsEnabled && window.fetchAndRenderStormReports) {
+    window.fetchAndRenderStormReports();
+    window.stormReportsInterval = setInterval(
+      window.fetchAndRenderStormReports,
+      60000,
+    );
+  }
+
   if (window.updateRadar) setInterval(window.updateRadar, 90000);
   if (window.updateSingleSiteRadar)
     setInterval(window.updateSingleSiteRadar, 60000);

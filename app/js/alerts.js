@@ -19,6 +19,8 @@ window.spcIssueSnapshots = {};
 window.nwsUpdateInterval = null;
 window.placefileUpdateInterval = null;
 window.motionVectorsEnabled = true;
+window.stormReportsMarkers = [];
+window.stormReportsInterval = null;
 
 window.updateMotionVectorsVisibility = function () {
   if (!window.map || !window.map.getLayer("alerts-arrows-layer")) return;
@@ -1202,6 +1204,8 @@ window.spcGetIssueValue = function (feature) {
     feature.properties.ISSUE_ISO ||
     feature.properties.issue ||
     feature.properties.issue_iso ||
+    feature.properties.idp_filedate ||
+    feature.properties.idp_source ||
     ""
   ).toString();
 };
@@ -1243,6 +1247,26 @@ window.normalizeFireProperties = function (props, sourceId) {
   }
 };
 
+window.normalizeConvectiveProperties = function (props, sourceId) {
+  if (props.dn !== undefined && !props.LABEL && !props.label) {
+    const dnVal = parseFloat(props.dn);
+    props.LABEL = dnVal + "%";
+    if (dnVal === 15) {
+      props.fill = "#ffe600";
+      props.stroke = "#e6c800";
+    } else if (dnVal === 30) {
+      props.fill = "#e60000";
+      props.stroke = "#b30000";
+    } else if (dnVal === 45 || dnVal === 50) {
+      props.fill = "#ff00ff";
+      props.stroke = "#cc00cc";
+    } else {
+      props.fill = "#808080";
+      props.stroke = "#666666";
+    }
+  }
+};
+
 window.updateSpcOutlooks = async function () {
   for (let d = 1; d <= 8; d++) {
     window.fetchSpcOutlookText(d, true);
@@ -1259,10 +1283,14 @@ window.updateSpcOutlooks = async function () {
         const res = await fetch(fetchUrl);
         const data = await res.json();
 
-        if (s.id.includes("-fire") && data.features) {
+        if (data.features) {
           data.features.forEach((f) => {
             if (f.properties) {
-              window.normalizeFireProperties(f.properties, s.id);
+              if (s.id.includes("-fire")) {
+                window.normalizeFireProperties(f.properties, s.id);
+              } else {
+                window.normalizeConvectiveProperties(f.properties, s.id);
+              }
             }
           });
         }
@@ -1518,5 +1546,128 @@ window.toggleAllAlerts = async function () {
   window.updateGreenStatusIndicators();
   if (window.renderAlertsSidebar) {
     window.renderAlertsSidebar();
+  }
+};
+
+window.fetchAndRenderStormReports = async function () {
+  if (!window.stormReportsEnabled || !window.map) {
+    window.clearStormReports();
+    return;
+  }
+  const markers = [];
+  const lsrPromise = (async () => {
+    try {
+      const res = await fetch(
+        "https://mesonet.agron.iastate.edu/geojson/lsr.geojson?hours=3",
+      );
+      if (!res.ok) return;
+      const data = await res.json();
+      (data.features || []).forEach((f) => {
+        if (!f.properties || !f.geometry || !f.geometry.coordinates) return;
+        const type = (f.properties.type || f.properties.TYPE || "")
+          .toString()
+          .toUpperCase();
+        if (!["T", "H", "G", "D"].includes(type)) return;
+        let iconName = "";
+        if (type === "T") {
+          iconName = "tornado";
+        } else if (type === "H") {
+          iconName = "weather_hail";
+        } else if (type === "G" || type === "D") {
+          iconName = "air";
+        }
+        if (iconName) {
+          markers.push({ coords: f.geometry.coordinates, iconName });
+        }
+      });
+    } catch (e) {}
+  })();
+  const snPromise = (async () => {
+    try {
+      const res = await fetch(
+        "https://www.spotternetwork.org/feeds/reports.txt",
+      );
+      if (!res.ok) return;
+      const text = await res.text();
+      const lines = text.split("\n");
+      lines.forEach((line) => {
+        if (line.trim().toUpperCase().startsWith("ICON:")) {
+          const cleanParts = line.replace(/^\s*Icon:\s*/i, "").split(",");
+          if (cleanParts.length >= 5) {
+            const lat = parseFloat(cleanParts[0]);
+            const lon = parseFloat(cleanParts[1]);
+            const type = parseInt(cleanParts[4]);
+            if (isNaN(lat) || isNaN(lon)) return;
+            let iconName = "";
+            if (type === 1) {
+              iconName = "tornado";
+            } else if (type === 2) {
+              iconName = "keyboard_double_arrow_down";
+            } else if (type === 3) {
+              iconName = "keyboard_arrow_down";
+            } else if (type === 4) {
+              iconName = "weather_hail";
+            }
+            if (iconName) {
+              markers.push({ coords: [lon, lat], iconName });
+            }
+          }
+        }
+      });
+    } catch (e) {}
+  })();
+  await Promise.allSettled([lsrPromise, snPromise]);
+  window.clearStormReports();
+  if (!window.stormReportsEnabled) return;
+  markers.forEach((m) => {
+    const el = document.createElement("div");
+    el.className = "storm-report-marker";
+    el.style.pointerEvents = "none";
+    el.style.display = "flex";
+    el.style.alignItems = "center";
+    el.style.justifyContent = "center";
+    el.style.color = "#ffffff";
+    el.style.textShadow = "0 0 3px #000, 0 0 5px #000";
+    const icon = document.createElement("i");
+    icon.className = "material-symbols-rounded";
+    icon.style.fontSize = "20px";
+    icon.style.pointerEvents = "none";
+    icon.textContent = m.iconName;
+    el.appendChild(icon);
+    const marker = new maplibregl.Marker({
+      element: el,
+      anchor: "center",
+    })
+      .setLngLat(m.coords)
+      .addTo(window.map);
+    window.stormReportsMarkers.push(marker);
+  });
+};
+
+window.clearStormReports = function () {
+  if (window.stormReportsMarkers) {
+    window.stormReportsMarkers.forEach((m) => m.remove());
+  }
+  window.stormReportsMarkers = [];
+};
+
+window.toggleStormReports = function () {
+  window.stormReportsEnabled = !window.stormReportsEnabled;
+  if (window.saveCurrentState) window.saveCurrentState();
+  if (window.stormReportsEnabled) {
+    window.showToast("Storm Reports: On");
+    window.fetchAndRenderStormReports();
+    if (window.stormReportsInterval) clearInterval(window.stormReportsInterval);
+    window.stormReportsInterval = setInterval(
+      window.fetchAndRenderStormReports,
+      60000,
+    );
+  } else {
+    window.showToast("Storm Reports: Off");
+    window.clearStormReports();
+    if (window.stormReportsInterval) {
+      clearInterval(window.stormReportsInterval);
+      window.stormReportsInterval = null;
+    }
   }
 };

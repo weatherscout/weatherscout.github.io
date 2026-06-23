@@ -341,6 +341,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   window.saveCurrentState = function () {
     localStorage.setItem("motionVectorsEnabled", window.motionVectorsEnabled);
+    localStorage.setItem("stormReportsEnabled", window.stormReportsEnabled);
     const radarToggle = document.getElementById("radar-toggle");
     const sitesToggle = document.getElementById("radar-sites-toggle");
     if (window.map && localStorage.getItem("saveSettings") === "true") {
@@ -443,6 +444,9 @@ document.addEventListener("DOMContentLoaded", () => {
       window.mesoDiscussionsEnabled = false;
     if (localStorage.getItem("fasterUpdates") === "true")
       window.fasterUpdatesEnabled = true;
+
+    if (localStorage.getItem("stormReportsEnabled") === "true")
+      window.stormReportsEnabled = true;
 
     const savedHidden = localStorage.getItem("hiddenAlertTypes");
     if (savedHidden) {
@@ -613,6 +617,12 @@ document.addEventListener("DOMContentLoaded", () => {
           break;
         case "xfu":
           window.fasterUpdatesEnabled = false;
+          break;
+        case "srp":
+          window.stormReportsEnabled = true;
+          break;
+        case "xsr":
+          window.stormReportsEnabled = false;
           break;
       }
     });

@@ -22,6 +22,10 @@ document.addEventListener("DOMContentLoaded", () => {
   const motionVectorsToggleUI = document.getElementById(
     "motion-vectors-settings-toggle-ui",
   );
+  const stormReportsBtn = document.getElementById("settings-storm-reports-btn");
+  const stormReportsToggleUI = document.getElementById(
+    "settings-storm-reports-toggle-ui",
+  );
 
   if (motionVectorsToggleUI) {
     motionVectorsToggleUI.classList.toggle(
@@ -45,6 +49,23 @@ document.addEventListener("DOMContentLoaded", () => {
       );
     });
   }
+
+  if (stormReportsToggleUI) {
+    stormReportsToggleUI.classList.toggle("active", window.stormReportsEnabled);
+  }
+
+  if (stormReportsBtn) {
+    stormReportsBtn.addEventListener("click", () => {
+      if (window.toggleStormReports) window.toggleStormReports();
+      if (stormReportsToggleUI) {
+        stormReportsToggleUI.classList.toggle(
+          "active",
+          window.stormReportsEnabled,
+        );
+      }
+    });
+  }
+
   const mesoDiscussionsBtn = document.getElementById(
     "meso-discussions-settings-btn",
   );

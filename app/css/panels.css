@@ -1391,3 +1391,19 @@
   border-color: #ffffff80 !important;
   color: white !important;
 }
+
+.storm-report-marker {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  pointer-events: none;
+  background: transparent;
+  text-shadow:
+    0 0 3px black,
+    0 0 5px black;
+}
+
+.storm-report-marker i {
+  font-size: 20px;
+}
