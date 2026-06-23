@@ -27,7 +27,9 @@ window.mosaicVisible = function () {
 window.isMosaicVisible = function () {
   const toggle = document.getElementById("radar-toggle");
   const mosaicOn = toggle && toggle.checked;
-  const isSingleActive = !!window.map.getLayer(window.layerIds.singleSiteRadar);
+  const isSingleActive = !!(
+    window.activeSiteIdForData && window.activeRadarProductCode
+  );
   return !!(
     mosaicOn &&
     !isSingleActive &&
@@ -55,18 +57,21 @@ window.activeSingleSiteSourceId = null;
 window.updateMosaicVisibility = function () {
   const radarToggle = document.getElementById("radar-toggle");
   const mosaicOn = radarToggle ? radarToggle.checked : true;
-  const siteActive = window.map.getLayer(
-    window.activeSingleSiteLayerId || window.layerIds.singleSiteRadar,
+  const siteActive = !!(
+    window.activeSiteIdForData && window.activeRadarProductCode
   );
   const activeLayer = window.activeMosaicLayerId || window.layerIds.radar;
+  const layersToControl = new Set([window.layerIds.radar, activeLayer]);
 
-  if (window.map.getLayer(activeLayer)) {
-    window.map.setLayoutProperty(
-      activeLayer,
-      "visibility",
-      siteActive ? "none" : mosaicOn ? "visible" : "none",
-    );
-  }
+  layersToControl.forEach((layerId) => {
+    if (window.map.getLayer(layerId)) {
+      window.map.setLayoutProperty(
+        layerId,
+        "visibility",
+        siteActive ? "none" : mosaicOn ? "visible" : "none",
+      );
+    }
+  });
 };
 
 window.updateShowSitesFilter = function () {
@@ -267,6 +272,17 @@ window.updateRadar = function () {
       if (fallbackTimeout) clearTimeout(fallbackTimeout);
 
       if (window.isRadarLoopActive && window.isRadarLoopActive()) {
+        if (window.map.getLayer(nextLayerId))
+          window.map.removeLayer(nextLayerId);
+        if (window.map.getSource(nextSourceId))
+          window.map.removeSource(nextSourceId);
+        return;
+      }
+
+      const siteActive = !!(
+        window.activeSiteIdForData && window.activeRadarProductCode
+      );
+      if (siteActive) {
         if (window.map.getLayer(nextLayerId))
           window.map.removeLayer(nextLayerId);
         if (window.map.getSource(nextSourceId))
@@ -573,14 +589,52 @@ window.checkRadarStatus = async function (prefetchedData) {
       loopLayers.push({ sourceId, layerId });
     });
 
-    if (isMosaic && window.map.getLayer(window.layerIds.radar)) {
-      window.map.setLayoutProperty(window.layerIds.radar, "visibility", "none");
+    if (isMosaic) {
+      const layersToHide = new Set([
+        window.layerIds.radar,
+        window.activeMosaicLayerId,
+      ]);
+      layersToHide.forEach((l) => {
+        if (l && window.map.getLayer(l)) {
+          window.map.setLayoutProperty(l, "visibility", "none");
+        }
+      });
     }
     if (isSingle && window.map.getLayer(window.layerIds.singleSiteRadar)) {
       window.map.setLayoutProperty(
         window.layerIds.singleSiteRadar,
         "visibility",
         "none",
+      );
+    }
+  }
+
+  function cleanupLoopLayers() {
+    loopLayers.forEach((item) => {
+      if (window.map.getLayer(item.layerId))
+        window.map.removeLayer(item.layerId);
+      if (window.map.getSource(item.sourceId))
+        window.map.removeSource(item.sourceId);
+    });
+    loopLayers = [];
+
+    const activeLayer = window.activeMosaicLayerId || window.layerIds.radar;
+    const layersToRestore = new Set([window.layerIds.radar, activeLayer]);
+    layersToRestore.forEach((l) => {
+      if (l && window.map.getLayer(l)) {
+        window.map.setLayoutProperty(
+          l,
+          "visibility",
+          window.isMosaicVisible() ? "visible" : "none",
+        );
+      }
+    });
+
+    if (window.map.getLayer(window.layerIds.singleSiteRadar)) {
+      window.map.setLayoutProperty(
+        window.layerIds.singleSiteRadar,
+        "visibility",
+        "visible",
       );
     }
   }
