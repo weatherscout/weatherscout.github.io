@@ -29,7 +29,7 @@ window.playAlertSound = function (url, title = "Weather Alert") {
   source.start(0);
   if ("mediaSession" in navigator) {
     navigator.mediaSession.metadata = new MediaMetadata({
-      title: title,
+      title,
       artist: "WeatherScout",
       artwork: [
         {
@@ -66,6 +66,17 @@ window.showToast = function (message) {
       toast.remove();
     }, 300);
   }, 1200);
+};
+
+window.resetAppData = function (toastMessage = "App Reset") {
+  localStorage.clear();
+  document.cookie.split(";").forEach((c) => {
+    document.cookie = c
+      .replace(/^ +/, "")
+      .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+  });
+  if (toastMessage) window.showToast(toastMessage);
+  setTimeout(() => location.reload(), toastMessage ? 600 : 0);
 };
 
 window.updateGreenStatusIndicators = function () {
@@ -108,12 +119,11 @@ window.updateMyLocation = function () {
       if (!window.myLocationMarker) {
         const el = document.createElement("div");
         el.className = "my-location-dot";
-
         const zoomCycle = [13, 11, 9];
 
         el.addEventListener("click", (e) => {
           e.stopPropagation();
-          let targetZoom = zoomCycle[window.myLocationZoomIndex];
+          const targetZoom = zoomCycle[window.myLocationZoomIndex];
           window.myLocationZoomIndex =
             (window.myLocationZoomIndex + 1) % zoomCycle.length;
 
@@ -133,7 +143,7 @@ window.updateMyLocation = function () {
         window.myLocationMarker.setLngLat([longitude, latitude]);
       }
     },
-    (err) => {
+    () => {
       window.showToast("Location Error");
       window.toggleMyLocation(false);
     },
@@ -187,7 +197,7 @@ window.startAlertIntervals = function () {
 window.handleOutlookShortcut = function (day) {
   const types = window.outlookTypes[day];
   if (!types) return;
-  let next =
+  const next =
     window.activeSpcDay === day
       ? types[(types.indexOf(window.activeSpcType) + 1) % types.length]
       : types[0];
@@ -210,7 +220,7 @@ document.addEventListener("keydown", (e) => {
       if (window.toggleRadarLoop) window.toggleRadarLoop();
     } else if (e.key === "," || e.key === ".") {
       e.preventDefault();
-      if (window.stepFrame) window.stepFrame(e.key === "," ? -1 : +1);
+      if (window.stepFrame) window.stepFrame(e.key === "," ? -1 : 1);
     }
   }
 
@@ -221,8 +231,7 @@ document.addEventListener("keydown", (e) => {
   }
   if (e.code === "KeyU") {
     if (window.debugModeEnabled) {
-      const dbgIn = document.getElementById("debug-file-input");
-      if (dbgIn) dbgIn.click();
+      document.getElementById("debug-file-input")?.click();
       window.showToast("Upload Debug File");
     }
     return;
@@ -232,20 +241,7 @@ document.addEventListener("keydown", (e) => {
     return;
   }
   if (e.code === "Backspace") {
-    localStorage.clear();
-    document.cookie
-      .split(";")
-      .forEach(
-        (c) =>
-          (document.cookie = c
-            .replace(/^ +/, "")
-            .replace(
-              /=.*/,
-              "=;expires=" + new Date().toUTCString() + ";path=/",
-            )),
-      );
-    window.showToast("App Reset");
-    setTimeout(() => location.reload(), 600);
+    window.resetAppData("App Reset");
     return;
   }
   if (e.code === "KeyM") {
@@ -279,18 +275,20 @@ document.addEventListener("keydown", (e) => {
     if (toggleUI) toggleUI.classList.toggle("active");
     if (window.zoneAlertsEnabled && window.alertsEnabled) {
       window.showToast("Zone Alerts: On");
-      if (window.map && window.map.getSource("alerts-poly-watch"))
+      if (window.map && window.map.getSource("alerts-poly-watch")) {
         window.map
           .getSource("alerts-poly-watch")
           .setData({ type: "FeatureCollection", features: [] });
+      }
       window.globalPolyWatchAlerts = [];
       if (window.refreshNwsAlerts) window.refreshNwsAlerts(true);
     } else if (!window.zoneAlertsEnabled) {
       window.showToast("Zone Alerts: Off");
-      if (window.map && window.map.getSource("alerts-zone"))
+      if (window.map && window.map.getSource("alerts-zone")) {
         window.map
           .getSource("alerts-zone")
           .setData({ type: "FeatureCollection", features: [] });
+      }
       window.globalZoneAlerts = [];
       if (window.alertsEnabled) {
         if (window.refreshNwsAlerts) window.refreshNwsAlerts(true);
@@ -314,16 +312,22 @@ document.addEventListener("keydown", (e) => {
     if (s) {
       let p = null;
       if (e.code === "KeyR") {
-        if (s.properties.stationType === "TDWR") {
-          p = window.activeRadarProductCode === "bref1" ? "brefl" : "bref1";
-        } else {
-          p = "sr_bref";
-        }
+        p =
+          s.properties.stationType === "TDWR"
+            ? window.activeRadarProductCode === "bref1"
+              ? "brefl"
+              : "bref1"
+            : "sr_bref";
       } else if (e.code === "KeyV") {
         p = s.properties.stationType === "TDWR" ? "bvel" : "sr_bvel";
       }
-      if (p && p !== window.activeRadarProductCode && window.toggleRadarProduct)
+      if (
+        p &&
+        p !== window.activeRadarProductCode &&
+        window.toggleRadarProduct
+      ) {
         window.toggleRadarProduct(window.activeSiteIdForData, p);
+      }
     }
   }
 });
@@ -342,86 +346,67 @@ document.addEventListener("DOMContentLoaded", () => {
   window.saveCurrentState = function () {
     localStorage.setItem("motionVectorsEnabled", window.motionVectorsEnabled);
     localStorage.setItem("stormReportsEnabled", window.stormReportsEnabled);
+    if (!window.map || localStorage.getItem("saveSettings") !== "true") return;
+
     const radarToggle = document.getElementById("radar-toggle");
     const sitesToggle = document.getElementById("radar-sites-toggle");
-    if (window.map && localStorage.getItem("saveSettings") === "true") {
-      if (localStorage.getItem("motionVectorsEnabled") === "false") {
-        window.motionVectorsEnabled = false;
-      } else {
-        window.motionVectorsEnabled = true;
-      }
-      localStorage.setItem(
-        "radarVisible",
-        radarToggle ? radarToggle.checked : true,
-      );
-      localStorage.setItem(
-        "sitesVisible",
-        sitesToggle ? sitesToggle.checked : true,
-      );
-      localStorage.setItem("alertsVisible", window.alertsEnabled);
-      localStorage.setItem("activeSpcDay", window.activeSpcDay);
-      localStorage.setItem("activeSpcType", window.activeSpcType);
-      localStorage.setItem("activeSiteId", window.activeSiteIdForData || "");
-      localStorage.setItem(
-        "activeProduct",
-        window.activeRadarProductCode || "",
-      );
-      localStorage.setItem("siteSelection", window.radarSiteSelectionMode);
-      localStorage.setItem("showSites", window.showSitesMode);
-      localStorage.setItem("selectOfflineSites", window.selectOfflineSites);
-      localStorage.setItem("showOfflineSites", window.showOfflineSites);
-      localStorage.setItem("lockNorth", window.lockNorth);
-      localStorage.setItem("lockTilt", window.lockTilt);
-      localStorage.setItem("flyToRadar", window.flyToRadarSetting);
-      localStorage.setItem("zoneAlertsVisible", window.zoneAlertsEnabled);
-      localStorage.setItem(
-        "mesoDiscussionsVisible",
-        window.mesoDiscussionsEnabled,
-      );
-      localStorage.setItem("fasterUpdates", window.fasterUpdatesEnabled);
-      localStorage.setItem(
-        "hiddenAlertTypes",
-        JSON.stringify([...window.hiddenAlertTypes]),
-      );
-      localStorage.setItem(
-        "alertSoundsMap",
-        JSON.stringify(window.alertSoundsMap),
-      );
-      localStorage.setItem("debugMode", window.debugModeEnabled);
-      localStorage.setItem("lastZoom", window.map.getZoom());
-      localStorage.setItem(
-        "lastCenter",
-        JSON.stringify(window.map.getCenter()),
-      );
-      localStorage.setItem("appTimeZone", window.appTimeZone);
-      localStorage.setItem("appDstMode", window.appDstMode);
-      localStorage.setItem("appHourMode", window.appHourMode);
-      localStorage.setItem("myLocationEnabled", window.myLocationEnabled);
-      localStorage.setItem(
-        "searchLocationsEnabled",
-        window.searchLocationsEnabled,
-      );
-      localStorage.setItem("searchRadarsMax", window.searchRadarsMax);
-      localStorage.setItem("searchAlertsMax", window.searchAlertsMax);
-      localStorage.setItem("searchOutlooksMax", window.searchOutlooksMax);
-      localStorage.setItem("searchSettingsMax", window.searchSettingsMax);
-    }
+    const entries = {
+      radarVisible: radarToggle ? radarToggle.checked : true,
+      sitesVisible: sitesToggle ? sitesToggle.checked : true,
+      alertsVisible: window.alertsEnabled,
+      activeSpcDay: window.activeSpcDay,
+      activeSpcType: window.activeSpcType,
+      activeSiteId: window.activeSiteIdForData || "",
+      activeProduct: window.activeRadarProductCode || "",
+      siteSelection: window.radarSiteSelectionMode,
+      showSites: window.showSitesMode,
+      selectOfflineSites: window.selectOfflineSites,
+      showOfflineSites: window.showOfflineSites,
+      lockNorth: window.lockNorth,
+      lockTilt: window.lockTilt,
+      flyToRadar: window.flyToRadarSetting,
+      zoneAlertsVisible: window.zoneAlertsEnabled,
+      mesoDiscussionsVisible: window.mesoDiscussionsEnabled,
+      fasterUpdates: window.fasterUpdatesEnabled,
+      hiddenAlertTypes: JSON.stringify([...window.hiddenAlertTypes]),
+      alertSoundsMap: JSON.stringify(window.alertSoundsMap),
+      debugMode: window.debugModeEnabled,
+      lastZoom: window.map.getZoom(),
+      lastCenter: JSON.stringify(window.map.getCenter()),
+      appTimeZone: window.appTimeZone,
+      appDstMode: window.appDstMode,
+      appHourMode: window.appHourMode,
+      myLocationEnabled: window.myLocationEnabled,
+      searchLocationsEnabled: window.searchLocationsEnabled,
+      searchRadarsMax: window.searchRadarsMax,
+      searchAlertsMax: window.searchAlertsMax,
+      searchOutlooksMax: window.searchOutlooksMax,
+      searchSettingsMax: window.searchSettingsMax,
+    };
+    Object.entries(entries).forEach(([k, v]) => localStorage.setItem(k, v));
   };
 
   window.saveSettingsEnabled = localStorage.getItem("saveSettings") === "true";
   if (window.saveSettingsEnabled) {
-    window.debugModeEnabled = localStorage.getItem("debugMode") === "true";
-    if (localStorage.getItem("radarVisible") === "false") {
+    const getBool = (key, defaultVal) => {
+      const v = localStorage.getItem(key);
+      return v === null ? defaultVal : v === "true";
+    };
+    const getInt = (key, defaultVal) => {
+      const v = localStorage.getItem(key);
+      return v === null ? defaultVal : parseInt(v, 10);
+    };
+
+    window.debugModeEnabled = getBool("debugMode", false);
+    if (!getBool("radarVisible", true)) {
       const radarToggle = document.getElementById("radar-toggle");
       if (radarToggle) radarToggle.checked = false;
     }
-    if (localStorage.getItem("sitesVisible") === "false") {
+    if (!getBool("sitesVisible", true)) {
       const sitesToggle = document.getElementById("radar-sites-toggle");
       if (sitesToggle) sitesToggle.checked = false;
     }
-    if (localStorage.getItem("alertsVisible") === "false")
-      window.alertsEnabled = false;
-
+    window.alertsEnabled = getBool("alertsVisible", true);
     window.activeSpcDay = localStorage.getItem("activeSpcDay") || "none";
     window.activeSpcType = localStorage.getItem("activeSpcType") || "none";
     window.activeSiteIdForData = localStorage.getItem("activeSiteId") || null;
@@ -430,56 +415,38 @@ document.addEventListener("DOMContentLoaded", () => {
     window.radarSiteSelectionMode =
       localStorage.getItem("siteSelection") || "WSR-88D";
     window.showSitesMode = localStorage.getItem("showSites") || "Both";
-    window.selectOfflineSites =
-      localStorage.getItem("selectOfflineSites") === "true";
-    window.showOfflineSites =
-      localStorage.getItem("showOfflineSites") !== "false";
-    window.lockNorth = localStorage.getItem("lockNorth") !== "false";
-    window.lockTilt = localStorage.getItem("lockTilt") !== "false";
-    window.flyToRadarSetting = localStorage.getItem("flyToRadar") === "true";
+    window.selectOfflineSites = getBool("selectOfflineSites", false);
+    window.showOfflineSites = getBool("showOfflineSites", true);
+    window.lockNorth = getBool("lockNorth", true);
+    window.lockTilt = getBool("lockTilt", true);
+    window.flyToRadarSetting = getBool("flyToRadar", false);
+    window.zoneAlertsEnabled = getBool("zoneAlertsVisible", true);
+    window.mesoDiscussionsEnabled = getBool("mesoDiscussionsVisible", true);
+    window.fasterUpdatesEnabled = getBool("fasterUpdates", false);
+    window.stormReportsEnabled = getBool("stormReportsEnabled", false);
+    window.motionVectorsEnabled = getBool("motionVectorsEnabled", true);
 
-    if (localStorage.getItem("zoneAlertsVisible") === "false")
-      window.zoneAlertsEnabled = false;
-    if (localStorage.getItem("mesoDiscussionsVisible") === "false")
-      window.mesoDiscussionsEnabled = false;
-    if (localStorage.getItem("fasterUpdates") === "true")
-      window.fasterUpdatesEnabled = true;
-
-    if (localStorage.getItem("stormReportsEnabled") === "true")
-      window.stormReportsEnabled = true;
-
-    const savedHidden = localStorage.getItem("hiddenAlertTypes");
-    if (savedHidden) {
-      try {
+    try {
+      const savedHidden = localStorage.getItem("hiddenAlertTypes");
+      if (savedHidden)
         window.hiddenAlertTypes = new Set(JSON.parse(savedHidden));
-      } catch (e) {}
-    }
-    const savedSounds = localStorage.getItem("alertSoundsMap");
-    if (savedSounds) {
-      try {
-        window.alertSoundsMap = JSON.parse(savedSounds);
-      } catch (e) {}
-    }
+    } catch (e) {}
+    try {
+      const savedSounds = localStorage.getItem("alertSoundsMap");
+      if (savedSounds) window.alertSoundsMap = JSON.parse(savedSounds);
+    } catch (e) {}
 
-    const savedTz = localStorage.getItem("appTimeZone");
-    if (savedTz) window.appTimeZone = savedTz;
-    const savedDst = localStorage.getItem("appDstMode");
-    if (savedDst) window.appDstMode = savedDst;
-    const savedHour = localStorage.getItem("appHourMode");
-    if (savedHour) window.appHourMode = savedHour;
-    if (localStorage.getItem("myLocationEnabled") === "true")
-      window.myLocationEnabled = true;
-
-    if (localStorage.getItem("searchLocationsEnabled") === "false")
-      window.searchLocationsEnabled = false;
-    const sRadars = localStorage.getItem("searchRadarsMax");
-    if (sRadars !== null) window.searchRadarsMax = parseInt(sRadars, 10);
-    const sAlerts = localStorage.getItem("searchAlertsMax");
-    if (sAlerts !== null) window.searchAlertsMax = parseInt(sAlerts, 10);
-    const sOutlooks = localStorage.getItem("searchOutlooksMax");
-    if (sOutlooks !== null) window.searchOutlooksMax = parseInt(sOutlooks, 10);
-    const sSettings = localStorage.getItem("searchSettingsMax");
-    if (sSettings !== null) window.searchSettingsMax = parseInt(sSettings, 10);
+    window.appTimeZone =
+      localStorage.getItem("appTimeZone") || window.appTimeZone;
+    window.appDstMode = localStorage.getItem("appDstMode") || window.appDstMode;
+    window.appHourMode =
+      localStorage.getItem("appHourMode") || window.appHourMode;
+    window.myLocationEnabled = getBool("myLocationEnabled", false);
+    window.searchLocationsEnabled = getBool("searchLocationsEnabled", true);
+    window.searchRadarsMax = getInt("searchRadarsMax", 3);
+    window.searchAlertsMax = getInt("searchAlertsMax", 3);
+    window.searchOutlooksMax = getInt("searchOutlooksMax", 3);
+    window.searchSettingsMax = getInt("searchSettingsMax", 3);
   } else {
     window.hiddenAlertTypes = new Set();
   }
@@ -489,153 +456,72 @@ document.addEventListener("DOMContentLoaded", () => {
   let overrodeSaveSettings = null;
 
   if (sParam) {
-    const flags = sParam.toLowerCase().split(",");
-    flags.forEach((flag) => {
-      switch (flag) {
-        case "ssb":
-          window.radarSiteSelectionMode = "Both";
-          break;
-        case "ssw":
-          window.radarSiteSelectionMode = "WSR-88D";
-          break;
-        case "sst":
-          window.radarSiteSelectionMode = "TDWR";
-          break;
-        case "xss":
-          window.radarSiteSelectionMode = "None";
-          break;
-        case "ftr":
-          window.flyToRadarSetting = true;
-          break;
-        case "xfr":
-          window.flyToRadarSetting = false;
-          break;
-        case "zna":
-          window.zoneAlertsEnabled = true;
-          break;
-        case "xza":
-          window.zoneAlertsEnabled = false;
-          break;
-        case "dbg":
-          window.debugModeEnabled = true;
-          break;
-        case "xdb":
-          window.debugModeEnabled = false;
-          break;
-        case "sav":
-          overrodeSaveSettings = true;
-          break;
-        case "xsv":
-          overrodeSaveSettings = false;
-          break;
-        case "d1c":
-          window.activeSpcDay = "1";
-          window.activeSpcType = "cat";
-          break;
-        case "d1t":
-          window.activeSpcDay = "1";
-          window.activeSpcType = "torn";
-          break;
-        case "d1h":
-          window.activeSpcDay = "1";
-          window.activeSpcType = "hail";
-          break;
-        case "d1w":
-          window.activeSpcDay = "1";
-          window.activeSpcType = "wind";
-          break;
-        case "d2c":
-          window.activeSpcDay = "2";
-          window.activeSpcType = "cat";
-          break;
-        case "d2t":
-          window.activeSpcDay = "2";
-          window.activeSpcType = "torn";
-          break;
-        case "d2h":
-          window.activeSpcDay = "2";
-          window.activeSpcType = "hail";
-          break;
-        case "d2w":
-          window.activeSpcDay = "2";
-          window.activeSpcType = "wind";
-          break;
-        case "d3c":
-          window.activeSpcDay = "3";
-          window.activeSpcType = "cat";
-          break;
-        case "d3p":
-          window.activeSpcDay = "3";
-          window.activeSpcType = "prob";
-          break;
-        case "d4p":
-          window.activeSpcDay = "4";
-          window.activeSpcType = "prob";
-          break;
-        case "d5p":
-          window.activeSpcDay = "5";
-          window.activeSpcType = "prob";
-          break;
-        case "d6p":
-          window.activeSpcDay = "6";
-          window.activeSpcType = "prob";
-          break;
-        case "d7p":
-          window.activeSpcDay = "7";
-          window.activeSpcType = "prob";
-          break;
-        case "d8p":
-          window.activeSpcDay = "8";
-          window.activeSpcType = "prob";
-          break;
-        case "xlk":
-          window.activeSpcDay = "none";
-          window.activeSpcType = "none";
-          break;
-        case "irm":
-          const rtOn = document.getElementById("radar-toggle");
-          if (rtOn) rtOn.checked = true;
-          break;
-        case "xrm":
-          const rtOff = document.getElementById("radar-toggle");
-          if (rtOff) rtOff.checked = false;
-          break;
-        case "alt":
-          window.alertsEnabled = true;
-          break;
-        case "xal":
-          window.alertsEnabled = false;
-          break;
-        case "myl":
-          window.myLocationEnabled = true;
-          break;
-        case "xml":
-          window.myLocationEnabled = false;
-          break;
-        case "fup":
-          window.fasterUpdatesEnabled = true;
-          break;
-        case "xfu":
-          window.fasterUpdatesEnabled = false;
-          break;
-        case "srp":
-          window.stormReportsEnabled = true;
-          break;
-        case "xsr":
-          window.stormReportsEnabled = false;
-          break;
-      }
-    });
-    if (overrodeSaveSettings === true) {
-      window.saveSettingsEnabled = true;
-      localStorage.setItem("saveSettings", "true");
-    } else if (overrodeSaveSettings === false) {
-      window.saveSettingsEnabled = false;
-      localStorage.setItem("saveSettings", "false");
+    const spcCodeMap = {
+      c: "cat",
+      t: "torn",
+      h: "hail",
+      w: "wind",
+      p: "prob",
+    };
+    const setRadarToggle = (checked) => {
+      const rt = document.getElementById("radar-toggle");
+      if (rt) rt.checked = checked;
+    };
+    const flagHandlers = {
+      ssb: () => (window.radarSiteSelectionMode = "Both"),
+      ssw: () => (window.radarSiteSelectionMode = "WSR-88D"),
+      sst: () => (window.radarSiteSelectionMode = "TDWR"),
+      xss: () => (window.radarSiteSelectionMode = "None"),
+      ftr: () => (window.flyToRadarSetting = true),
+      xfr: () => (window.flyToRadarSetting = false),
+      zna: () => (window.zoneAlertsEnabled = true),
+      xza: () => (window.zoneAlertsEnabled = false),
+      dbg: () => (window.debugModeEnabled = true),
+      xdb: () => (window.debugModeEnabled = false),
+      sav: () => (overrodeSaveSettings = true),
+      xsv: () => (overrodeSaveSettings = false),
+      xlk: () => {
+        window.activeSpcDay = "none";
+        window.activeSpcType = "none";
+      },
+      irm: () => setRadarToggle(true),
+      xrm: () => setRadarToggle(false),
+      alt: () => (window.alertsEnabled = true),
+      xal: () => (window.alertsEnabled = false),
+      myl: () => (window.myLocationEnabled = true),
+      xml: () => (window.myLocationEnabled = false),
+      fup: () => (window.fasterUpdatesEnabled = true),
+      xfu: () => (window.fasterUpdatesEnabled = false),
+      srp: () => (window.stormReportsEnabled = true),
+      xsr: () => (window.stormReportsEnabled = false),
+    };
+
+    sParam
+      .toLowerCase()
+      .split(",")
+      .forEach((flag) => {
+        if (flagHandlers[flag]) {
+          flagHandlers[flag]();
+          return;
+        }
+        const m = flag.match(/^d([1-8])([cthwp])$/);
+        if (m) {
+          const day = m[1];
+          const type = spcCodeMap[m[2]];
+          if (window.outlookTypes[day]?.includes(type)) {
+            window.activeSpcDay = day;
+            window.activeSpcType = type;
+          }
+        }
+      });
+
+    if (overrodeSaveSettings !== null) {
+      window.saveSettingsEnabled = overrodeSaveSettings;
+      localStorage.setItem("saveSettings", String(overrodeSaveSettings));
     }
   }
 
-  if (window.saveSettingsEnabled && urlParams.get("s")) {
+  if (window.saveSettingsEnabled && sParam) {
     window.saveCurrentState();
   }
 

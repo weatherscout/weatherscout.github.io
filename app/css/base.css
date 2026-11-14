@@ -80,19 +80,14 @@ html {
 .fab-side-item.selected,
 .fab-action.active,
 #fab-menu-btn.active,
-#fab-search-btn.active {
-  background: var(--glass-hover) !important;
-  border-color: #ffffff80 !important;
-  color: white;
-  cursor: pointer;
-}
-
+#fab-search-btn.active,
 .fab-action.status-on:hover,
 .fab-action.status-on.active,
 #fab-search-btn.status-on:hover,
 #fab-search-btn.status-on.active {
   background: var(--glass-hover) !important;
   border-color: #ffffff80 !important;
+  color: white;
   cursor: pointer;
 }
 
@@ -370,39 +365,6 @@ html {
   opacity: 1;
 }
 
-.site-selector {
-  display: flex;
-  background: #ffffff12;
-  border-radius: 8px;
-  padding: 3px;
-  gap: 2px;
-  flex-shrink: 0;
-}
-
-.site-selector-btn {
-  padding: 5px 10px;
-  border-radius: 6px;
-  border: none;
-  background: transparent;
-  color: #ffffff80;
-  font-size: 13px;
-  font-weight: 500;
-  cursor: pointer;
-  transition:
-    background 0.15s,
-    color 0.15s;
-  white-space: nowrap;
-}
-
-.site-selector-btn:hover {
-  color: #ffffffd9;
-}
-
-.site-selector-btn.selected {
-  background: #ffffff2e;
-  color: white;
-}
-
 .settings-divider {
   height: 1px;
   background: var(--glass-border-color);
@@ -420,7 +382,8 @@ html {
   align-items: center;
 }
 
-.tz-selector-btn {
+.tz-selector-btn,
+.site-selector-btn {
   padding: 5px 10px;
   border-radius: 6px;
   border: none;
@@ -435,11 +398,13 @@ html {
   white-space: nowrap;
 }
 
-.tz-selector-btn:hover {
+.tz-selector-btn:hover,
+.site-selector-btn:hover {
   color: #ffffffd9;
 }
 
-.tz-selector-btn.selected {
+.tz-selector-btn.selected,
+.site-selector-btn.selected {
   background: #ffffff2e;
   color: white;
 }

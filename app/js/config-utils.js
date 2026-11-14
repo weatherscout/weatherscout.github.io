@@ -19,6 +19,44 @@ window.searchOutlooksMax = 3;
 window.searchSettingsMax = 3;
 window.hiddenAlertTypes = new Set();
 
+const spcDayTypeMap = {
+  1: [
+    "cat",
+    "torn",
+    "torn-cig",
+    "hail",
+    "hail-cig",
+    "wind",
+    "wind-cig",
+    "fire-cat",
+    "fire-dryt",
+  ],
+  2: [
+    "cat",
+    "torn",
+    "torn-cig",
+    "hail",
+    "hail-cig",
+    "wind",
+    "wind-cig",
+    "fire-cat",
+    "fire-dryt",
+  ],
+  3: ["cat", "prob", "prob-cig", "fire-cat", "fire-dryt"],
+  4: ["prob", "fire-cat", "fire-dryt"],
+  5: ["prob", "fire-cat", "fire-dryt"],
+  6: ["prob", "fire-cat", "fire-dryt"],
+  7: ["prob", "fire-cat", "fire-dryt"],
+  8: ["prob", "fire-cat", "fire-dryt"],
+};
+
+const spcLayerIds = Object.fromEntries(
+  Object.entries(spcDayTypeMap).map(([day, types]) => [
+    `day${day}`,
+    Object.fromEntries(types.map((t) => [t, `spc-day${day}-${t}`])),
+  ]),
+);
+
 window.layerIds = {
   radar: "weather-radar-layer",
   alertsZone: "alerts-zone-layer",
@@ -31,62 +69,7 @@ window.layerIds = {
   alertsMdBorder: "alerts-md-border-layer",
   alertsPolyWatch: "alerts-poly-watch-layer",
   alertsPolyWatchBorder: "alerts-poly-watch-border-layer",
-  spc: {
-    day1: {
-      cat: "spc-day1-cat",
-      torn: "spc-day1-torn",
-      "torn-cig": "spc-day1-torn-cig",
-      hail: "spc-day1-hail",
-      "hail-cig": "spc-day1-hail-cig",
-      wind: "spc-day1-wind",
-      "wind-cig": "spc-day1-wind-cig",
-      "fire-cat": "spc-day1-fire-cat",
-      "fire-dryt": "spc-day1-fire-dryt",
-    },
-    day2: {
-      cat: "spc-day2-cat",
-      torn: "spc-day2-torn",
-      "torn-cig": "spc-day2-torn-cig",
-      hail: "spc-day2-hail",
-      "hail-cig": "spc-day2-hail-cig",
-      wind: "spc-day2-wind",
-      "wind-cig": "spc-day2-wind-cig",
-      "fire-cat": "spc-day2-fire-cat",
-      "fire-dryt": "spc-day2-fire-dryt",
-    },
-    day3: {
-      cat: "spc-day3-cat",
-      prob: "spc-day3-prob",
-      "prob-cig": "spc-day3-prob-cig",
-      "fire-cat": "spc-day3-fire-cat",
-      "fire-dryt": "spc-day3-fire-dryt",
-    },
-    day4: {
-      prob: "spc-day4-prob",
-      "fire-cat": "spc-day4-fire-cat",
-      "fire-dryt": "spc-day4-fire-dryt",
-    },
-    day5: {
-      prob: "spc-day5-prob",
-      "fire-cat": "spc-day5-fire-cat",
-      "fire-dryt": "spc-day5-fire-dryt",
-    },
-    day6: {
-      prob: "spc-day6-prob",
-      "fire-cat": "spc-day6-fire-cat",
-      "fire-dryt": "spc-day6-fire-dryt",
-    },
-    day7: {
-      prob: "spc-day7-prob",
-      "fire-cat": "spc-day7-fire-cat",
-      "fire-dryt": "spc-day7-fire-dryt",
-    },
-    day8: {
-      prob: "spc-day8-prob",
-      "fire-cat": "spc-day8-fire-cat",
-      "fire-dryt": "spc-day8-fire-dryt",
-    },
-  },
+  spc: spcLayerIds,
 };
 
 window.baseSpcLayerIds = Object.values(window.layerIds.spc).flatMap((day) =>
@@ -232,33 +215,16 @@ window.typeLabels = {
   "fire-dryt": "Dry Thunderstorms",
 };
 
+const AUDIO_BASE_URL =
+  "https://raw.githubusercontent.com/weatherscout/weatherscout.github.io/main/app/audio";
+
 window.AUDIO_OPTIONS = [
   { label: "None", value: "none" },
-  {
-    label: "Beep Warning",
-    value:
-      "https://raw.githubusercontent.com/weatherscout/weatherscout.github.io/main/app/audio/beep_warning.mp3",
-  },
-  {
-    label: "Radio Wave",
-    value:
-      "https://raw.githubusercontent.com/weatherscout/weatherscout.github.io/main/app/audio/radio_wave.mp3",
-  },
-  {
-    label: "Short Beep",
-    value:
-      "https://raw.githubusercontent.com/weatherscout/weatherscout.github.io/main/app/audio/short_beep.mp3",
-  },
-  {
-    label: "Woosh 1",
-    value:
-      "https://raw.githubusercontent.com/weatherscout/weatherscout.github.io/main/app/audio/woosh1.mp3",
-  },
-  {
-    label: "Woosh 2",
-    value:
-      "https://raw.githubusercontent.com/weatherscout/weatherscout.github.io/main/app/audio/woosh2.mp3",
-  },
+  { label: "Beep Warning", value: `${AUDIO_BASE_URL}/beep_warning.mp3` },
+  { label: "Radio Wave", value: `${AUDIO_BASE_URL}/radio_wave.mp3` },
+  { label: "Short Beep", value: `${AUDIO_BASE_URL}/short_beep.mp3` },
+  { label: "Woosh 1", value: `${AUDIO_BASE_URL}/woosh1.mp3` },
+  { label: "Woosh 2", value: `${AUDIO_BASE_URL}/woosh2.mp3` },
 ];
 
 const TZ_ABBREV_MINS = {
@@ -349,7 +315,10 @@ window.getOffsetMins = function (date, tz) {
   const off = parts.find((p) => p.type === "timeZoneName")?.value || "GMT+0";
   const m = off.match(/GMT([+-])(\d+)(?::(\d+))?/);
   if (!m) return 0;
-  return (m[1] === "+" ? 1 : -1) * (parseInt(m[2]) * 60 + parseInt(m[3] || 0));
+  return (
+    (m[1] === "+" ? 1 : -1) *
+    (parseInt(m[2], 10) * 60 + parseInt(m[3] || 0, 10))
+  );
 };
 
 window.getEffectiveTz = function () {
@@ -403,7 +372,7 @@ window.formatDateWithTz = function (date, tz, options) {
 };
 
 window.formatDateFull = function (date, tz) {
-  const opts = {
+  return window.formatDateWithTz(date, tz, {
     month: "long",
     day: "numeric",
     year: "numeric",
@@ -411,56 +380,34 @@ window.formatDateFull = function (date, tz) {
     minute: "numeric",
     timeZoneName: "short",
     hour12: window.getHour12(),
-  };
-  if (!tz || !tz.startsWith("FIXED:")) {
-    return date.toLocaleString("en-US", { ...opts, timeZone: tz || "UTC" });
-  }
-  const offsetMins = parseInt(tz.slice(6), 10);
-  const shifted = new Date(date.getTime() + offsetMins * 60000);
-  return shifted.toLocaleString("en-US", { ...opts, timeZone: "UTC" });
+  });
 };
 
 window.getSmartDateOptions = function (date, otherDate, tz) {
   const effectiveTz = tz || window.getEffectiveTz();
-  const alertDateStr = date.toLocaleString("en-US", {
-    timeZone: effectiveTz,
-    month: "numeric",
-    day: "numeric",
-    year: "numeric",
-  });
-  const nowDateStr = new Date().toLocaleString("en-US", {
-    timeZone: effectiveTz,
-    month: "numeric",
-    day: "numeric",
-    year: "numeric",
-  });
-  let otherDateStr = null;
-  if (otherDate) {
-    otherDateStr = otherDate.toLocaleString("en-US", {
-      timeZone: effectiveTz,
-      month: "numeric",
-      day: "numeric",
-      year: "numeric",
-    });
-  }
+  const dayOpts = { month: "numeric", day: "numeric", year: "numeric" };
+  const alertDateStr = window.formatDateWithTz(date, effectiveTz, dayOpts);
+  const nowDateStr = window.formatDateWithTz(new Date(), effectiveTz, dayOpts);
+  const otherDateStr = otherDate
+    ? window.formatDateWithTz(otherDate, effectiveTz, dayOpts)
+    : null;
   const isToday = alertDateStr === nowDateStr;
   const sameDayAsOther = otherDateStr ? alertDateStr === otherDateStr : true;
   if (isToday && sameDayAsOther) {
     return { hour: "numeric", minute: "numeric", hour12: window.getHour12() };
-  } else {
-    return {
-      month: "long",
-      day: "numeric",
-      hour: "numeric",
-      minute: "numeric",
-      hour12: window.getHour12(),
-    };
   }
+  return {
+    month: "long",
+    day: "numeric",
+    hour: "numeric",
+    minute: "numeric",
+    hour12: window.getHour12(),
+  };
 };
 
 window.formatAlertTimeRange = function (sentIso, expIso) {
-  let sentStr = "",
-    expStr = "";
+  let sentStr = "";
+  let expStr = "";
   const tz = window.getEffectiveTz();
   const sDate = sentIso ? new Date(sentIso) : null;
   const eDate = expIso ? new Date(expIso) : null;
@@ -505,9 +452,29 @@ window.formatThreatValue = function (value) {
     .join(" ");
 };
 
+const SPC_LABEL_MAP = {
+  TSTM: "General Thunderstorm",
+  THUNDERSTORM: "General Thunderstorm",
+  MRGL: "Marginal",
+  MARGINAL: "Marginal",
+  SLGT: "Slight",
+  SLIGHT: "Slight",
+  ENH: "Enhanced",
+  ENHANCED: "Enhanced",
+  MDT: "Moderate",
+  MODERATE: "Moderate",
+  HIGH: "High",
+  ELEV: "Elevated",
+  ELEVATED: "Elevated",
+  CRIT: "Critical",
+  CRITICAL: "Critical",
+  EXTM: "Extremely Critical",
+  "EXTREMELY CRITICAL": "Extremely Critical",
+};
+
 window.formatSpcLabel = function (val) {
   if (!val) return "N/A";
-  let str = String(val).trim();
+  const str = String(val).trim();
   if (
     str.toUpperCase().includes("PROBABILITY TOO LOW") ||
     str === "0%" ||
@@ -520,31 +487,9 @@ window.formatSpcLabel = function (val) {
   if (!isNaN(cleanStr) && cleanStr !== "") {
     const num = parseFloat(cleanStr);
     if (num <= 0) return "No Risk";
-    if (num <= 1.0) {
-      return Math.round(num * 100) + "%";
-    }
-    return Math.round(num) + "%";
+    return (num <= 1.0 ? Math.round(num * 100) : Math.round(num)) + "%";
   }
-  const m = {
-    TSTM: "General Thunderstorm",
-    THUNDERSTORM: "General Thunderstorm",
-    MRGL: "Marginal",
-    MARGINAL: "Marginal",
-    SLGT: "Slight",
-    SLIGHT: "Slight",
-    ENH: "Enhanced",
-    ENHANCED: "Enhanced",
-    MDT: "Moderate",
-    MODERATE: "Moderate",
-    HIGH: "High",
-    ELEV: "Elevated",
-    ELEVATED: "Elevated",
-    CRIT: "Critical",
-    CRITICAL: "Critical",
-    EXTM: "Extremely Critical",
-    "EXTREMELY CRITICAL": "Extremely Critical",
-  };
-  return m[str.toUpperCase()] || str;
+  return SPC_LABEL_MAP[str.toUpperCase()] || str;
 };
 
 window.minsToStoredTz = function (totalMins) {
@@ -572,8 +517,9 @@ window.resolveCustomInput = function (raw) {
     upper === "UTC-0" ||
     upper === "UTC+00" ||
     upper === "UTC+00:00"
-  )
+  ) {
     return "UTC";
+  }
   if (upper === "GMT") return "GMT";
   if (Object.prototype.hasOwnProperty.call(TZ_ABBREV_MINS, upper)) {
     return window.minsToStoredTz(TZ_ABBREV_MINS[upper]);
@@ -602,7 +548,7 @@ window.tzToDisplay = function (tz) {
     const rest = tz.slice(7);
     if (!rest) return "UTC";
     const etcSign = rest[0];
-    const etcN = parseInt(rest.slice(1), 2);
+    const etcN = parseInt(rest.slice(1), 10);
     const utcSign = etcSign === "+" ? "-" : "+";
     return "UTC" + utcSign + etcN;
   }

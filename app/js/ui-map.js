@@ -9,9 +9,91 @@ window.map = new maplibregl.Map({
 
 let currentMapPopup = null;
 let currentStackedAlertsOnMap = [];
-let currentStackedAlertIndex = 0;
+window.currentStackedAlertIndex = 0;
 let locationSearchMarker = null;
 let locationSearchTimeout = null;
+
+function getRadarProductForSite(stationType) {
+  const isTdwr = stationType === "TDWR";
+  if (!window.activeRadarProductCode) {
+    return isTdwr ? "bref1" : "sr_bref";
+  }
+  if (window.activeRadarProductCode.includes("vel")) {
+    return isTdwr ? "bvel" : "sr_bvel";
+  }
+  if (window.activeRadarProductCode === "brefl") {
+    return isTdwr ? "brefl" : "sr_bref";
+  }
+  return isTdwr ? "bref1" : "sr_bref";
+}
+
+function findNearestRadarSite(lngLat) {
+  let nearest = null;
+  let min = Infinity;
+  if (!window.allRadarSitesData) return null;
+
+  window.allRadarSitesData.forEach((s) => {
+    const props = s.properties;
+    if (props.isOffline && !window.selectOfflineSites) return;
+    if (
+      window.radarSiteSelectionMode === "Both" ||
+      window.radarSiteSelectionMode === props.stationType
+    ) {
+      const dist = lngLat.distanceTo(
+        new maplibregl.LngLat(
+          s.geometry.coordinates[0],
+          s.geometry.coordinates[1],
+        ),
+      );
+      if (dist < min) {
+        min = dist;
+        nearest = s;
+      }
+    }
+  });
+  return nearest;
+}
+
+function selectNearestRadar(lngLat) {
+  const nearest = findNearestRadarSite(lngLat);
+  if (!nearest) return;
+  const id = nearest.properties.id.toLowerCase();
+  const prod = getRadarProductForSite(nearest.properties.stationType);
+  if (window.flyToRadarSetting) {
+    window.map.flyTo({
+      center: nearest.geometry.coordinates,
+      zoom: 7,
+      essential: true,
+    });
+  }
+  if (window.activeSiteIdForData !== id && window.toggleRadarProduct) {
+    window.toggleRadarProduct(id, prod);
+  }
+}
+
+function spcCigColorExpr(fallbackExpr) {
+  const labelExpr = [
+    "upcase",
+    [
+      "coalesce",
+      ["get", "label"],
+      ["get", "LABEL"],
+      ["get", "label2"],
+      ["get", "LABEL2"],
+      "",
+    ],
+  ];
+  return [
+    "case",
+    ["in", "CIG1", labelExpr],
+    "#E60000",
+    ["in", "CIG2", labelExpr],
+    "#E066FF",
+    ["in", "CIG3", labelExpr],
+    "#7F00FF",
+    fallbackExpr,
+  ];
+}
 
 window.unselectRadar = function () {
   if (window.activeSiteIdForData) {
@@ -62,8 +144,8 @@ window.geocodeAndPlaceMarker = async function () {
     );
     const data = await res.json();
     if (data.length > 0) {
-      const lon = parseFloat(data[0].lon),
-        lat = parseFloat(data[0].lat);
+      const lon = parseFloat(data[0].lon);
+      const lat = parseFloat(data[0].lat);
       locationSearchMarker = new maplibregl.Marker({
         color: "#FFC300",
         scale: 0.6,
@@ -81,7 +163,7 @@ window.closeAllPopups = function () {
   document.querySelectorAll(".maplibregl-popup").forEach((p) => p.remove());
   currentMapPopup = null;
   currentStackedAlertsOnMap = [];
-  currentStackedAlertIndex = 0;
+  window.currentStackedAlertIndex = 0;
 };
 
 window.showAlertMapPopup = function (
@@ -102,10 +184,10 @@ window.showAlertMapPopup = function (
     const targetItem = items[idx];
     const targetProps = targetItem.properties;
     const targetParams = targetProps.parameters || {};
-    let targetTitle,
-      targetMetaHtml = "",
-      targetColor,
-      targetIcon;
+    let targetTitle;
+    let targetMetaHtml = "";
+    let targetColor;
+    let targetIcon;
 
     if (targetItem.type === "alert") {
       targetTitle = targetProps.specificEventName || targetProps.event;
@@ -132,19 +214,19 @@ window.showAlertMapPopup = function (
         const threat = (targetParams.flashFloodDamageThreat?.[0] || "")
           .trim()
           .toLowerCase();
-        if (threat && threat !== "n/a" && threat !== "none") {
-          corePhenomenon = `${sourceStr} ${threat} flash flooding`;
-        } else {
-          corePhenomenon = `${sourceStr} flash flooding`;
-        }
+        corePhenomenon =
+          threat && threat !== "n/a" && threat !== "none"
+            ? `${sourceStr} ${threat} flash flooding`
+            : `${sourceStr} flash flooding`;
       } else {
         let phenomenon = "";
-        let adjectives = [];
+        const adjectives = [];
 
         if (targetParams.tornadoDetection || targetParams.tornadoDamageThreat) {
           phenomenon = "tornado";
-          if (targetParams.tornadoDetection)
+          if (targetParams.tornadoDetection) {
             adjectives.push(targetParams.tornadoDetection[0].toLowerCase());
+          }
           if (targetParams.tornadoDamageThreat) {
             const threatVal = targetParams.tornadoDamageThreat[0].toLowerCase();
             const detectionStr =
@@ -155,14 +237,12 @@ window.showAlertMapPopup = function (
           }
         } else if (targetParams.waterspoutDetection) {
           phenomenon = "waterspout";
-          if (targetParams.waterspoutDetection)
-            adjectives.push(targetParams.waterspoutDetection[0].toLowerCase());
+          adjectives.push(targetParams.waterspoutDetection[0].toLowerCase());
         } else if (targetParams.thunderstormDamageThreat) {
           phenomenon = "thunderstorm";
-          if (targetParams.thunderstormDamageThreat)
-            adjectives.push(
-              targetParams.thunderstormDamageThreat[0].toLowerCase(),
-            );
+          adjectives.push(
+            targetParams.thunderstormDamageThreat[0].toLowerCase(),
+          );
         }
 
         if (phenomenon) {
@@ -178,7 +258,7 @@ window.showAlertMapPopup = function (
           });
 
           if (mappedAdjs.length > 0) {
-            if (
+            const hasEmbeddedNoun =
               targetProps.customTornadoSource ||
               mappedAdjs.some(
                 (a) =>
@@ -187,12 +267,10 @@ window.showAlertMapPopup = function (
                   a.includes("thunderstorm") ||
                   a.includes("flooding") ||
                   a.includes("flood"),
-              )
-            ) {
-              corePhenomenon = mappedAdjs.join(", ");
-            } else {
-              corePhenomenon = `${mappedAdjs.join(", ")} ${phenomenon}`;
-            }
+              );
+            corePhenomenon = hasEmbeddedNoun
+              ? mappedAdjs.join(", ")
+              : `${mappedAdjs.join(", ")} ${phenomenon}`;
           }
         }
       }
@@ -200,26 +278,27 @@ window.showAlertMapPopup = function (
       let mainSentence = "";
       const isTornadoWarning = targetProps.event === "Tornado Warning";
       const isFlashFloodWarning = targetProps.event === "Flash Flood Warning";
+      const additionalThreatParts = [];
+      if (targetParams.maxWindGust && targetParams.maxWindGust[0] !== "0 MPH") {
+        additionalThreatParts.push(
+          `${targetParams.maxWindGust[0].toLowerCase()} winds`,
+        );
+      }
+      if (targetParams.maxHailSize && targetParams.maxHailSize[0] !== "0.00") {
+        additionalThreatParts.push(
+          `${targetParams.maxHailSize[0].toLowerCase()}" hail`,
+        );
+      }
+
+      const joinParts = (parts) => {
+        if (parts.length === 0) return "";
+        if (parts.length === 1) return parts[0];
+        const copy = parts.slice();
+        const last = copy.pop();
+        return copy.join(", ") + " and " + last;
+      };
 
       if (isTornadoWarning || isFlashFloodWarning) {
-        let additionalThreatParts = [];
-        if (
-          targetParams.maxWindGust &&
-          targetParams.maxWindGust[0] !== "0 MPH"
-        ) {
-          additionalThreatParts.push(
-            `${targetParams.maxWindGust[0].toLowerCase()} winds`,
-          );
-        }
-        if (
-          targetParams.maxHailSize &&
-          targetParams.maxHailSize[0] !== "0.00"
-        ) {
-          additionalThreatParts.push(
-            `${targetParams.maxHailSize[0].toLowerCase()}" hail`,
-          );
-        }
-
         if (corePhenomenon) {
           mainSentence = corePhenomenon;
           if (additionalThreatParts.length > 0) {
@@ -227,45 +306,20 @@ window.showAlertMapPopup = function (
               "; additional threats include " +
               additionalThreatParts.join(" and ");
           }
-        } else if (additionalThreatParts.length > 0) {
-          if (additionalThreatParts.length > 1) {
-            const last = additionalThreatParts.pop();
-            mainSentence = additionalThreatParts.join(", ") + " and " + last;
-          } else {
-            mainSentence = additionalThreatParts[0];
-          }
+        } else {
+          mainSentence = joinParts(additionalThreatParts);
         }
       } else {
-        let sentenceParts = [];
-        if (corePhenomenon) sentenceParts.push(corePhenomenon);
-        if (
-          targetParams.maxWindGust &&
-          targetParams.maxWindGust[0] !== "0 MPH"
-        ) {
-          sentenceParts.push(
-            `${targetParams.maxWindGust[0].toLowerCase()} winds`,
-          );
-        }
-        if (
-          targetParams.maxHailSize &&
-          targetParams.maxHailSize[0] !== "0.00"
-        ) {
-          sentenceParts.push(
-            `${targetParams.maxHailSize[0].toLowerCase()}" hail`,
-          );
-        }
-
-        if (sentenceParts.length > 1) {
-          const last = sentenceParts.pop();
-          mainSentence = sentenceParts.join(", ") + " and " + last;
-        } else if (sentenceParts.length === 1) {
-          mainSentence = sentenceParts[0];
-        }
+        const sentenceParts = corePhenomenon
+          ? [corePhenomenon, ...additionalThreatParts]
+          : additionalThreatParts;
+        mainSentence = joinParts(sentenceParts);
       }
 
-      if (mainSentence)
+      if (mainSentence) {
         mainSentence =
           mainSentence.charAt(0).toUpperCase() + mainSentence.slice(1);
+      }
       if (targetProps.expires) {
         const sentDate = window.parseApiDate(targetProps.sent);
         const expireDate = window.parseApiDate(targetProps.expires);
@@ -281,58 +335,47 @@ window.showAlertMapPopup = function (
       targetMetaHtml = `${mainSentence}.`;
     } else {
       const type = window.activeSpcType;
+      const rawLabel = (
+        targetProps.LABEL ||
+        targetProps.LABEL2 ||
+        targetProps.label ||
+        targetProps.label2 ||
+        ""
+      ).toUpperCase();
+
       if (type === "fire" || type === "fire-cat" || type === "fire-dryt") {
         targetTitle = `Day ${window.activeSpcDay} Fire`;
         targetColor = targetProps.fill || targetProps.FILL || "#ff6600";
         targetIcon = "local_fire_department";
-        const rawLabel = (
-          targetProps.LABEL ||
-          targetProps.LABEL2 ||
-          targetProps.label ||
-          targetProps.label2 ||
-          ""
-        ).toUpperCase();
         let finalRiskPhrase = "";
-        if (rawLabel === "EXTM" || rawLabel.includes("EXTREME"))
+        if (rawLabel === "EXTM" || rawLabel.includes("EXTREME")) {
           finalRiskPhrase = "extremely critical";
-        else if (
+        } else if (
           rawLabel === "CRIT" ||
           (rawLabel.includes("CRITICAL") && !rawLabel.includes("40%"))
-        )
+        ) {
           finalRiskPhrase = "critical";
-        else if (rawLabel === "ELEV" || rawLabel.includes("ELEVATED"))
+        } else if (rawLabel === "ELEV" || rawLabel.includes("ELEVATED")) {
           finalRiskPhrase = "elevated";
-        else if (rawLabel.includes("DRY") || rawLabel.includes("TSTM"))
+        } else if (rawLabel.includes("DRY") || rawLabel.includes("TSTM")) {
           finalRiskPhrase = "dry thunderstorm";
-        else {
+        } else {
           finalRiskPhrase = window.formatSpcLabel
             ? window.formatSpcLabel(rawLabel).toLowerCase()
             : rawLabel.toLowerCase();
         }
 
-        if (finalRiskPhrase.includes("fire weather")) {
-          targetMetaHtml = `There is ${getArticle(finalRiskPhrase)} ${finalRiskPhrase} for this location.`;
-        } else {
-          targetMetaHtml = `There is ${getArticle(finalRiskPhrase)} ${finalRiskPhrase} fire weather risk for this location.`;
-        }
+        targetMetaHtml = finalRiskPhrase.includes("fire weather")
+          ? `There is ${getArticle(finalRiskPhrase)} ${finalRiskPhrase} for this location.`
+          : `There is ${getArticle(finalRiskPhrase)} ${finalRiskPhrase} fire weather risk for this location.`;
       } else {
         targetTitle = `Day ${window.activeSpcDay} Convective`;
         targetColor = targetProps.fill || targetProps.FILL || "#FFFFFF";
         targetIcon = "map";
-        const rawLabel = (
-          targetProps.LABEL ||
-          targetProps.LABEL2 ||
-          targetProps.label ||
-          targetProps.label2 ||
-          ""
-        ).toUpperCase();
-        if (rawLabel.includes("CIG1")) {
-          targetColor = "#E60000";
-        } else if (rawLabel.includes("CIG2")) {
-          targetColor = "#E066FF";
-        } else if (rawLabel.includes("CIG3")) {
-          targetColor = "#7F00FF";
-        }
+        if (rawLabel.includes("CIG1")) targetColor = "#E60000";
+        else if (rawLabel.includes("CIG2")) targetColor = "#E066FF";
+        else if (rawLabel.includes("CIG3")) targetColor = "#7F00FF";
+
         let finalRiskPhrase = "";
         if (rawLabel.startsWith("CIG")) {
           const num = rawLabel.replace("CIG", "");
@@ -348,12 +391,13 @@ window.showAlertMapPopup = function (
           finalRiskPhrase = `${intensity} ${phenom}`;
         } else {
           const riskVal = window.formatSpcLabel(rawLabel);
-          let riskTypeSuffix = "";
-          if (type === "torn") riskTypeSuffix = " tornado";
-          else if (type === "wind") riskTypeSuffix = " wind";
-          else if (type === "hail") riskTypeSuffix = " hail";
-          else if (type === "prob") riskTypeSuffix = " severe";
-          finalRiskPhrase = `${riskVal.toLowerCase()}${riskTypeSuffix}`;
+          const suffixMap = {
+            torn: " tornado",
+            wind: " wind",
+            hail: " hail",
+            prob: " severe",
+          };
+          finalRiskPhrase = `${riskVal.toLowerCase()}${suffixMap[type] || ""}`;
         }
         targetMetaHtml = `There is ${getArticle(finalRiskPhrase)} ${finalRiskPhrase} risk for this location.`;
       }
@@ -372,18 +416,23 @@ window.showAlertMapPopup = function (
     const start = idx * segWidth;
     const end = (idx + 1) * segWidth;
     const fade = Math.min(segWidth / 2, 8);
-    let stops = [];
-    if (items.length === 1) stops.push(`${col}33 0%, ${col}33 100%`);
-    else {
+    const stops = [];
+    if (items.length === 1) {
+      stops.push(`${col}33 0%, ${col}33 100%`);
+    } else {
       if (idx > 0) {
         stops.push(`transparent ${start - fade}%`);
         stops.push(`${col}33 ${start}%`);
-      } else stops.push(`${col}33 0%`);
+      } else {
+        stops.push(`${col}33 0%`);
+      }
       stops.push(`${col}33 ${start}%`, `${col}33 ${end}%`);
       if (idx < items.length - 1) {
         stops.push(`${col}33 ${end}%`);
         stops.push(`transparent ${end + fade}%`);
-      } else stops.push(`${col}33 100%`);
+      } else {
+        stops.push(`${col}33 100%`);
+      }
     }
     return `linear-gradient(to right, ${stops.join(", ")})`;
   };
@@ -395,20 +444,19 @@ window.showAlertMapPopup = function (
         e.stopPropagation();
         if (item.type === "alert") {
           window.showFullAlertTextPopup(item.feature || item);
+        } else if (
+          window.activeSpcType === "fire" ||
+          window.activeSpcType === "fire-cat" ||
+          window.activeSpcType === "fire-dryt"
+        ) {
+          window.showFullSpcFireTextPopup(item);
         } else {
-          if (
-            window.activeSpcType === "fire" ||
-            window.activeSpcType === "fire-cat" ||
-            window.activeSpcType === "fire-dryt"
-          ) {
-            window.showFullSpcFireTextPopup(item);
-          } else {
-            window.showFullSpcTextPopup(item);
-          }
+          window.showFullSpcTextPopup(item);
         }
         window.closeAllPopups();
       };
     }
+
     const fitBtn = dom.querySelector("#fit-screen-button");
     if (fitBtn) {
       fitBtn.onclick = (e) => {
@@ -416,56 +464,44 @@ window.showAlertMapPopup = function (
         if (item.type === "alert") {
           window.flyToAlert(item.feature);
         } else {
-          const day = window.activeSpcDay;
-          const type = window.activeSpcType;
-          const sourceId = `spc-day${day}-${type}`;
+          const sourceId = `spc-day${window.activeSpcDay}-${window.activeSpcType}`;
           const cachedData = window.spcSourceCache[sourceId];
-          if (
-            cachedData &&
-            cachedData.features &&
-            cachedData.features.length > 0
-          ) {
+          if (cachedData?.features?.length > 0) {
             const isCat =
               sourceId.endsWith("-cat") ||
               sourceId.includes("-fire-cat") ||
               sourceId.includes("-fire-dryt");
+            const getNum = (f) =>
+              parseFloat(
+                f?.properties.LABEL ||
+                  f?.properties.LABEL2 ||
+                  f?.properties.label ||
+                  f?.properties.label2 ||
+                  f?.properties.dn ||
+                  0,
+              );
             const topFeature = isCat
               ? window.getHighestSpcCatFeature(cachedData.features)
-              : cachedData.features.reduce((best, f) => {
-                  const val = parseFloat(
-                    f.properties.LABEL ||
-                      f.properties.LABEL2 ||
-                      f.properties.label ||
-                      f.properties.label2 ||
-                      f.properties.dn ||
-                      0,
-                  );
-                  const bestVal = parseFloat(
-                    best?.properties.LABEL ||
-                      best?.properties.LABEL2 ||
-                      best?.properties.label ||
-                      best?.properties.label2 ||
-                      best?.properties.dn ||
-                      0,
-                  );
-                  return val > bestVal ? f : best;
-                }, null);
+              : cachedData.features.reduce(
+                  (best, f) => (getNum(f) > getNum(best) ? f : best),
+                  null,
+                );
             if (topFeature) {
-              const feat = {
+              window.flyToAlert({
                 type: "Feature",
                 geometry: topFeature.geometry,
                 properties: {
                   ...topFeature.properties,
                   geometryType: "polygon",
                 },
-              };
-              window.flyToAlert(feat);
+              });
             }
           }
         }
         window.closeAllPopups();
       };
     }
+
     const sumBtn = dom.querySelector("#summarize-button");
     if (sumBtn) {
       sumBtn.onclick = (e) => {
@@ -499,63 +535,16 @@ window.showAlertMapPopup = function (
         window.closeAllPopups();
       };
     }
+
     const radBtn = dom.querySelector("#radar-site-button");
     if (radBtn) {
       radBtn.onclick = (e) => {
         e.stopPropagation();
         window.closeAllPopups();
-        let nearest = null;
-        let min = Infinity;
-        window.allRadarSitesData.forEach((s) => {
-          const props = s.properties;
-          if (props.isOffline && !window.selectOfflineSites) return;
-          if (
-            window.radarSiteSelectionMode === "Both" ||
-            window.radarSiteSelectionMode === props.stationType
-          ) {
-            const dist = clicked.distanceTo(
-              new maplibregl.LngLat(
-                s.geometry.coordinates[0],
-                s.geometry.coordinates[1],
-              ),
-            );
-            if (dist < min) {
-              min = dist;
-              nearest = s;
-            }
-          }
-        });
-        if (nearest) {
-          const id = nearest.properties.id.toLowerCase(),
-            type = nearest.properties.stationType;
-          let prod = window.activeRadarProductCode
-            ? window.activeRadarProductCode.includes("vel")
-              ? type === "TDWR"
-                ? "bvel"
-                : "sr_bvel"
-              : window.activeRadarProductCode === "brefl"
-                ? type === "TDWR"
-                  ? "brefl"
-                  : "sr_bref"
-                : type === "TDWR"
-                  ? "bref1"
-                  : "sr_bref"
-            : type === "TDWR"
-              ? "bref1"
-              : "sr_bref";
-          if (window.flyToRadarSetting) {
-            window.map.flyTo({
-              center: nearest.geometry.coordinates,
-              zoom: 7,
-              essential: true,
-            });
-          }
-          if (window.activeSiteIdForData !== id) {
-            window.toggleRadarProduct(id, prod);
-          }
-        }
+        selectNearestRadar(clicked);
       };
     }
+
     const prevBtn = dom.querySelector("#prev-alert-button");
     if (prevBtn) {
       prevBtn.onclick = (e) => {
@@ -568,6 +557,7 @@ window.showAlertMapPopup = function (
         );
       };
     }
+
     const nextBtn = dom.querySelector("#next-alert-button");
     if (nextBtn) {
       nextBtn.onclick = (e) => {
@@ -594,8 +584,7 @@ window.showAlertMapPopup = function (
     const progressLayer = existingPopup.querySelector("#action-bar-progress");
 
     if (header && scroller && wrapper && progressLayer) {
-      const curHeight = scroller.offsetHeight;
-      wrapper.style.height = `${curHeight}px`;
+      wrapper.style.height = `${scroller.offsetHeight}px`;
       scroller.style.transition =
         "transform 0.22s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.22s ease";
       scroller.style.transform =
@@ -642,23 +631,35 @@ window.showAlertMapPopup = function (
         <div class="map-popup-body" style="padding: 14px; display: flex; flex-direction: column; gap: 4px; box-sizing: border-box;">
             <div id="popup-text-wrapper" style="margin-bottom: 6px; position: relative; overflow: hidden; height: auto; user-select: none; -webkit-user-select: none; display: flex; align-items: center; justify-content: center; min-height: 48px;"><div id="popup-text-scroller" style="text-align: center; line-height: 1.4; transform: translateX(0); opacity: 1;">${cur.metaHtml}</div></div>
             <div style="display: flex; align-items: center; justify-content: center; gap: 6px; margin: 4px auto 0;">
-${items.length > 1 ? `<button id="prev-alert-button" style="width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; outline: none;"><i class="material-symbols-rounded" style="font-size: 18px;">chevron_left</i></button>` : ""}                <div style="position: relative; display: flex; align-items: center; gap: 0px; width: max-content; padding: 5px; border-radius: 22px; border: 1px solid var(--glass-border-color); box-sizing: border-box; overflow: hidden; height: 44px;">
+${items.length > 1 ? `<button id="prev-alert-button" style="width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; outline: none;"><i class="material-symbols-rounded" style="font-size: 18px;">chevron_left</i></button>` : ""}
+                <div style="position: relative; display: flex; align-items: center; gap: 0px; width: max-content; padding: 5px; border-radius: 22px; border: 1px solid var(--glass-border-color); box-sizing: border-box; overflow: hidden; height: 44px;">
                     <div id="action-bar-progress" style="position: absolute; top: -5px; left: -5px; right: -5px; bottom: -5px; background: ${getGradientBg(index, cur.color)}; z-index: 0; transition: background 0.4s cubic-bezier(0.25, 1, 0.5, 1); filter: blur(6px); opacity: 0.7; pointer-events: none;"></div>
                     <button id="full-text-button" style="position: relative; z-index: 1; width: 32px; height: 32px; padding: 0; border-radius: 16px 4px 4px 16px; background: transparent; border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: background 0.15s; outline: none; box-sizing: border-box;"><i class="material-symbols-rounded" style="font-size: 18px; color: #ffffffb2;">description</i></button>
                     <button id="fit-screen-button" style="position: relative; z-index: 1; width: 32px; height: 32px; padding: 0; border-radius: 4px; background: transparent; border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: background 0.15s; outline: none; box-sizing: border-box;"><i class="material-symbols-rounded" style="font-size: 18px; color: #ffffffb2;">fit_screen</i></button>
                     <button id="radar-site-button" style="position: relative; z-index: 1; width: 32px; height: 32px; padding: 0; border-radius: 4px 16px 16px 4px; background: transparent; border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: background 0.15s; outline: none; box-sizing: border-box;"><i class="material-symbols-rounded" style="font-size: 18px; color: #ffffffb2;">radar</i></button>
                 </div>
-${items.length > 1 ? `<button id="next-alert-button" style="width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; outline: none;"><i class="material-symbols-rounded" style="font-size: 18px;">chevron_right</i></button>` : ""}            </div>
+${items.length > 1 ? `<button id="next-alert-button" style="width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; outline: none;"><i class="material-symbols-rounded" style="font-size: 18px;">chevron_right</i></button>` : ""}
+            </div>
         </div>
     `;
 
   bindButtons(div, cur.item);
 
   if (items.length > 1) {
-    let tX = 0,
-      mX = 0,
-      isM = false,
-      lInt = 0;
+    let tX = 0;
+    let mX = 0;
+    let isM = false;
+    let lInt = 0;
+
+    const stepPopup = (delta) => {
+      window.showAlertMapPopup(
+        items,
+        clicked,
+        (window.currentStackedAlertIndex + delta + items.length) % items.length,
+        delta > 0 ? "next" : "prev",
+      );
+    };
+
     div.addEventListener(
       "touchstart",
       (e) => {
@@ -670,13 +671,7 @@ ${items.length > 1 ? `<button id="next-alert-button" style="width: 32px; height:
       "touchend",
       (e) => {
         const d = e.changedTouches[0].clientX - tX;
-        if (Math.abs(d) > 35)
-          window.showAlertMapPopup(
-            items,
-            clicked,
-            (window.currentStackedAlertIndex - 1 + items.length) % items.length,
-            d > 0 ? "prev" : "next",
-          );
+        if (Math.abs(d) > 35) stepPopup(d > 0 ? -1 : 1);
       },
       { passive: true },
     );
@@ -688,13 +683,7 @@ ${items.length > 1 ? `<button id="next-alert-button" style="width: 32px; height:
       if (!isM) return;
       isM = false;
       const d = e.clientX - mX;
-      if (Math.abs(d) > 35)
-        window.showAlertMapPopup(
-          items,
-          clicked,
-          (window.currentStackedAlertIndex + 1) % items.length,
-          d > 0 ? "prev" : "next",
-        );
+      if (Math.abs(d) > 35) stepPopup(d > 0 ? -1 : 1);
     });
     div.addEventListener(
       "wheel",
@@ -704,33 +693,24 @@ ${items.length > 1 ? `<button id="next-alert-button" style="width: 32px; height:
         const d = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
         if (Math.abs(d) > 5) {
           lInt = n;
-          window.showAlertMapPopup(
-            items,
-            clicked,
-            (window.currentStackedAlertIndex +
-              (d > 0 ? 1 : -1) +
-              items.length) %
-              items.length,
-            d > 0 ? "next" : "prev",
-          );
+          stepPopup(d > 0 ? 1 : -1);
         }
       },
       { passive: true },
     );
   }
 
-  const setH = (btn) => {
-    if (btn) {
-      btn.onmouseenter = () => (btn.style.background = "#ffffff1f");
-      btn.onmouseleave = () => (btn.style.background = "transparent");
-    }
-  };
   [
     div.querySelector("#full-text-button"),
     div.querySelector("#fit-screen-button"),
     div.querySelector("#summarize-button"),
     div.querySelector("#radar-site-button"),
-  ].forEach(setH);
+  ].forEach((btn) => {
+    if (!btn) return;
+    btn.onmouseenter = () => (btn.style.background = "#ffffff1f");
+    btn.onmouseleave = () => (btn.style.background = "transparent");
+  });
+
   const closeBtn = div.querySelector(".map-popup-close-btn");
   closeBtn.onclick = (e) => {
     e.stopPropagation();
@@ -744,6 +724,7 @@ ${items.length > 1 ? `<button id="next-alert-button" style="width: 32px; height:
     closeBtn.style.background = "#ffffff14";
     closeBtn.style.color = "#ffffffb2";
   };
+
   currentMapPopup = new maplibregl.Popup({
     closeOnClick: true,
     closeButton: false,
@@ -780,31 +761,21 @@ window.map.on("load", async () => {
     });
   }
 
-  if (!window.map.getSource("alerts-poly"))
-    window.map.addSource("alerts-poly", {
-      type: "geojson",
-      data: { type: "FeatureCollection", features: [] },
-    });
-  if (!window.map.getSource("alerts-zone"))
-    window.map.addSource("alerts-zone", {
-      type: "geojson",
-      data: { type: "FeatureCollection", features: [] },
-    });
-  if (!window.map.getSource("alerts-md"))
-    window.map.addSource("alerts-md", {
-      type: "geojson",
-      data: { type: "FeatureCollection", features: [] },
-    });
-  if (!window.map.getSource("alerts-poly-watch"))
-    window.map.addSource("alerts-poly-watch", {
-      type: "geojson",
-      data: { type: "FeatureCollection", features: [] },
-    });
-  if (!window.map.getSource("highlight-source"))
-    window.map.addSource("highlight-source", {
-      type: "geojson",
-      data: { type: "FeatureCollection", features: [] },
-    });
+  [
+    "alerts-poly",
+    "alerts-zone",
+    "alerts-md",
+    "alerts-poly-watch",
+    "highlight-source",
+    "alerts-arrows",
+  ].forEach((sourceId) => {
+    if (!window.map.getSource(sourceId)) {
+      window.map.addSource(sourceId, {
+        type: "geojson",
+        data: { type: "FeatureCollection", features: [] },
+      });
+    }
+  });
 
   if (!window.allRadarSitesData || window.allRadarSitesData.length === 0) {
     try {
@@ -832,108 +803,76 @@ window.map.on("load", async () => {
   const aVis = window.alertsEnabled ? "visible" : "none";
   const sortKeyExp = ["-", 200, ["coalesce", ["get", "priorityScore"], 200]];
 
-  if (!window.map.getLayer(window.layerIds.alertsZone)) {
-    window.map.addLayer(
-      {
-        id: window.layerIds.alertsZone,
-        type: "fill",
-        source: "alerts-zone",
-        paint: { "fill-color": colorExp, "fill-opacity": 0.05 },
-        layout: { visibility: aVis, "fill-sort-key": sortKeyExp },
-        filter: ["==", "geometryType", "zone"],
-      },
-      symbolId,
-    );
-  }
-  if (!window.map.getLayer(window.layerIds.alertsZoneBorder)) {
-    window.map.addLayer(
-      {
-        id: window.layerIds.alertsZoneBorder,
-        type: "line",
-        source: "alerts-zone",
-        paint: { "line-color": colorExp, "line-width": 1 },
-        layout: { visibility: aVis, "line-sort-key": sortKeyExp },
-        filter: ["==", "geometryType", "zone"],
-      },
-      symbolId,
-    );
-  }
-  if (!window.map.getLayer(window.layerIds.alertsPolyWatch)) {
-    window.map.addLayer(
-      {
-        id: window.layerIds.alertsPolyWatch,
-        type: "fill",
-        source: "alerts-poly-watch",
-        paint: { "fill-color": colorExp, "fill-opacity": 0.05 },
-        layout: { visibility: aVis, "fill-sort-key": sortKeyExp },
-      },
-      symbolId,
-    );
-  }
-  if (!window.map.getLayer(window.layerIds.alertsPolyWatchBorder)) {
-    window.map.addLayer(
-      {
-        id: window.layerIds.alertsPolyWatchBorder,
-        type: "line",
-        source: "alerts-poly-watch",
-        paint: { "line-color": colorExp, "line-width": 2 },
-        layout: { visibility: aVis, "line-sort-key": sortKeyExp },
-      },
-      symbolId,
-    );
-  }
-  if (!window.map.getLayer(window.layerIds.alertsMd)) {
-    window.map.addLayer(
-      {
-        id: window.layerIds.alertsMd,
-        type: "fill",
-        source: "alerts-md",
-        paint: { "fill-color": colorExp, "fill-opacity": 0.05 },
-        layout: { visibility: aVis, "fill-sort-key": sortKeyExp },
-      },
-      symbolId,
-    );
-  }
-  if (!window.map.getLayer(window.layerIds.alertsMdBorder)) {
-    window.map.addLayer(
-      {
-        id: window.layerIds.alertsMdBorder,
-        type: "line",
-        source: "alerts-md",
-        paint: { "line-color": colorExp, "line-width": 2 },
-        layout: { visibility: aVis, "line-sort-key": sortKeyExp },
-      },
-      symbolId,
-    );
-  }
-  if (!window.map.getLayer(window.layerIds.alertsPolygon)) {
-    window.map.addLayer(
-      {
-        id: window.layerIds.alertsPolygon,
-        type: "fill",
-        source: "alerts-poly",
-        paint: { "fill-color": colorExp, "fill-opacity": 0.15 },
-        layout: { visibility: aVis, "fill-sort-key": sortKeyExp },
-        filter: ["==", "geometryType", "polygon"],
-      },
-      symbolId,
-    );
-  }
-  if (!window.map.getLayer(window.layerIds.alertsPolygonBorder)) {
-    window.map.addLayer(
-      {
-        id: window.layerIds.alertsPolygonBorder,
-        type: "line",
-        source: "alerts-poly",
-        paint: { "line-color": colorExp, "line-width": 2 },
-        layout: { visibility: aVis, "line-sort-key": sortKeyExp },
-        filter: ["==", "geometryType", "polygon"],
-      },
-      symbolId,
-    );
-  }
+  const alertLayers = [
+    {
+      id: window.layerIds.alertsZone,
+      type: "fill",
+      source: "alerts-zone",
+      paint: { "fill-color": colorExp, "fill-opacity": 0.05 },
+      layout: { visibility: aVis, "fill-sort-key": sortKeyExp },
+      filter: ["==", "geometryType", "zone"],
+    },
+    {
+      id: window.layerIds.alertsZoneBorder,
+      type: "line",
+      source: "alerts-zone",
+      paint: { "line-color": colorExp, "line-width": 1 },
+      layout: { visibility: aVis, "line-sort-key": sortKeyExp },
+      filter: ["==", "geometryType", "zone"],
+    },
+    {
+      id: window.layerIds.alertsPolyWatch,
+      type: "fill",
+      source: "alerts-poly-watch",
+      paint: { "fill-color": colorExp, "fill-opacity": 0.05 },
+      layout: { visibility: aVis, "fill-sort-key": sortKeyExp },
+    },
+    {
+      id: window.layerIds.alertsPolyWatchBorder,
+      type: "line",
+      source: "alerts-poly-watch",
+      paint: { "line-color": colorExp, "line-width": 2 },
+      layout: { visibility: aVis, "line-sort-key": sortKeyExp },
+    },
+    {
+      id: window.layerIds.alertsMd,
+      type: "fill",
+      source: "alerts-md",
+      paint: { "fill-color": colorExp, "fill-opacity": 0.05 },
+      layout: { visibility: aVis, "fill-sort-key": sortKeyExp },
+    },
+    {
+      id: window.layerIds.alertsMdBorder,
+      type: "line",
+      source: "alerts-md",
+      paint: { "line-color": colorExp, "line-width": 2 },
+      layout: { visibility: aVis, "line-sort-key": sortKeyExp },
+    },
+    {
+      id: window.layerIds.alertsPolygon,
+      type: "fill",
+      source: "alerts-poly",
+      paint: { "fill-color": colorExp, "fill-opacity": 0.15 },
+      layout: { visibility: aVis, "fill-sort-key": sortKeyExp },
+      filter: ["==", "geometryType", "polygon"],
+    },
+    {
+      id: window.layerIds.alertsPolygonBorder,
+      type: "line",
+      source: "alerts-poly",
+      paint: { "line-color": colorExp, "line-width": 2 },
+      layout: { visibility: aVis, "line-sort-key": sortKeyExp },
+      filter: ["==", "geometryType", "polygon"],
+    },
+  ];
 
-  if (!window.map.getLayer("highlight-fill"))
+  alertLayers.forEach((layer) => {
+    if (!window.map.getLayer(layer.id)) {
+      window.map.addLayer(layer, symbolId);
+    }
+  });
+
+  if (!window.map.getLayer("highlight-fill")) {
     window.map.addLayer({
       id: "highlight-fill",
       type: "fill",
@@ -944,7 +883,8 @@ window.map.on("load", async () => {
         "fill-opacity-transition": { duration: 750 },
       },
     });
-  if (!window.map.getLayer("highlight-line"))
+  }
+  if (!window.map.getLayer("highlight-line")) {
     window.map.addLayer({
       id: "highlight-line",
       type: "line",
@@ -956,12 +896,7 @@ window.map.on("load", async () => {
         "line-opacity-transition": { duration: 750 },
       },
     });
-
-  if (!window.map.getSource("alerts-arrows"))
-    window.map.addSource("alerts-arrows", {
-      type: "geojson",
-      data: { type: "FeatureCollection", features: [] },
-    });
+  }
 
   if (!window.map.getLayer("alerts-arrows-layer")) {
     window.map.addLayer(
@@ -1001,6 +936,21 @@ window.map.on("load", async () => {
     );
   }
 
+  const spcFillColor = spcCigColorExpr([
+    "coalesce",
+    ["get", "fill"],
+    ["get", "FILL"],
+    "#808080",
+  ]);
+  const spcStrokeColor = spcCigColorExpr([
+    "coalesce",
+    ["get", "stroke"],
+    ["get", "STROKE"],
+    ["get", "fill"],
+    ["get", "FILL"],
+    "#808080",
+  ]);
+
   window.spcSources.forEach((s) => {
     if (!window.map.getSource(s.id)) {
       window.map.addSource(s.id, {
@@ -1009,14 +959,11 @@ window.map.on("load", async () => {
       });
     }
 
-    let isVis =
+    const dayConfig = window.layerIds.spc["day" + window.activeSpcDay];
+    const isVis =
       window.activeSpcDay !== "none" &&
-      (window.layerIds.spc["day" + window.activeSpcDay]?.[
-        window.activeSpcType
-      ] === s.id ||
-        window.layerIds.spc["day" + window.activeSpcDay]?.[
-          window.activeSpcType + "-cig"
-        ] === s.id)
+      (dayConfig?.[window.activeSpcType] === s.id ||
+        dayConfig?.[window.activeSpcType + "-cig"] === s.id)
         ? "visible"
         : "none";
 
@@ -1027,58 +974,7 @@ window.map.on("load", async () => {
           type: "fill",
           source: s.id,
           paint: {
-            "fill-color": [
-              "case",
-              [
-                "in",
-                "CIG1",
-                [
-                  "upcase",
-                  [
-                    "coalesce",
-                    ["get", "label"],
-                    ["get", "LABEL"],
-                    ["get", "label2"],
-                    ["get", "LABEL2"],
-                    "",
-                  ],
-                ],
-              ],
-              "#E60000",
-              [
-                "in",
-                "CIG2",
-                [
-                  "upcase",
-                  [
-                    "coalesce",
-                    ["get", "label"],
-                    ["get", "LABEL"],
-                    ["get", "label2"],
-                    ["get", "LABEL2"],
-                    "",
-                  ],
-                ],
-              ],
-              "#E066FF",
-              [
-                "in",
-                "CIG3",
-                [
-                  "upcase",
-                  [
-                    "coalesce",
-                    ["get", "label"],
-                    ["get", "LABEL"],
-                    ["get", "label2"],
-                    ["get", "LABEL2"],
-                    "",
-                  ],
-                ],
-              ],
-              "#7F00FF",
-              ["coalesce", ["get", "fill"], ["get", "FILL"], "#808080"],
-            ],
+            "fill-color": spcFillColor,
             "fill-opacity": s.id.endsWith("-cig") ? 0.01 : 0.05,
           },
           layout: { visibility: isVis },
@@ -1089,65 +985,7 @@ window.map.on("load", async () => {
 
     if (!window.map.getLayer(`${s.id}-border`)) {
       const linePaint = {
-        "line-color": [
-          "case",
-          [
-            "in",
-            "CIG1",
-            [
-              "upcase",
-              [
-                "coalesce",
-                ["get", "label"],
-                ["get", "LABEL"],
-                ["get", "label2"],
-                ["get", "LABEL2"],
-                "",
-              ],
-            ],
-          ],
-          "#E60000",
-          [
-            "in",
-            "CIG2",
-            [
-              "upcase",
-              [
-                "coalesce",
-                ["get", "label"],
-                ["get", "LABEL"],
-                ["get", "label2"],
-                ["get", "LABEL2"],
-                "",
-              ],
-            ],
-          ],
-          "#E066FF",
-          [
-            "in",
-            "CIG3",
-            [
-              "upcase",
-              [
-                "coalesce",
-                ["get", "label"],
-                ["get", "LABEL"],
-                ["get", "label2"],
-                ["get", "LABEL2"],
-                "",
-              ],
-            ],
-          ],
-          "#7F00FF",
-          [
-            "coalesce",
-            ["get", "stroke"],
-            ["get", "STROKE"],
-            ["get", "fill"],
-            ["get", "FILL"],
-            "#808080",
-          ],
-        ],
+        "line-color": spcStrokeColor,
         "line-width": s.id.endsWith("-cig") ? 1.5 : 2,
       };
       if (s.id.endsWith("-cig")) {
@@ -1203,15 +1041,17 @@ window.map.on("load", async () => {
   let urlRadarRequest = null;
   const sParam = urlParams.get("s");
   if (sParam) {
-    const flags = sParam.toLowerCase().split(",");
-    flags.forEach((flag) => {
-      if (flag.length === 5 && /^[rvl][a-z0-9]{4}$/i.test(flag)) {
-        urlRadarRequest = {
-          id: flag.substring(1).toUpperCase(),
-          type: flag.charAt(0),
-        };
-      }
-    });
+    sParam
+      .toLowerCase()
+      .split(",")
+      .forEach((flag) => {
+        if (flag.length === 5 && /^[rvl][a-z0-9]{4}$/i.test(flag)) {
+          urlRadarRequest = {
+            id: flag.substring(1).toUpperCase(),
+            type: flag.charAt(0),
+          };
+        }
+      });
   }
 
   if (urlRadarRequest) {
@@ -1219,30 +1059,26 @@ window.map.on("load", async () => {
       (s) => s.properties.id === urlRadarRequest.id,
     );
     if (site) {
-      window.activeRadarProductCode =
-        urlRadarRequest.type === "r"
-          ? site.properties.stationType === "TDWR"
-            ? "bref1"
-            : "sr_bref"
-          : urlRadarRequest.type === "v"
-            ? site.properties.stationType === "TDWR"
-              ? "bvel"
-              : "sr_bvel"
-            : site.properties.stationType === "TDWR"
-              ? "brefl"
-              : "sr_bref";
+      const isTdwr = site.properties.stationType === "TDWR";
+      if (urlRadarRequest.type === "r") {
+        window.activeRadarProductCode = isTdwr ? "bref1" : "sr_bref";
+      } else if (urlRadarRequest.type === "v") {
+        window.activeRadarProductCode = isTdwr ? "bvel" : "sr_bvel";
+      } else {
+        window.activeRadarProductCode = isTdwr ? "brefl" : "sr_bref";
+      }
       window.activeSiteIdForData = urlRadarRequest.id.toLowerCase();
     }
   }
 
   if (window.activeSiteIdForData && window.activeRadarProductCode) {
-    const s = window.activeSiteIdForData,
-      p = window.activeRadarProductCode;
+    const s = window.activeSiteIdForData;
+    const p = window.activeRadarProductCode;
     window.activeSiteIdForData = window.activeRadarProductCode = null;
     if (window.toggleRadarProduct) window.toggleRadarProduct(s, p);
     if (window.flyToRadarSetting) {
       const site = window.allRadarSitesData.find(
-        (site) => site.properties.id.toLowerCase() === s,
+        (item) => item.properties.id.toLowerCase() === s,
       );
       if (site) {
         willFlyToRadar = true;
@@ -1256,8 +1092,8 @@ window.map.on("load", async () => {
   }
 
   if (!willFlyToRadar && window.saveSettingsEnabled) {
-    const savedZoom = localStorage.getItem("lastZoom"),
-      savedCenter = localStorage.getItem("lastCenter");
+    const savedZoom = localStorage.getItem("lastZoom");
+    const savedCenter = localStorage.getItem("lastCenter");
     if (savedZoom && savedCenter) {
       try {
         window.map.flyTo({
@@ -1305,58 +1141,7 @@ window.map.on("moveend", () => {
 window.map.on("contextmenu", (e) => {
   e.preventDefault();
   window.closeAllPopups();
-  let nearest = null;
-  let min = Infinity;
-  if (window.allRadarSitesData) {
-    window.allRadarSitesData.forEach((s) => {
-      const props = s.properties;
-      if (props.isOffline && !window.selectOfflineSites) return;
-      if (
-        window.radarSiteSelectionMode === "Both" ||
-        window.radarSiteSelectionMode === props.stationType
-      ) {
-        const dist = e.lngLat.distanceTo(
-          new maplibregl.LngLat(
-            s.geometry.coordinates[0],
-            s.geometry.coordinates[1],
-          ),
-        );
-        if (dist < min) {
-          min = dist;
-          nearest = s;
-        }
-      }
-    });
-  }
-  if (nearest) {
-    const id = nearest.properties.id.toLowerCase(),
-      type = nearest.properties.stationType;
-    let prod = window.activeRadarProductCode
-      ? window.activeRadarProductCode.includes("vel")
-        ? type === "TDWR"
-          ? "bvel"
-          : "sr_bvel"
-        : window.activeRadarProductCode === "brefl"
-          ? type === "TDWR"
-            ? "brefl"
-            : "sr_bref"
-          : type === "TDWR"
-            ? "bref1"
-            : "sr_bref"
-      : type === "TDWR"
-        ? "bref1"
-        : "sr_bref";
-    if (window.flyToRadarSetting) {
-      window.map.flyTo({
-        center: nearest.geometry.coordinates,
-        zoom: 7,
-        essential: true,
-      });
-    }
-    if (window.activeSiteIdForData !== id && window.toggleRadarProduct) {
-      window.toggleRadarProduct(id, prod);
-    }
-  }
+  selectNearestRadar(e.lngLat);
 });
 
 window.map.on("click", (e) => {
@@ -1383,8 +1168,7 @@ window.map.on("click", (e) => {
       (s) => s.properties.id === top.properties.id,
     );
     if (site && (!site.properties.isOffline || window.selectOfflineSites)) {
-      const id = site.properties.id.toLowerCase(),
-        type = site.properties.stationType;
+      const id = site.properties.id.toLowerCase();
       if (window.activeSiteIdForData === id) {
         if (window.removeSingleSiteLayer) window.removeSingleSiteLayer();
         window.activeRadarProductCode = window.activeSiteIdForData = null;
@@ -1397,30 +1181,23 @@ window.map.on("click", (e) => {
         if (window.saveCurrentState) window.saveCurrentState();
         return;
       }
-      let prod = window.activeRadarProductCode
-        ? window.activeRadarProductCode.includes("vel")
-          ? type === "TDWR"
-            ? "bvel"
-            : "sr_bvel"
-          : window.activeRadarProductCode === "brefl"
-            ? type === "TDWR"
-              ? "brefl"
-              : "sr_bref"
-            : type === "TDWR"
-              ? "bref1"
-              : "sr_bref"
-        : type === "TDWR"
-          ? "bref1"
-          : "sr_bref";
+      const prod = getRadarProductForSite(site.properties.stationType);
       if (window.toggleRadarProduct) window.toggleRadarProduct(id, prod);
-      if (window.flyToRadarSetting)
+      if (window.flyToRadarSetting) {
         window.map.flyTo({
           center: site.geometry.coordinates,
           zoom: 7,
           essential: true,
         });
+      }
     }
   } else {
+    const allAlerts = [
+      ...(window.globalPolyAlerts || []),
+      ...(window.globalZoneAlerts || []),
+      ...(window.globalMdAlerts || []),
+      ...(window.globalPolyWatchAlerts || []),
+    ];
     const alerts = window.map
       .queryRenderedFeatures(e.point, {
         layers: [
@@ -1431,12 +1208,9 @@ window.map.on("click", (e) => {
         ],
       })
       .map((f) => {
-        const found = [
-          ...(window.globalPolyAlerts || []),
-          ...(window.globalZoneAlerts || []),
-          ...(window.globalMdAlerts || []),
-          ...(window.globalPolyWatchAlerts || []),
-        ].find((a) => a.properties.id === f.properties.id);
+        const found = allAlerts.find(
+          (a) => a.properties.id === f.properties.id,
+        );
         return found
           ? { type: "alert", feature: found, properties: found.properties }
           : null;
@@ -1449,6 +1223,7 @@ window.map.on("click", (e) => {
             .queryRenderedFeatures(e.point, { layers: window.allSpcLayerIds })
             .map((f) => ({ type: "outlook", properties: f.properties }))
         : [];
+
     const items = [
       ...new Map(
         alerts.concat(spc).map((i) => {

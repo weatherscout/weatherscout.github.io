@@ -29,162 +29,74 @@ window.updateMotionVectorsVisibility = function () {
   window.map.setLayoutProperty("alerts-arrows-layer", "visibility", visibility);
 };
 
-window.spcSources = [
-  {
-    id: "spc-day1-cat",
-    url: "https://mapservices.weather.noaa.gov/vector/rest/services/outlooks/SPC_wx_outlks/MapServer/1/query?where=1%3D1&outFields=*&f=geojson",
-  },
-  {
-    id: "spc-day1-torn",
-    url: "https://mapservices.weather.noaa.gov/vector/rest/services/outlooks/SPC_wx_outlks/MapServer/3/query?where=1%3D1&outFields=*&f=geojson",
-  },
-  {
-    id: "spc-day1-torn-cig",
-    url: "https://mapservices.weather.noaa.gov/vector/rest/services/outlooks/SPC_wx_outlks/MapServer/2/query?where=1%3D1&outFields=*&f=geojson",
-  },
-  {
-    id: "spc-day1-hail",
-    url: "https://mapservices.weather.noaa.gov/vector/rest/services/outlooks/SPC_wx_outlks/MapServer/5/query?where=1%3D1&outFields=*&f=geojson",
-  },
-  {
-    id: "spc-day1-hail-cig",
-    url: "https://mapservices.weather.noaa.gov/vector/rest/services/outlooks/SPC_wx_outlks/MapServer/4/query?where=1%3D1&outFields=*&f=geojson",
-  },
-  {
-    id: "spc-day1-wind",
-    url: "https://mapservices.weather.noaa.gov/vector/rest/services/outlooks/SPC_wx_outlks/MapServer/7/query?where=1%3D1&outFields=*&f=geojson",
-  },
-  {
-    id: "spc-day1-wind-cig",
-    url: "https://mapservices.weather.noaa.gov/vector/rest/services/outlooks/SPC_wx_outlks/MapServer/6/query?where=1%3D1&outFields=*&f=geojson",
-  },
-  {
-    id: "spc-day1-fire-cat",
-    url: "https://mapservices.weather.noaa.gov/vector/rest/services/fire_weather/SPC_firewx/MapServer/1/query?where=1%3D1&outFields=*&f=geojson",
-  },
-  {
-    id: "spc-day1-fire-dryt",
-    url: "https://mapservices.weather.noaa.gov/vector/rest/services/fire_weather/SPC_firewx/MapServer/2/query?where=1%3D1&outFields=*&f=geojson",
-  },
-  {
-    id: "spc-day2-cat",
-    url: "https://mapservices.weather.noaa.gov/vector/rest/services/outlooks/SPC_wx_outlks/MapServer/9/query?where=1%3D1&outFields=*&f=geojson",
-  },
-  {
-    id: "spc-day2-torn",
-    url: "https://mapservices.weather.noaa.gov/vector/rest/services/outlooks/SPC_wx_outlks/MapServer/11/query?where=1%3D1&outFields=*&f=geojson",
-  },
-  {
-    id: "spc-day2-torn-cig",
-    url: "https://mapservices.weather.noaa.gov/vector/rest/services/outlooks/SPC_wx_outlks/MapServer/10/query?where=1%3D1&outFields=*&f=geojson",
-  },
-  {
-    id: "spc-day2-hail",
-    url: "https://mapservices.weather.noaa.gov/vector/rest/services/outlooks/SPC_wx_outlks/MapServer/13/query?where=1%3D1&outFields=*&f=geojson",
-  },
-  {
-    id: "spc-day2-hail-cig",
-    url: "https://mapservices.weather.noaa.gov/vector/rest/services/outlooks/SPC_wx_outlks/MapServer/12/query?where=1%3D1&outFields=*&f=geojson",
-  },
-  {
-    id: "spc-day2-wind",
-    url: "https://mapservices.weather.noaa.gov/vector/rest/services/outlooks/SPC_wx_outlks/MapServer/15/query?where=1%3D1&outFields=*&f=geojson",
-  },
-  {
-    id: "spc-day2-wind-cig",
-    url: "https://mapservices.weather.noaa.gov/vector/rest/services/outlooks/SPC_wx_outlks/MapServer/14/query?where=1%3D1&outFields=*&f=geojson",
-  },
-  {
-    id: "spc-day2-fire-cat",
-    url: "https://mapservices.weather.noaa.gov/vector/rest/services/fire_weather/SPC_firewx/MapServer/4/query?where=1%3D1&outFields=*&f=geojson",
-  },
-  {
-    id: "spc-day2-fire-dryt",
-    url: "https://mapservices.weather.noaa.gov/vector/rest/services/fire_weather/SPC_firewx/MapServer/5/query?where=1%3D1&outFields=*&f=geojson",
-  },
-  {
-    id: "spc-day3-cat",
-    url: "https://mapservices.weather.noaa.gov/vector/rest/services/outlooks/SPC_wx_outlks/MapServer/17/query?where=1%3D1&outFields=*&f=geojson",
-  },
-  {
-    id: "spc-day3-prob",
-    url: "https://mapservices.weather.noaa.gov/vector/rest/services/outlooks/SPC_wx_outlks/MapServer/19/query?where=1%3D1&outFields=*&f=geojson",
-  },
-  {
-    id: "spc-day3-prob-cig",
-    url: "https://mapservices.weather.noaa.gov/vector/rest/services/outlooks/SPC_wx_outlks/MapServer/18/query?where=1%3D1&outFields=*&f=geojson",
-  },
-  {
-    id: "spc-day3-fire-cat",
-    url: "https://mapservices.weather.noaa.gov/vector/rest/services/fire_weather/SPC_firewx/MapServer/8/query?where=1%3D1&outFields=*&f=geojson",
-  },
-  {
-    id: "spc-day3-fire-dryt",
-    url: "https://mapservices.weather.noaa.gov/vector/rest/services/fire_weather/SPC_firewx/MapServer/7/query?where=1%3D1&outFields=*&f=geojson",
-  },
-  {
-    id: "spc-day4-prob",
-    url: "https://mapservices.weather.noaa.gov/vector/rest/services/outlooks/SPC_wx_outlks/MapServer/21/query?where=1%3D1&outFields=*&f=geojson",
-  },
-  {
-    id: "spc-day4-fire-cat",
-    url: "https://mapservices.weather.noaa.gov/vector/rest/services/fire_weather/SPC_firewx/MapServer/11/query?where=1%3D1&outFields=*&f=geojson",
-  },
-  {
-    id: "spc-day4-fire-dryt",
-    url: "https://mapservices.weather.noaa.gov/vector/rest/services/fire_weather/SPC_firewx/MapServer/10/query?where=1%3D1&outFields=*&f=geojson",
-  },
-  {
-    id: "spc-day5-prob",
-    url: "https://mapservices.weather.noaa.gov/vector/rest/services/outlooks/SPC_wx_outlks/MapServer/22/query?where=1%3D1&outFields=*&f=geojson",
-  },
-  {
-    id: "spc-day5-fire-cat",
-    url: "https://mapservices.weather.noaa.gov/vector/rest/services/fire_weather/SPC_firewx/MapServer/14/query?where=1%3D1&outFields=*&f=geojson",
-  },
-  {
-    id: "spc-day5-fire-dryt",
-    url: "https://mapservices.weather.noaa.gov/vector/rest/services/fire_weather/SPC_firewx/MapServer/13/query?where=1%3D1&outFields=*&f=geojson",
-  },
-  {
-    id: "spc-day6-prob",
-    url: "https://mapservices.weather.noaa.gov/vector/rest/services/outlooks/SPC_wx_outlks/MapServer/23/query?where=1%3D1&outFields=*&f=geojson",
-  },
-  {
-    id: "spc-day6-fire-cat",
-    url: "https://mapservices.weather.noaa.gov/vector/rest/services/fire_weather/SPC_firewx/MapServer/17/query?where=1%3D1&outFields=*&f=geojson",
-  },
-  {
-    id: "spc-day6-fire-dryt",
-    url: "https://mapservices.weather.noaa.gov/vector/rest/services/fire_weather/SPC_firewx/MapServer/16/query?where=1%3D1&outFields=*&f=geojson",
-  },
-  {
-    id: "spc-day7-prob",
-    url: "https://mapservices.weather.noaa.gov/vector/rest/services/outlooks/SPC_wx_outlks/MapServer/24/query?where=1%3D1&outFields=*&f=geojson",
-  },
-  {
-    id: "spc-day7-fire-cat",
-    url: "https://mapservices.weather.noaa.gov/vector/rest/services/fire_weather/SPC_firewx/MapServer/20/query?where=1%3D1&outFields=*&f=geojson",
-  },
-  {
-    id: "spc-day7-fire-dryt",
-    url: "https://mapservices.weather.noaa.gov/vector/rest/services/fire_weather/SPC_firewx/MapServer/19/query?where=1%3D1&outFields=*&f=geojson",
-  },
-  {
-    id: "spc-day8-prob",
-    url: "https://mapservices.weather.noaa.gov/vector/rest/services/outlooks/SPC_wx_outlks/MapServer/25/query?where=1%3D1&outFields=*&f=geojson",
-  },
-  {
-    id: "spc-day8-fire-cat",
-    url: "https://mapservices.weather.noaa.gov/vector/rest/services/fire_weather/SPC_firewx/MapServer/23/query?where=1%3D1&outFields=*&f=geojson",
-  },
-  {
-    id: "spc-day8-fire-dryt",
-    url: "https://mapservices.weather.noaa.gov/vector/rest/services/fire_weather/SPC_firewx/MapServer/22/query?where=1%3D1&outFields=*&f=geojson",
-  },
+const SPC_CONV_BASE =
+  "https://mapservices.weather.noaa.gov/vector/rest/services/outlooks/SPC_wx_outlks/MapServer";
+const SPC_FIRE_BASE =
+  "https://mapservices.weather.noaa.gov/vector/rest/services/fire_weather/SPC_firewx/MapServer";
+
+const spcSourceDefs = [
+  ["spc-day1-cat", SPC_CONV_BASE, 1],
+  ["spc-day1-torn", SPC_CONV_BASE, 3],
+  ["spc-day1-torn-cig", SPC_CONV_BASE, 2],
+  ["spc-day1-hail", SPC_CONV_BASE, 5],
+  ["spc-day1-hail-cig", SPC_CONV_BASE, 4],
+  ["spc-day1-wind", SPC_CONV_BASE, 7],
+  ["spc-day1-wind-cig", SPC_CONV_BASE, 6],
+  ["spc-day1-fire-cat", SPC_FIRE_BASE, 1],
+  ["spc-day1-fire-dryt", SPC_FIRE_BASE, 2],
+  ["spc-day2-cat", SPC_CONV_BASE, 9],
+  ["spc-day2-torn", SPC_CONV_BASE, 11],
+  ["spc-day2-torn-cig", SPC_CONV_BASE, 10],
+  ["spc-day2-hail", SPC_CONV_BASE, 13],
+  ["spc-day2-hail-cig", SPC_CONV_BASE, 12],
+  ["spc-day2-wind", SPC_CONV_BASE, 15],
+  ["spc-day2-wind-cig", SPC_CONV_BASE, 14],
+  ["spc-day2-fire-cat", SPC_FIRE_BASE, 4],
+  ["spc-day2-fire-dryt", SPC_FIRE_BASE, 5],
+  ["spc-day3-cat", SPC_CONV_BASE, 17],
+  ["spc-day3-prob", SPC_CONV_BASE, 19],
+  ["spc-day3-prob-cig", SPC_CONV_BASE, 18],
+  ["spc-day3-fire-cat", SPC_FIRE_BASE, 8],
+  ["spc-day3-fire-dryt", SPC_FIRE_BASE, 7],
+  ["spc-day4-prob", SPC_CONV_BASE, 21],
+  ["spc-day4-fire-cat", SPC_FIRE_BASE, 11],
+  ["spc-day4-fire-dryt", SPC_FIRE_BASE, 10],
+  ["spc-day5-prob", SPC_CONV_BASE, 22],
+  ["spc-day5-fire-cat", SPC_FIRE_BASE, 14],
+  ["spc-day5-fire-dryt", SPC_FIRE_BASE, 13],
+  ["spc-day6-prob", SPC_CONV_BASE, 23],
+  ["spc-day6-fire-cat", SPC_FIRE_BASE, 17],
+  ["spc-day6-fire-dryt", SPC_FIRE_BASE, 16],
+  ["spc-day7-prob", SPC_CONV_BASE, 24],
+  ["spc-day7-fire-cat", SPC_FIRE_BASE, 20],
+  ["spc-day7-fire-dryt", SPC_FIRE_BASE, 19],
+  ["spc-day8-prob", SPC_CONV_BASE, 25],
+  ["spc-day8-fire-cat", SPC_FIRE_BASE, 23],
+  ["spc-day8-fire-dryt", SPC_FIRE_BASE, 22],
 ];
 
+window.spcSources = spcSourceDefs.map(([id, base, layer]) => ({
+  id,
+  url: `${base}/${layer}/query?where=1%3D1&outFields=*&f=geojson`,
+}));
+
 const spcCatOrder = ["HIGH", "MDT", "ENH", "SLGT", "MRGL", "TSTM"];
+
+function getFeatureLabel(props) {
+  if (!props) return "";
+  return (
+    props.LABEL ||
+    props.LABEL2 ||
+    props.label ||
+    props.label2 ||
+    ""
+  ).toString();
+}
+
+function clearMapSource(sourceId) {
+  const src = window.map?.getSource(sourceId);
+  if (src) src.setData({ type: "FeatureCollection", features: [] });
+}
 
 window.getAlertColor = function (props) {
   const event = props.event;
@@ -222,9 +134,7 @@ window.getSpecificAlertName = function (props) {
       watchSuffix = " " + parseInt(parts[5], 10).toString();
     }
   }
-  if (event === "Tornado Warning") {
-    return "Tornado Warning";
-  }
+  if (event === "Tornado Warning") return "Tornado Warning";
   if (event === "Severe Thunderstorm Warning") {
     const threat = params.thunderstormDamageThreat?.[0];
     if (threat === "DESTRUCTIVE") return "Destructive Thunderstorm";
@@ -239,9 +149,7 @@ window.getSpecificAlertName = function (props) {
     if (threat === "OBSERVED") return "Confirmed Waterspout";
     if (threat === "POSSIBLE") return "Waterspout Possible";
   }
-  if (event === "Flash Flood Warning") {
-    return "Flash Flood Warning";
-  }
+  if (event === "Flash Flood Warning") return "Flash Flood Warning";
   return event + watchSuffix;
 };
 
@@ -311,7 +219,7 @@ window.processRawAlertFeatures = async function (
       const params = f.properties.parameters;
       const desc = f.properties.description || "";
       const sourceMatch = desc.match(/SOURCE\.+\s*([^.\n\r]+)/i);
-      let finalSource =
+      const finalSource =
         sourceMatch && sourceMatch[1]
           ? sourceMatch[1].trim()
           : params.flashFloodDetection?.[0] || "";
@@ -321,7 +229,7 @@ window.processRawAlertFeatures = async function (
       }
     }
 
-    if (!!f.geometry) {
+    if (f.geometry) {
       f.properties.geometryType = "polygon";
       poly.push(f);
     } else {
@@ -342,12 +250,9 @@ window.processRawAlertFeatures = async function (
     window.globalPolyAlerts = poly;
     const arrowFeatures = [];
     poly.forEach((f) => {
-      if (
-        f.properties.parameters &&
-        f.properties.parameters.eventMotionDescription
-      ) {
+      if (f.properties.parameters?.eventMotionDescription) {
         const motions = window.parseEventMotion(f);
-        if (motions && motions.length > 0) {
+        if (motions.length > 0) {
           const color = f.properties.displayColor || "#FF0000";
           motions.forEach((motion) => {
             arrowFeatures.push(window.createArrowFeature(motion, color));
@@ -369,13 +274,7 @@ window.processRawAlertFeatures = async function (
 window.isValidAlert = function (feature) {
   const props = feature.properties;
   if (!props) return false;
-  if (
-    props.parameters &&
-    props.parameters.VTEC &&
-    props.parameters.VTEC[0] &&
-    props.parameters.VTEC[0].startsWith("/O.CAN.")
-  )
-    return false;
+  if (props.parameters?.VTEC?.[0]?.startsWith("/O.CAN.")) return false;
   return true;
 };
 
@@ -424,7 +323,7 @@ window.parseEventMotion = function (f) {
         results.push({
           time: parts[0],
           type: parts[1],
-          bearing: bearing,
+          bearing,
           speed: speedKnots,
           lat,
           lon,
@@ -478,9 +377,97 @@ window.createArrowFeature = function (motion, color) {
   };
 };
 
+const EVENT_PRIORITY_MAP = {
+  "Extreme Wind Warning": 8,
+  "Tsunami Warning": 9,
+  "Typhoon Warning": 10,
+  "Hurricane Warning": 11,
+  "Hurricane Force Wind Warning": 12,
+  "Storm Warning": 13,
+  "Tropical Storm Warning": 14,
+  "Typhoon Watch": 15,
+  "Hurricane Watch": 16,
+  "Hurricane Force Wind Watch": 17,
+  "Storm Surge Watch": 18,
+  "Tropical Storm Watch": 19,
+  "Tropical Cyclone Local Statement": 20,
+  "Blizzard Warning": 24,
+  "Ice Storm Warning": 25,
+  "Snow Squall Warning": 26,
+  "Lake Effect Snow Warning": 27,
+  "Winter Storm Warning": 28,
+  "Heavy Freezing Spray Warning": 29,
+  "Extreme Heat Warning": 30,
+  "Extreme Cold Warning": 31,
+  "Dust Storm Warning": 32,
+  "Blowing Dust Warning": 33,
+  "High Wind Warning": 34,
+  "Red Flag Warning": 35,
+  "Extreme Fire Danger": 36,
+  "Fire Warning": 37,
+  "Avalanche Warning": 38,
+  "Earthquake Warning": 39,
+  "Volcano Warning": 40,
+  "Ashfall Warning": 41,
+  "Hazardous Seas Warning": 45,
+  "Gale Warning": 47,
+  "High Surf Warning": 48,
+  "Coastal Flood Warning": 49,
+  "Lakeshore Flood Warning": 50,
+  "Flood Warning": 51,
+  "Freeze Warning": 52,
+  "Tornado Watch": 53,
+  "Severe Thunderstorm Watch": 54,
+  "Tsunami Watch": 55,
+  "Flash Flood Watch": 56,
+  "Winter Storm Watch": 57,
+  "Avalanche Watch": 58,
+  "Heavy Freezing Spray Watch": 59,
+  "High Wind Watch": 60,
+  "Extreme Heat Watch": 61,
+  "Extreme Cold Watch": 62,
+  "Freeze Watch": 71,
+  "Tsunami Advisory": 72,
+  "Flash Flood Statement": 73,
+  "Severe Weather Statement": 74,
+  "Special Weather Statement": 75,
+  "Wind Advisory": 76,
+  "Blowing Dust Advisory": 77,
+  "Dust Advisory": 78,
+  "Heat Advisory": 79,
+  "Cold Weather Advisory": 80,
+  "Winter Weather Advisory": 81,
+  "Frost Advisory": 82,
+  "Freezing Fog Advisory": 83,
+  "Freezing Spray Advisory": 84,
+  "Dense Fog Advisory": 85,
+  "Dense Smoke Advisory": 86,
+  "Air Quality Alert": 87,
+  "Air Stagnation Advisory": 88,
+  "Flood Statement": 89,
+  "Lakeshore Flood Statement": 90,
+  "Coastal Flood Statement": 91,
+  "Rip Current Statement": 92,
+  "Beach Hazards Statement": 93,
+  "Flood Advisory": 94,
+  "Coastal Flood Advisory": 95,
+  "Lakeshore Flood Advisory": 96,
+  "High Surf Advisory": 97,
+  "Small Craft Advisory": 98,
+  "Brisk Wind Advisory": 99,
+  "Lake Wind Advisory": 100,
+  "Low Water Advisory": 101,
+  "Ashfall Advisory": 102,
+  "Avalanche Advisory": 103,
+  "Marine Weather Statement": 104,
+  "Hazardous Weather Outlook": 105,
+  "Hydrologic Outlook": 106,
+  "Short Term Forecast": 107,
+};
+
 window.getAlertPriorityScore = function (feature) {
   const p = feature.properties;
-  const event = p.event;
+  const event = p.event || "";
   const params = p.parameters || {};
   const dmg = (
     params.tornadoDamageThreat?.[0] ||
@@ -495,126 +482,25 @@ window.getAlertPriorityScore = function (feature) {
   ).toUpperCase();
 
   if (event === "Tornado Warning") {
-    if (dmg === "CATASTROPHIC") return 1;
-    if (dmg === "CONSIDERABLE") return 2;
-    return 3;
+    return dmg === "CATASTROPHIC" ? 1 : dmg === "CONSIDERABLE" ? 2 : 3;
   }
   if (event === "Severe Thunderstorm Warning") {
     if (dmg === "DESTRUCTIVE") return 4;
     if (dmg === "CONSIDERABLE") return 5;
-    if (det === "POSSIBLE") return 6;
-    return 7;
+    return det === "POSSIBLE" ? 6 : 7;
   }
-  if (event === "Extreme Wind Warning") return 8;
-  if (event === "Tsunami Warning") return 9;
-  if (event === "Typhoon Warning") return 10;
-  if (event === "Hurricane Warning") return 11;
-  if (event === "Hurricane Force Wind Warning") return 12;
-  if (event === "Storm Warning") return 13;
-  if (event === "Tropical Storm Warning") return 14;
-  if (event === "Typhoon Watch") return 15;
-  if (event === "Hurricane Watch") return 16;
-  if (event === "Hurricane Force Wind Watch") return 17;
-  if (event === "Storm Surge Watch") return 18;
-  if (event === "Tropical Storm Watch") return 19;
-  if (event === "Tropical Cyclone Local Statement") return 20;
   if (event === "Flash Flood Warning") {
-    if (dmg === "CATASTROPHIC") return 21;
-    if (dmg === "CONSIDERABLE") return 22;
-    return 23;
+    return dmg === "CATASTROPHIC" ? 21 : dmg === "CONSIDERABLE" ? 22 : 23;
   }
-  if (event === "Blizzard Warning") return 24;
-  if (event === "Ice Storm Warning") return 25;
-  if (event === "Snow Squall Warning") return 26;
-  if (event === "Lake Effect Snow Warning") return 27;
-  if (event === "Winter Storm Warning") return 28;
-  if (event === "Heavy Freezing Spray Warning") return 29;
-  if (event === "Extreme Heat Warning") return 30;
-  if (event === "Extreme Cold Warning") return 31;
-  if (event === "Dust Storm Warning") return 32;
-  if (event === "Blowing Dust Warning") return 33;
-  if (event === "High Wind Warning") return 34;
-  if (event === "Red Flag Warning") return 35;
-  if (event === "Extreme Fire Danger") return 36;
-  if (event === "Fire Warning") return 37;
-  if (event === "Avalanche Warning") return 38;
-  if (event === "Earthquake Warning") return 39;
-  if (event === "Volcano Warning") return 40;
-  if (event === "Ashfall Warning") return 41;
   if (event === "Special Marine Warning") {
-    if (det === "OBSERVED") return 42;
-    if (det === "POSSIBLE") return 43;
-    return 44;
+    return det === "OBSERVED" ? 42 : det === "POSSIBLE" ? 43 : 44;
   }
-  if (event === "Hazardous Seas Warning") return 45;
-  if (event === "Storm Warning") return 46;
-  if (event === "Gale Warning") return 47;
-  if (event === "High Surf Warning") return 48;
-  if (event === "Coastal Flood Warning") return 49;
-  if (event === "Lakeshore Flood Warning") return 50;
-  if (event === "Flood Warning") return 51;
-  if (event === "Freeze Warning") return 52;
-  if (event === "Tornado Watch") return 53;
-  if (event === "Severe Thunderstorm Watch") return 54;
-  if (event === "Tsunami Watch") return 55;
-  if (event === "Flash Flood Watch") return 56;
-  if (event === "Winter Storm Watch") return 57;
-  if (event === "Avalanche Watch") return 58;
-  if (event === "Heavy Freezing Spray Watch") return 59;
-  if (event === "High Wind Watch") return 60;
-  if (event === "Extreme Heat Watch") return 61;
-  if (event === "Extreme Cold Watch") return 62;
-  if (event === "Freeze Watch") return 71;
-  if (event === "Tsunami Advisory") return 72;
-  if (event === "Flash Flood Statement") return 73;
-  if (event === "Severe Weather Statement") return 74;
-  if (event === "Special Weather Statement") return 75;
-  if (event === "Wind Advisory") return 76;
-  if (event === "Blowing Dust Advisory") return 77;
-  if (event === "Dust Advisory") return 78;
-  if (event === "Heat Advisory") return 79;
-  if (event === "Cold Weather Advisory") return 80;
-  if (event === "Winter Weather Advisory") return 81;
-  if (event === "Frost Advisory") return 82;
-  if (event === "Freezing Fog Advisory") return 83;
-  if (event === "Freezing Spray Advisory") return 84;
-  if (event === "Dense Fog Advisory") return 85;
-  if (event === "Dense Smoke Advisory") return 86;
-  if (event === "Air Quality Alert") return 87;
-  if (event === "Air Stagnation Advisory") return 88;
-  if (event === "Flood Statement") return 89;
-  if (event === "Lakeshore Flood Statement") return 90;
-  if (event === "Coastal Flood Statement") return 91;
-  if (event === "Rip Current Statement") return 92;
-  if (event === "Beach Hazards Statement") return 93;
-  if (event === "Flood Advisory") return 94;
-  if (event === "Coastal Flood Advisory") return 95;
-  if (event === "Lakeshore Flood Advisory") return 96;
-  if (event === "High Surf Advisory") return 97;
-  if (event === "Small Craft Advisory") return 98;
-  if (event === "Brisk Wind Advisory") return 99;
-  if (event === "Lake Wind Advisory") return 100;
-  if (event === "Low Water Advisory") return 101;
-  if (event === "Ashfall Advisory") return 102;
-  if (event === "Avalanche Advisory") return 103;
-  if (event === "Marine Weather Statement") return 104;
-  if (event === "Hazardous Weather Outlook") return 105;
-  if (event === "Hydrologic Outlook") return 106;
-  if (event === "Short Term Forecast") return 107;
   if (event.startsWith("Mesoscale Discussion")) return 108;
   if (event === "SPC Outlook") {
-    const day = parseInt(p.spcDay);
-    if (day === 1) return 109;
-    if (day === 2) return 110;
-    if (day === 3) return 111;
-    if (day === 4) return 112;
-    if (day === 5) return 113;
-    if (day === 6) return 114;
-    if (day === 7) return 115;
-    if (day === 8) return 116;
-    return 117;
+    const day = parseInt(p.spcDay, 10);
+    return day >= 1 && day <= 8 ? 108 + day : 117;
   }
-  return 120;
+  return EVENT_PRIORITY_MAP[event] ?? 120;
 };
 
 let activeFlashTimeouts = [];
@@ -626,8 +512,9 @@ window.flashAlertOnMap = function (feature, duration = 7500) {
   activeFlashTimeouts = [];
   source.setData(feature);
   const bw = feature.properties.geometryType === "zone" ? 1 : 2;
-  if (window.map.getLayer("highlight-line"))
+  if (window.map.getLayer("highlight-line")) {
     window.map.setPaintProperty("highlight-line", "line-width", bw);
+  }
 
   const setOpacity = (f, l) => {
     if (window.map.getLayer("highlight-fill"))
@@ -645,7 +532,7 @@ window.flashAlertOnMap = function (feature, duration = 7500) {
     activeFlashTimeouts.push(timeoutId);
   }
   const endTimeoutId = setTimeout(() => {
-    source.setData({ type: "FeatureCollection", features: [] });
+    clearMapSource("highlight-source");
     setOpacity(0, 0);
   }, duration + 50);
   activeFlashTimeouts.push(endTimeoutId);
@@ -680,7 +567,7 @@ window.createAndShowAlertPopup = function (feature, source) {
 
   const specificAlertName = props.specificEventName;
   const accentColor = props.displayColor || "#808080";
-  let title =
+  const title =
     (props.messageType === "Update" ? "Updated - " : "") + specificAlertName;
   let detailsHTML = "<div>";
 
@@ -692,25 +579,29 @@ window.createAndShowAlertPopup = function (feature, source) {
     if (expireDate && !isNaN(expireDate.getTime())) {
       detailsHTML += `<p><strong>Expires:</strong> ${window.formatDateWithTz(expireDate, window.getEffectiveTz(), window.getSmartDateOptions(expireDate, sentDate))}</p>`;
     }
-    if (props.areaDesc && props.areaDesc.toUpperCase() !== "N/A")
+    if (props.areaDesc && props.areaDesc.toUpperCase() !== "N/A") {
       detailsHTML += `<p class="alert-popup-area-clamp"><strong>Affected:</strong> ${props.areaDesc}</p>`;
+    }
     if (
       params.tornadoDetection &&
       window.formatThreatValue(params.tornadoDetection[0])
-    )
+    ) {
       detailsHTML += `<p><strong>Tornado:</strong> ${window.formatThreatValue(params.tornadoDetection[0])}</p>`;
+    }
     if (
       params.waterspoutDetection &&
       window.formatThreatValue(params.waterspoutDetection[0])
-    )
+    ) {
       detailsHTML += `<p><strong>Waterspout:</strong> ${window.formatThreatValue(params.waterspoutDetection[0])}</p>`;
+    }
 
     const dmg =
       params.tornadoDamageThreat?.[0] ||
       params.thunderstormDamageThreat?.[0] ||
       params.flashFloodDamageThreat?.[0];
-    if (dmg && window.formatThreatValue(dmg))
+    if (dmg && window.formatThreatValue(dmg)) {
       detailsHTML += `<p><strong>Threat:</strong> ${window.formatThreatValue(dmg)}</p>`;
+    }
     if (
       params.maxWindGust &&
       params.maxWindGust[0] !== "0 MPH" &&
@@ -728,8 +619,9 @@ window.createAndShowAlertPopup = function (feature, source) {
     if (
       params.flashFloodDetection &&
       window.formatThreatValue(params.flashFloodDetection[0])
-    )
+    ) {
       detailsHTML += `<p><strong>Source:</strong> ${window.formatThreatValue(params.flashFloodDetection[0])}</p>`;
+    }
   }
   popup.style.borderLeft = `5px solid ${accentColor}80`;
   popup.innerHTML = `<h4>${title}</h4>${detailsHTML}</div>`;
@@ -738,7 +630,7 @@ window.createAndShowAlertPopup = function (feature, source) {
     if (props.event === "SPC Outlook") {
       const targetDay = String(props.spcDay);
       const targetType =
-        props.spcType || (parseInt(targetDay) >= 4 ? "prob" : "cat");
+        props.spcType || (parseInt(targetDay, 10) >= 4 ? "prob" : "cat");
       if (
         window.activeSpcDay !== targetDay ||
         window.activeSpcType !== targetType
@@ -812,10 +704,10 @@ window.addNewAlertToQueue = function (feature, type, isSilent = false) {
   const isNew = msgType === "Alert";
 
   const triggerPrefetch = () => {
-    if (id.startsWith("md") && feature.properties.url) {
-      window.fetchMdWatchText(id, feature.properties.url, true);
-    }
-    if (id.startsWith("ww") && feature.properties.url) {
+    if (
+      (id.startsWith("md") || id.startsWith("ww")) &&
+      feature.properties.url
+    ) {
       window.fetchMdWatchText(id, feature.properties.url, true);
     }
   };
@@ -966,16 +858,12 @@ window.updatePlacefileAlerts = async function (isSilent = false) {
     ...mdFeatures.map((f) => f.properties.id),
     ...watchFeatures.map((f) => f.properties.id),
   ]);
+  const keepPlacefileId = (id) =>
+    (!id.startsWith("md") && !id.startsWith("ww")) || liveIds.has(id);
   window.knownAlertIds = new Set(
-    [...window.knownAlertIds].filter(
-      (id) => (!id.startsWith("md") && !id.startsWith("ww")) || liveIds.has(id),
-    ),
+    [...window.knownAlertIds].filter(keepPlacefileId),
   );
-  window.newAlertIds = new Set(
-    [...window.newAlertIds].filter(
-      (id) => (!id.startsWith("md") && !id.startsWith("ww")) || liveIds.has(id),
-    ),
-  );
+  window.newAlertIds = new Set([...window.newAlertIds].filter(keepPlacefileId));
 
   if (window.alertsEnabled && window.mesoDiscussionsEnabled) {
     mdFeatures.forEach((f) => {
@@ -989,11 +877,7 @@ window.updatePlacefileAlerts = async function (isSilent = false) {
     window.globalMdAlerts = mdFeatures;
     mdFeatures.forEach((f) => window.addNewAlertToQueue(f, "alert", isSilent));
   } else if (!window.mesoDiscussionsEnabled) {
-    if (window.map.getSource("alerts-md")) {
-      window.map
-        .getSource("alerts-md")
-        .setData({ type: "FeatureCollection", features: [] });
-    }
+    clearMapSource("alerts-md");
     window.globalMdAlerts = [];
   }
 
@@ -1011,11 +895,7 @@ window.updatePlacefileAlerts = async function (isSilent = false) {
       window.addNewAlertToQueue(f, "alert", isSilent),
     );
   } else {
-    if (window.map.getSource("alerts-poly-watch")) {
-      window.map
-        .getSource("alerts-poly-watch")
-        .setData({ type: "FeatureCollection", features: [] });
-    }
+    clearMapSource("alerts-poly-watch");
     window.globalPolyWatchAlerts = [];
   }
   window.displayNextAlert();
@@ -1054,18 +934,13 @@ window.processZoneAlerts = async function (features, isSilent = false) {
       chunk.map(async (task) => {
         try {
           if (!task.url || typeof task.url !== "string") return;
-          let parsedUrl;
-          try {
-            parsedUrl = new URL(task.url);
-          } catch (e) {
-            return;
-          }
+          const parsedUrl = new URL(task.url);
           const res = await fetch(parsedUrl.href);
           if (!res.ok) throw new Error();
           const data = await res.json();
 
           if (data.geometry && data.geometry.coordinates) {
-            let geoms =
+            const geoms =
               data.geometry.type === "Polygon"
                 ? [data.geometry.coordinates]
                 : data.geometry.coordinates;
@@ -1104,23 +979,8 @@ window.processZoneAlerts = async function (features, isSilent = false) {
   window.globalZoneAlerts = resolvedFeatures;
 };
 
-window.spcOutlookTextCache = {};
-window.fetchSpcOutlookText = async function (
-  day,
-  force = false,
-  customUrl = null,
-) {
-  const cacheKey = customUrl ? customUrl : `${day}_convective`;
-  if (!force && window.spcOutlookTextCache[cacheKey]) {
-    return window.spcOutlookTextCache[cacheKey];
-  }
-  let url = customUrl;
-  if (!url) {
-    url =
-      parseInt(day) >= 4
-        ? "https://www.spc.noaa.gov/products/exper/day4-8/index.html"
-        : `https://www.spc.noaa.gov/products/outlook/day${day}otlk.html`;
-  }
+async function fetchCachedPreText(cache, key, url, force) {
+  if (!force && cache[key]) return cache[key];
   try {
     const res = await fetch(`${url}?t=${Date.now()}`);
     const text = await res.text();
@@ -1128,30 +988,27 @@ window.fetchSpcOutlookText = async function (
       .parseFromString(text, "text/html")
       .querySelector("pre");
     const result = pre ? pre.textContent : "Not found.";
-    window.spcOutlookTextCache[cacheKey] = result;
+    cache[key] = result;
     return result;
   } catch (e) {
-    return window.spcOutlookTextCache[cacheKey] || "Failed to load.";
+    return cache[key] || "Failed to load.";
   }
+}
+
+window.spcOutlookTextCache = {};
+window.fetchSpcOutlookText = function (day, force = false, customUrl = null) {
+  const key = customUrl || `${day}_convective`;
+  const url =
+    customUrl ||
+    (parseInt(day, 10) >= 4
+      ? "https://www.spc.noaa.gov/products/exper/day4-8/index.html"
+      : `https://www.spc.noaa.gov/products/outlook/day${day}otlk.html`);
+  return fetchCachedPreText(window.spcOutlookTextCache, key, url, force);
 };
 
 window.mdWatchTextCache = {};
-window.fetchMdWatchText = async function (id, url, force = false) {
-  if (!force && window.mdWatchTextCache[id]) {
-    return window.mdWatchTextCache[id];
-  }
-  try {
-    const res = await fetch(`${url}?t=${Date.now()}`);
-    const text = await res.text();
-    const pre = new DOMParser()
-      .parseFromString(text, "text/html")
-      .querySelector("pre");
-    const result = pre ? pre.textContent : "Not found.";
-    window.mdWatchTextCache[id] = result;
-    return result;
-  } catch (e) {
-    return window.mdWatchTextCache[id] || "Failed to load.";
-  }
+window.fetchMdWatchText = function (id, url, force = false) {
+  return fetchCachedPreText(window.mdWatchTextCache, id, url, force);
 };
 
 window.getHighestSpcCatFeature = function (features) {
@@ -1182,13 +1039,7 @@ window.getHighestSpcCatFeature = function (features) {
     "MARGINAL FIRE WEATHER (10%)",
   ];
   for (const f of features) {
-    const label = (
-      f.properties.LABEL ||
-      f.properties.LABEL2 ||
-      f.properties.label ||
-      f.properties.label2 ||
-      ""
-    ).toUpperCase();
+    const label = getFeatureLabel(f.properties).toUpperCase();
     const idx = rankOrder.indexOf(label);
     if (idx !== -1 && idx < bestIdx) {
       bestIdx = idx;
@@ -1199,13 +1050,14 @@ window.getHighestSpcCatFeature = function (features) {
 };
 
 window.spcGetIssueValue = function (feature) {
+  const p = feature.properties;
   return (
-    feature.properties.ISSUE ||
-    feature.properties.ISSUE_ISO ||
-    feature.properties.issue ||
-    feature.properties.issue_iso ||
-    feature.properties.idp_filedate ||
-    feature.properties.idp_source ||
+    p.ISSUE ||
+    p.ISSUE_ISO ||
+    p.issue ||
+    p.issue_iso ||
+    p.idp_filedate ||
+    p.idp_source ||
     ""
   ).toString();
 };
@@ -1278,7 +1130,7 @@ window.updateSpcOutlooks = async function () {
         let fetchUrl = s.url;
         if (!fetchUrl.includes("mapservices.weather.noaa.gov")) {
           const separator = fetchUrl.includes("?") ? "&" : "?";
-          fetchUrl = `${fetchUrl}${separator}t=${new Date().getTime()}`;
+          fetchUrl = `${fetchUrl}${separator}t=${Date.now()}`;
         }
         const res = await fetch(fetchUrl);
         const data = await res.json();
@@ -1311,13 +1163,7 @@ window.updateSpcOutlooks = async function () {
 
         const newSnapshot = {};
         for (const f of data.features) {
-          const lbl = (
-            f.properties.LABEL ||
-            f.properties.LABEL2 ||
-            f.properties.label ||
-            f.properties.label2 ||
-            ""
-          ).toUpperCase();
+          const lbl = getFeatureLabel(f.properties).toUpperCase();
           if (lbl) newSnapshot[lbl] = window.spcGetIssueValue(f);
         }
         const oldSnapshot = window.spcIssueSnapshots[s.id] || {};
@@ -1342,77 +1188,45 @@ window.getSpcSourceHighest = function (sourceId) {
   if (!data || !data.features || !data.features.length) return null;
   const features = data.features;
   const isCat = sourceId.endsWith("-cat") || sourceId.includes("-fire");
+  const isLowLabel = (lbl) => {
+    const up = lbl.toUpperCase();
+    const trimmed = lbl.trim();
+    return (
+      !lbl ||
+      up.includes("PROBABILITY TOO LOW") ||
+      trimmed === "0%" ||
+      trimmed === "0" ||
+      trimmed === "0 %"
+    );
+  };
 
   if (isCat) {
     const best = window.getHighestSpcCatFeature(features);
     if (!best) return null;
-    const lbl = (
-      best.properties.LABEL ||
-      best.properties.LABEL2 ||
-      best.properties.label ||
-      best.properties.label2 ||
-      ""
-    ).toUpperCase();
-    if (
-      !lbl ||
-      lbl.includes("PROBABILITY TOO LOW") ||
-      lbl.trim() === "0%" ||
-      lbl.trim() === "0"
-    )
-      return null;
+    const lbl = getFeatureLabel(best.properties).toUpperCase();
+    if (isLowLabel(lbl)) return null;
     return {
       label: lbl,
       fill: best.properties.fill || best.properties.FILL || "#808080",
     };
-  } else {
-    const best = features.reduce((b, f) => {
-      const v = parseFloat(
-        f.properties.LABEL ||
-          f.properties.LABEL2 ||
-          f.properties.label ||
-          f.properties.label2 ||
-          f.properties.dn ||
-          0,
-      );
-      const bv = parseFloat(
-        b?.properties.LABEL ||
-          b?.properties.LABEL2 ||
-          b?.properties.label ||
-          b?.properties.label2 ||
-          b?.properties.dn ||
-          0,
-      );
-      return v > bv ? f : b;
-    }, null);
-    if (!best) return null;
-    const val = parseFloat(
-      best.properties.LABEL ||
-        best.properties.LABEL2 ||
-        best.properties.label ||
-        best.properties.label2 ||
-        best.properties.dn ||
-        0,
-    );
-    if (!val || val <= 0) return null;
-    const rawLabel = String(
-      best.properties.LABEL ||
-        best.properties.LABEL2 ||
-        best.properties.label ||
-        best.properties.label2 ||
-        best.properties.dn,
-    );
-    if (
-      rawLabel.toUpperCase().includes("PROBABILITY TOO LOW") ||
-      rawLabel.trim() === "0%" ||
-      rawLabel.trim() === "0" ||
-      rawLabel.trim() === "0 %"
-    )
-      return null;
-    return {
-      label: window.formatSpcLabel(rawLabel),
-      fill: best.properties.fill || best.properties.FILL || "#808080",
-    };
   }
+
+  const getProbVal = (p) => parseFloat(getFeatureLabel(p) || p?.dn || 0);
+  const best = features.reduce(
+    (b, f) => (getProbVal(f.properties) > getProbVal(b?.properties) ? f : b),
+    null,
+  );
+  if (!best) return null;
+  const val = getProbVal(best.properties);
+  if (!val || val <= 0) return null;
+  const rawLabel = String(
+    getFeatureLabel(best.properties) || best.properties.dn,
+  );
+  if (isLowLabel(rawLabel)) return null;
+  return {
+    label: window.formatSpcLabel(rawLabel),
+    fill: best.properties.fill || best.properties.FILL || "#808080",
+  };
 };
 
 window.updateSpcLayerVisibility = function () {
@@ -1421,36 +1235,24 @@ window.updateSpcLayerVisibility = function () {
     if (window.map.getLayer(id))
       window.map.setLayoutProperty(id, "visibility", "none");
   });
-  if (window.activeSpcDay !== "none") {
-    const dayObj = window.layerIds.spc["day" + window.activeSpcDay];
-    if (dayObj) {
-      if (dayObj[window.activeSpcType]) {
-        const layerId = dayObj[window.activeSpcType];
-        if (window.map.getLayer(layerId))
-          window.map.setLayoutProperty(layerId, "visibility", "visible");
-        if (window.map.getLayer(`${layerId}-border`)) {
-          window.map.setLayoutProperty(
-            `${layerId}-border`,
-            "visibility",
-            "visible",
-          );
-        }
-      }
-      const cigKey = window.activeSpcType + "-cig";
-      if (dayObj[cigKey]) {
-        const cigLayerId = dayObj[cigKey];
-        if (window.map.getLayer(cigLayerId))
-          window.map.setLayoutProperty(cigLayerId, "visibility", "visible");
-        if (window.map.getLayer(`${cigLayerId}-border`)) {
-          window.map.setLayoutProperty(
-            `${cigLayerId}-border`,
-            "visibility",
-            "visible",
-          );
-        }
-      }
-    }
-  }
+  if (window.activeSpcDay === "none") return;
+
+  const dayObj = window.layerIds.spc["day" + window.activeSpcDay];
+  if (!dayObj) return;
+
+  [dayObj[window.activeSpcType], dayObj[`${window.activeSpcType}-cig`]].forEach(
+    (layerId) => {
+      if (!layerId) return;
+      if (window.map.getLayer(layerId))
+        window.map.setLayoutProperty(layerId, "visibility", "visible");
+      if (window.map.getLayer(`${layerId}-border`))
+        window.map.setLayoutProperty(
+          `${layerId}-border`,
+          "visibility",
+          "visible",
+        );
+    },
+  );
 };
 
 window.applyMapAlertFilters = function () {
@@ -1510,21 +1312,13 @@ window.toggleAllAlerts = async function () {
       "alerts-md",
       "alerts-poly-watch",
       "alerts-arrows",
-    ].forEach((s) => {
-      if (window.map.getSource(s))
-        window.map
-          .getSource(s)
-          .setData({ type: "FeatureCollection", features: [] });
-    });
+      "highlight-source",
+    ].forEach(clearMapSource);
     window.globalPolyAlerts = [];
     window.globalZoneAlerts = [];
     window.globalMdAlerts = [];
     window.globalPolyWatchAlerts = [];
     window.alertQueue = [];
-    const highlight = window.map.getSource("highlight-source");
-    if (highlight) {
-      highlight.setData({ type: "FeatureCollection", features: [] });
-    }
   }
   const v = window.alertsEnabled ? "visible" : "none";
   [
@@ -1555,6 +1349,19 @@ window.fetchAndRenderStormReports = async function () {
     return;
   }
   const markers = [];
+  const lsrIconMap = {
+    T: "tornado",
+    H: "weather_hail",
+    G: "air",
+    D: "air",
+  };
+  const snIconMap = {
+    1: "tornado",
+    2: "keyboard_double_arrow_down",
+    3: "keyboard_arrow_down",
+    4: "weather_hail",
+  };
+
   const lsrPromise = (async () => {
     try {
       const res = await fetch(
@@ -1567,21 +1374,14 @@ window.fetchAndRenderStormReports = async function () {
         const type = (f.properties.type || f.properties.TYPE || "")
           .toString()
           .toUpperCase();
-        if (!["T", "H", "G", "D"].includes(type)) return;
-        let iconName = "";
-        if (type === "T") {
-          iconName = "tornado";
-        } else if (type === "H") {
-          iconName = "weather_hail";
-        } else if (type === "G" || type === "D") {
-          iconName = "air";
-        }
+        const iconName = lsrIconMap[type];
         if (iconName) {
           markers.push({ coords: f.geometry.coordinates, iconName });
         }
       });
     } catch (e) {}
   })();
+
   const snPromise = (async () => {
     try {
       const res = await fetch(
@@ -1589,26 +1389,15 @@ window.fetchAndRenderStormReports = async function () {
       );
       if (!res.ok) return;
       const text = await res.text();
-      const lines = text.split("\n");
-      lines.forEach((line) => {
+      text.split("\n").forEach((line) => {
         if (line.trim().toUpperCase().startsWith("ICON:")) {
           const cleanParts = line.replace(/^\s*Icon:\s*/i, "").split(",");
           if (cleanParts.length >= 5) {
             const lat = parseFloat(cleanParts[0]);
             const lon = parseFloat(cleanParts[1]);
-            const type = parseInt(cleanParts[4]);
-            if (isNaN(lat) || isNaN(lon)) return;
-            let iconName = "";
-            if (type === 1) {
-              iconName = "tornado";
-            } else if (type === 2) {
-              iconName = "keyboard_double_arrow_down";
-            } else if (type === 3) {
-              iconName = "keyboard_arrow_down";
-            } else if (type === 4) {
-              iconName = "weather_hail";
-            }
-            if (iconName) {
+            const type = parseInt(cleanParts[4], 10);
+            const iconName = snIconMap[type];
+            if (!isNaN(lat) && !isNaN(lon) && iconName) {
               markers.push({ coords: [lon, lat], iconName });
             }
           }
@@ -1616,9 +1405,11 @@ window.fetchAndRenderStormReports = async function () {
       });
     } catch (e) {}
   })();
+
   await Promise.allSettled([lsrPromise, snPromise]);
   window.clearStormReports();
   if (!window.stormReportsEnabled) return;
+
   markers.forEach((m) => {
     const el = document.createElement("div");
     el.className = "storm-report-marker";

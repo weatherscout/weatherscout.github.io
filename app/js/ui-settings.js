@@ -1,67 +1,194 @@
 document.addEventListener("DOMContentLoaded", () => {
+  function bindBooleanSetting({
+    btnId,
+    toggleId,
+    get,
+    set,
+    toastLabel,
+    onChange,
+  }) {
+    const btn = document.getElementById(btnId);
+    const toggleUI = document.getElementById(toggleId);
+    if (toggleUI) toggleUI.classList.toggle("active", Boolean(get()));
+    if (!btn) return;
+    btn.addEventListener("click", () => {
+      const next = !get();
+      set(next);
+      if (toggleUI) toggleUI.classList.toggle("active", next);
+      onChange?.(next);
+      window.saveCurrentState?.();
+      if (toastLabel) {
+        window.showToast(`${toastLabel}: ${next ? "On" : "Off"}`);
+      }
+    });
+  }
+
+  function pushMenuHistory(isBack) {
+    if (!isBack && window.getCurrentOpenMenu) {
+      const curr = window.getCurrentOpenMenu();
+      if (curr) window.menuHistory.push(curr);
+    }
+  }
+
+  function applySelectorState(selector, activeValue, disableForced) {
+    document.querySelectorAll(selector).forEach((btn) => {
+      const forcedOption = btn.dataset.value !== "auto";
+      const isDisabled = disableForced && forcedOption;
+      btn.classList.toggle("selected", btn.dataset.value === activeValue);
+      btn.disabled = isDisabled;
+      btn.style.opacity = isDisabled ? "0.3" : "";
+      btn.style.cursor = isDisabled ? "default" : "";
+      btn.style.pointerEvents = isDisabled ? "none" : "";
+    });
+  }
+
   const saveSettingsBtn = document.getElementById("save-settings-btn");
   const saveSettingsToggleUI = document.getElementById(
     "save-settings-toggle-ui",
   );
   const resetAppBtn = document.getElementById("reset-app-settings-btn");
-  const selectOfflineBtn = document.getElementById("select-offline-toggle-btn");
-  const selectOfflineToggleUI = document.getElementById(
-    "select-offline-toggle-ui",
-  );
-  const showOfflineBtn = document.getElementById("show-offline-toggle-btn");
-  const showOfflineToggleUI = document.getElementById("show-offline-toggle-ui");
-  const flySettingsBtn = document.getElementById("fly-settings-btn");
-  const flySettingsToggleUI = document.getElementById("fly-settings-toggle-ui");
-  const zoneAlertsBtn = document.getElementById("zone-alerts-settings-btn");
-  const zoneAlertsToggleUI = document.getElementById(
-    "zone-alerts-settings-toggle-ui",
-  );
-  const motionVectorsBtn = document.getElementById(
-    "motion-vectors-settings-btn",
-  );
-  const motionVectorsToggleUI = document.getElementById(
-    "motion-vectors-settings-toggle-ui",
-  );
+
+  if (window.saveSettingsEnabled && saveSettingsToggleUI) {
+    saveSettingsToggleUI.classList.add("active");
+  }
+
+  if (saveSettingsBtn) {
+    saveSettingsBtn.addEventListener("click", () => {
+      if (saveSettingsToggleUI.classList.contains("active")) {
+        saveSettingsToggleUI.classList.remove("active");
+        window.resetAppData(null);
+      } else {
+        saveSettingsToggleUI.classList.add("active");
+        localStorage.setItem("saveSettings", "true");
+        window.saveCurrentState?.();
+        window.showToast("Settings Saved");
+      }
+    });
+  }
+
+  if (resetAppBtn) {
+    resetAppBtn.addEventListener("click", () => {
+      window.resetAppData("App Reset");
+    });
+  }
+
+  bindBooleanSetting({
+    btnId: "motion-vectors-settings-btn",
+    toggleId: "motion-vectors-settings-toggle-ui",
+    get: () => window.motionVectorsEnabled,
+    set: (v) => (window.motionVectorsEnabled = v),
+    toastLabel: "Storm Vectors",
+    onChange: () => window.updateMotionVectorsVisibility?.(),
+  });
+
+  bindBooleanSetting({
+    btnId: "debug-settings-btn",
+    toggleId: "debug-settings-toggle-ui",
+    get: () => window.debugModeEnabled,
+    set: (v) => (window.debugModeEnabled = v),
+    toastLabel: "Debug Mode",
+  });
+
+  bindBooleanSetting({
+    btnId: "select-offline-toggle-btn",
+    toggleId: "select-offline-toggle-ui",
+    get: () => window.selectOfflineSites,
+    set: (v) => (window.selectOfflineSites = v),
+    toastLabel: "Select Offline Sites",
+  });
+
+  bindBooleanSetting({
+    btnId: "show-offline-toggle-btn",
+    toggleId: "show-offline-toggle-ui",
+    get: () => window.showOfflineSites,
+    set: (v) => (window.showOfflineSites = v),
+    toastLabel: "Show Offline Sites",
+    onChange: () => window.updateShowSitesFilter?.(),
+  });
+
+  bindBooleanSetting({
+    btnId: "settings-lock-north-btn",
+    toggleId: "settings-lock-north-toggle-ui",
+    get: () => window.lockNorth,
+    set: (v) => (window.lockNorth = v),
+    toastLabel: "Lock North",
+    onChange: () => window.applyMapConstraints?.(),
+  });
+
+  bindBooleanSetting({
+    btnId: "settings-lock-tilt-btn",
+    toggleId: "settings-lock-tilt-toggle-ui",
+    get: () => window.lockTilt,
+    set: (v) => (window.lockTilt = v),
+    toastLabel: "Lock Tilt",
+    onChange: () => window.applyMapConstraints?.(),
+  });
+
+  bindBooleanSetting({
+    btnId: "fly-settings-btn",
+    toggleId: "fly-settings-toggle-ui",
+    get: () => window.flyToRadarSetting,
+    set: (v) => (window.flyToRadarSetting = v),
+    toastLabel: null,
+  });
+
+  bindBooleanSetting({
+    btnId: "faster-updates-settings-btn",
+    toggleId: "faster-updates-settings-toggle-ui",
+    get: () => window.fasterUpdatesEnabled,
+    set: (v) => (window.fasterUpdatesEnabled = v),
+    toastLabel: "Faster Updates",
+    onChange: () => window.startAlertIntervals?.(),
+  });
+
   const stormReportsBtn = document.getElementById("settings-storm-reports-btn");
   const stormReportsToggleUI = document.getElementById(
     "settings-storm-reports-toggle-ui",
   );
-
-  if (motionVectorsToggleUI) {
-    motionVectorsToggleUI.classList.toggle(
-      "active",
-      window.motionVectorsEnabled,
-    );
-  }
-
-  if (motionVectorsBtn) {
-    motionVectorsBtn.addEventListener("click", () => {
-      window.motionVectorsEnabled = !window.motionVectorsEnabled;
-      motionVectorsToggleUI.classList.toggle(
-        "active",
-        window.motionVectorsEnabled,
-      );
-      if (window.updateMotionVectorsVisibility)
-        window.updateMotionVectorsVisibility();
-      if (window.saveCurrentState) window.saveCurrentState();
-      window.showToast(
-        `Storm Vectors: ${window.motionVectorsEnabled ? "On" : "Off"}`,
-      );
-    });
-  }
-
   if (stormReportsToggleUI) {
     stormReportsToggleUI.classList.toggle("active", window.stormReportsEnabled);
   }
-
   if (stormReportsBtn) {
     stormReportsBtn.addEventListener("click", () => {
-      if (window.toggleStormReports) window.toggleStormReports();
+      window.toggleStormReports?.();
       if (stormReportsToggleUI) {
         stormReportsToggleUI.classList.toggle(
           "active",
           window.stormReportsEnabled,
         );
+      }
+    });
+  }
+
+  const zoneAlertsBtn = document.getElementById("zone-alerts-settings-btn");
+  const zoneAlertsToggleUI = document.getElementById(
+    "zone-alerts-settings-toggle-ui",
+  );
+  if (zoneAlertsToggleUI && window.zoneAlertsEnabled) {
+    zoneAlertsToggleUI.classList.add("active");
+  }
+  if (zoneAlertsBtn) {
+    zoneAlertsBtn.addEventListener("click", () => {
+      window.zoneAlertsEnabled = !window.zoneAlertsEnabled;
+      zoneAlertsToggleUI.classList.toggle("active");
+      window.saveCurrentState?.();
+      if (window.zoneAlertsEnabled) {
+        window.showToast("Zone Alerts: On");
+        window.map
+          ?.getSource("alerts-poly-watch")
+          ?.setData({ type: "FeatureCollection", features: [] });
+        window.globalPolyWatchAlerts = [];
+        if (window.alertsEnabled) window.refreshNwsAlerts?.(true);
+      } else {
+        window.showToast("Zone Alerts: Off");
+        window.map
+          ?.getSource("alerts-zone")
+          ?.setData({ type: "FeatureCollection", features: [] });
+        window.globalZoneAlerts = [];
+        if (window.alertsEnabled) {
+          window.refreshNwsAlerts?.(true);
+          window.updatePlacefileAlerts?.(true);
+        }
       }
     });
   }
@@ -72,215 +199,25 @@ document.addEventListener("DOMContentLoaded", () => {
   const mesoDiscussionsToggleUI = document.getElementById(
     "meso-discussions-settings-toggle-ui",
   );
-  const fasterUpdatesBtn = document.getElementById(
-    "faster-updates-settings-btn",
-  );
-  const fasterUpdatesToggleUI = document.getElementById(
-    "faster-updates-settings-toggle-ui",
-  );
-  const debugSettingsBtn = document.getElementById("debug-settings-btn");
-  const debugSettingsToggleUI = document.getElementById(
-    "debug-settings-toggle-ui",
-  );
-  const debugInput = document.getElementById("debug-file-input");
-
-  const lockNorthToggleUI = document.getElementById(
-    "settings-lock-north-toggle-ui",
-  );
-  const lockTiltToggleUI = document.getElementById(
-    "settings-lock-tilt-toggle-ui",
-  );
-  const lockNorthBtn = document.getElementById("settings-lock-north-btn");
-  const lockTiltBtn = document.getElementById("settings-lock-tilt-btn");
-
-  if (window.saveSettingsEnabled && saveSettingsToggleUI)
-    saveSettingsToggleUI.classList.add("active");
-  if (window.debugModeEnabled && debugSettingsToggleUI)
-    debugSettingsToggleUI.classList.add("active");
-  if (window.selectOfflineSites && selectOfflineToggleUI)
-    selectOfflineToggleUI.classList.add("active");
-  if (window.showOfflineSites && showOfflineToggleUI)
-    showOfflineToggleUI.classList.add("active");
-  if (window.lockNorth && lockNorthToggleUI)
-    lockNorthToggleUI.classList.add("active");
-  if (window.lockTilt && lockTiltToggleUI)
-    lockTiltToggleUI.classList.add("active");
-  if (window.flyToRadarSetting && flySettingsToggleUI)
-    flySettingsToggleUI.classList.add("active");
-  if (window.zoneAlertsEnabled && zoneAlertsToggleUI)
-    zoneAlertsToggleUI.classList.add("active");
-  if (window.mesoDiscussionsEnabled && mesoDiscussionsToggleUI)
+  if (mesoDiscussionsToggleUI && window.mesoDiscussionsEnabled) {
     mesoDiscussionsToggleUI.classList.add("active");
-  if (window.fasterUpdatesEnabled && fasterUpdatesToggleUI)
-    fasterUpdatesToggleUI.classList.add("active");
-
-  if (saveSettingsBtn) {
-    saveSettingsBtn.addEventListener("click", () => {
-      if (saveSettingsToggleUI.classList.contains("active")) {
-        saveSettingsToggleUI.classList.remove("active");
-        localStorage.clear();
-        document.cookie
-          .split(";")
-          .forEach(
-            (c) =>
-              (document.cookie = c
-                .replace(/^ +/, "")
-                .replace(
-                  /=.*/,
-                  "=;expires=" + new Date().toUTCString() + ";path=/",
-                )),
-          );
-        location.reload();
-      } else {
-        saveSettingsToggleUI.classList.add("active");
-        localStorage.setItem("saveSettings", "true");
-        if (window.saveCurrentState) window.saveCurrentState();
-        window.showToast("Settings Saved");
-      }
-    });
   }
-
-  if (resetAppBtn) {
-    resetAppBtn.addEventListener("click", () => {
-      localStorage.clear();
-      document.cookie
-        .split(";")
-        .forEach(
-          (c) =>
-            (document.cookie = c
-              .replace(/^ +/, "")
-              .replace(
-                /=.*/,
-                "=;expires=" + new Date().toUTCString() + ";path=/",
-              )),
-        );
-      window.showToast("App Reset");
-      setTimeout(() => location.reload(), 600);
-    });
-  }
-
-  if (debugSettingsBtn) {
-    debugSettingsBtn.addEventListener("click", () => {
-      window.debugModeEnabled = !window.debugModeEnabled;
-      debugSettingsToggleUI.classList.toggle("active");
-      if (window.saveCurrentState) window.saveCurrentState();
-      window.showToast(`Debug Mode: ${window.debugModeEnabled ? "On" : "Off"}`);
-    });
-  }
-
-  if (selectOfflineBtn) {
-    selectOfflineBtn.addEventListener("click", () => {
-      window.selectOfflineSites = !window.selectOfflineSites;
-      selectOfflineToggleUI.classList.toggle(
-        "active",
-        window.selectOfflineSites,
-      );
-      if (window.saveCurrentState) window.saveCurrentState();
-      window.showToast(
-        `Select Offline Sites: ${window.selectOfflineSites ? "On" : "Off"}`,
-      );
-    });
-  }
-
-  if (showOfflineBtn) {
-    showOfflineBtn.addEventListener("click", () => {
-      window.showOfflineSites = !window.showOfflineSites;
-      showOfflineToggleUI.classList.toggle("active", window.showOfflineSites);
-      if (window.updateShowSitesFilter) window.updateShowSitesFilter();
-      if (window.saveCurrentState) window.saveCurrentState();
-      window.showToast(
-        `Show Offline Sites: ${window.showOfflineSites ? "On" : "Off"}`,
-      );
-    });
-  }
-
-  if (lockNorthBtn) {
-    lockNorthBtn.addEventListener("click", () => {
-      window.lockNorth = !window.lockNorth;
-      lockNorthToggleUI.classList.toggle("active", window.lockNorth);
-      if (window.applyMapConstraints) window.applyMapConstraints();
-      if (window.saveCurrentState) window.saveCurrentState();
-      window.showToast(`Lock North: ${window.lockNorth ? "On" : "Off"}`);
-    });
-  }
-
-  if (lockTiltBtn) {
-    lockTiltBtn.addEventListener("click", () => {
-      window.lockTilt = !window.lockTilt;
-      lockTiltToggleUI.classList.toggle("active", window.lockTilt);
-      if (window.applyMapConstraints) window.applyMapConstraints();
-      if (window.saveCurrentState) window.saveCurrentState();
-      window.showToast(`Lock Tilt: ${window.lockTilt ? "On" : "Off"}`);
-    });
-  }
-
-  if (flySettingsBtn) {
-    flySettingsBtn.addEventListener("click", () => {
-      window.flyToRadarSetting = !window.flyToRadarSetting;
-      flySettingsToggleUI.classList.toggle("active");
-      if (window.saveCurrentState) window.saveCurrentState();
-    });
-  }
-
-  if (zoneAlertsBtn) {
-    zoneAlertsBtn.addEventListener("click", () => {
-      window.zoneAlertsEnabled = !window.zoneAlertsEnabled;
-      zoneAlertsToggleUI.classList.toggle("active");
-      if (window.saveCurrentState) window.saveCurrentState();
-      if (window.zoneAlertsEnabled) {
-        window.showToast("Zone Alerts: On");
-        if (window.map && window.map.getSource("alerts-poly-watch"))
-          window.map
-            .getSource("alerts-poly-watch")
-            .setData({ type: "FeatureCollection", features: [] });
-        window.globalPolyWatchAlerts = [];
-        if (window.alertsEnabled && window.refreshNwsAlerts)
-          window.refreshNwsAlerts(true);
-      } else {
-        window.showToast("Zone Alerts: Off");
-        if (window.map && window.map.getSource("alerts-zone"))
-          window.map
-            .getSource("alerts-zone")
-            .setData({ type: "FeatureCollection", features: [] });
-        window.globalZoneAlerts = [];
-        if (window.alertsEnabled) {
-          if (window.refreshNwsAlerts) window.refreshNwsAlerts(true);
-          if (window.updatePlacefileAlerts) window.updatePlacefileAlerts(true);
-        }
-      }
-    });
-  }
-
   if (mesoDiscussionsBtn) {
     mesoDiscussionsBtn.addEventListener("click", () => {
       window.mesoDiscussionsEnabled = !window.mesoDiscussionsEnabled;
       mesoDiscussionsToggleUI.classList.toggle("active");
-      if (window.saveCurrentState) window.saveCurrentState();
+      window.saveCurrentState?.();
       if (window.mesoDiscussionsEnabled) {
         window.showToast("Mesoscale Discussions: On");
-        if (window.alertsEnabled && window.updatePlacefileAlerts)
-          window.updatePlacefileAlerts(true);
+        if (window.alertsEnabled) window.updatePlacefileAlerts?.(true);
       } else {
         window.showToast("Mesoscale Discussions: Off");
-        if (window.map && window.map.getSource("alerts-md"))
-          window.map
-            .getSource("alerts-md")
-            .setData({ type: "FeatureCollection", features: [] });
+        window.map
+          ?.getSource("alerts-md")
+          ?.setData({ type: "FeatureCollection", features: [] });
         window.globalMdAlerts = [];
-        if (window.renderAlertsSidebar) window.renderAlertsSidebar();
+        window.renderAlertsSidebar?.();
       }
-    });
-  }
-
-  if (fasterUpdatesBtn) {
-    fasterUpdatesBtn.addEventListener("click", () => {
-      window.fasterUpdatesEnabled = !window.fasterUpdatesEnabled;
-      fasterUpdatesToggleUI.classList.toggle("active");
-      if (window.saveCurrentState) window.saveCurrentState();
-      if (window.startAlertIntervals) window.startAlertIntervals();
-      window.showToast(
-        `Faster Updates: ${window.fasterUpdatesEnabled ? "On" : "Off"}`,
-      );
     });
   }
 
@@ -290,46 +227,32 @@ document.addEventListener("DOMContentLoaded", () => {
   function updateTzSelector() {
     const isLocal = window.appTimeZone === localBrowserTz;
     const isUTC = window.appTimeZone === "UTC";
-    const localOpt = document.querySelector('.tz-option[data-value="local"]');
-    const utcOpt = document.querySelector('.tz-option[data-value="UTC"]');
-    if (localOpt) localOpt.classList.toggle("selected", isLocal);
-    if (utcOpt) utcOpt.classList.toggle("selected", isUTC && !isLocal);
-    if (tzCustomInput)
-      tzCustomInput.classList.toggle("active", !isLocal && !isUTC);
+    document
+      .querySelector('.tz-option[data-value="local"]')
+      ?.classList.toggle("selected", isLocal);
+    document
+      .querySelector('.tz-option[data-value="UTC"]')
+      ?.classList.toggle("selected", isUTC && !isLocal);
+    tzCustomInput?.classList.toggle("active", !isLocal && !isUTC);
   }
 
   function updateDstSelector() {
-    let fixed = false;
-    if (window.isFixedOffset) fixed = window.isFixedOffset(window.appTimeZone);
+    const fixed = window.isFixedOffset
+      ? window.isFixedOffset(window.appTimeZone)
+      : false;
     if (fixed && window.appDstMode !== "auto") window.appDstMode = "auto";
-    document.querySelectorAll(".dst-option").forEach((btn) => {
-      const forcedOption = btn.dataset.value !== "auto";
-      btn.classList.toggle("selected", btn.dataset.value === window.appDstMode);
-      btn.disabled = fixed && forcedOption;
-      btn.style.opacity = fixed && forcedOption ? "0.3" : "";
-      btn.style.cursor = fixed && forcedOption ? "default" : "";
-      btn.style.pointerEvents = fixed && forcedOption ? "none" : "";
-    });
+    applySelectorState(".dst-option", window.appDstMode, fixed);
   }
 
   function updateHourSelector() {
-    let utcZero = false;
-    if (window.isUTCZero) utcZero = window.isUTCZero(window.appTimeZone);
+    const utcZero = window.isUTCZero
+      ? window.isUTCZero(window.appTimeZone)
+      : false;
     if (utcZero && window.appHourMode !== "auto") {
       window.appHourMode = "auto";
-      if (window.saveCurrentState) window.saveCurrentState();
+      window.saveCurrentState?.();
     }
-    document.querySelectorAll(".hour-option").forEach((btn) => {
-      const forcedOption = btn.dataset.value !== "auto";
-      btn.classList.toggle(
-        "selected",
-        btn.dataset.value === window.appHourMode,
-      );
-      btn.disabled = utcZero && forcedOption;
-      btn.style.opacity = utcZero && forcedOption ? "0.3" : "";
-      btn.style.cursor = utcZero && forcedOption ? "default" : "";
-      btn.style.pointerEvents = utcZero && forcedOption ? "none" : "";
-    });
+    applySelectorState(".hour-option", window.appHourMode, utcZero);
   }
 
   updateTzSelector();
@@ -353,7 +276,7 @@ document.addEventListener("DOMContentLoaded", () => {
       updateTzSelector();
       updateDstSelector();
       updateHourSelector();
-      if (window.saveCurrentState) window.saveCurrentState();
+      window.saveCurrentState?.();
       window.showToast("Time Zone: " + btn.textContent.trim());
     });
   });
@@ -363,23 +286,19 @@ document.addEventListener("DOMContentLoaded", () => {
       tzCustomInput.classList.remove("invalid"),
     );
     tzCustomInput.addEventListener("input", () => {
-      let resolved = null;
-      if (window.resolveCustomInput)
-        resolved = window.resolveCustomInput(tzCustomInput.value);
+      const resolved = window.resolveCustomInput?.(tzCustomInput.value);
       const hasVal = tzCustomInput.value.trim() !== "";
       tzCustomInput.classList.toggle("invalid", hasVal && !resolved);
     });
     tzCustomInput.addEventListener("change", () => {
-      let resolved = null;
-      if (window.resolveCustomInput)
-        resolved = window.resolveCustomInput(tzCustomInput.value);
+      const resolved = window.resolveCustomInput?.(tzCustomInput.value);
       if (resolved) {
         window.appTimeZone = resolved;
         tzCustomInput.classList.remove("invalid");
         updateTzSelector();
         updateDstSelector();
         updateHourSelector();
-        if (window.saveCurrentState) window.saveCurrentState();
+        window.saveCurrentState?.();
         window.showToast("Time Zone: " + tzCustomInput.value.trim());
       }
     });
@@ -395,7 +314,7 @@ document.addEventListener("DOMContentLoaded", () => {
     btn.addEventListener("click", () => {
       window.appDstMode = btn.dataset.value;
       updateDstSelector();
-      if (window.saveCurrentState) window.saveCurrentState();
+      window.saveCurrentState?.();
       window.showToast("Time Mode: " + btn.textContent.trim());
     });
   });
@@ -405,7 +324,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (btn.disabled) return;
       window.appHourMode = btn.dataset.value;
       updateHourSelector();
-      if (window.saveCurrentState) window.saveCurrentState();
+      window.saveCurrentState?.();
       window.showToast("Hour Format: " + btn.textContent.trim());
     });
   });
@@ -417,7 +336,7 @@ document.addEventListener("DOMContentLoaded", () => {
     document.querySelectorAll(".loop-time-option").forEach((btn) => {
       btn.classList.toggle(
         "selected",
-        isPreset && parseInt(btn.dataset.value) === mins,
+        isPreset && parseInt(btn.dataset.value, 10) === mins,
       );
     });
     if (loopCustomInput) {
@@ -428,8 +347,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
   document.querySelectorAll(".loop-time-option").forEach((btn) => {
     btn.addEventListener("click", () => {
-      const val = parseInt(btn.dataset.value);
-      if (window.setRadarLoopMinutes) window.setRadarLoopMinutes(val);
+      const val = parseInt(btn.dataset.value, 10);
+      window.setRadarLoopMinutes?.(val);
       updateLoopTimeUI();
       window.showToast(`Loop Time: ${val} min`);
     });
@@ -444,7 +363,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
     loopCustomInput.addEventListener("input", () => {
       loopCustomInput.value = loopCustomInput.value.replace(/[^0-9]/g, "");
-      const val = parseInt(loopCustomInput.value);
+      const val = parseInt(loopCustomInput.value, 10);
       const hasVal = loopCustomInput.value.trim() !== "";
       loopCustomInput.classList.toggle(
         "invalid",
@@ -452,7 +371,7 @@ document.addEventListener("DOMContentLoaded", () => {
       );
     });
     loopCustomInput.addEventListener("change", () => {
-      const raw = parseInt(loopCustomInput.value.replace(/[^0-9]/g, ""));
+      const raw = parseInt(loopCustomInput.value.replace(/[^0-9]/g, ""), 10);
       if (!isNaN(raw) && raw >= 5 && raw <= 120) {
         const snapped = Math.round(raw / 5) * 5;
         loopCustomInput.classList.remove("invalid");
@@ -461,7 +380,7 @@ document.addEventListener("DOMContentLoaded", () => {
           .forEach((b) => b.classList.remove("selected"));
         loopCustomInput.classList.add("active");
         loopCustomInput.value = `${snapped} min`;
-        if (window.setRadarLoopMinutes) window.setRadarLoopMinutes(snapped);
+        window.setRadarLoopMinutes?.(snapped);
         window.showToast(`Loop Time: ${snapped} min`);
       } else {
         updateLoopTimeUI();
@@ -491,7 +410,7 @@ document.addEventListener("DOMContentLoaded", () => {
       window.radarSiteSelectionMode = option.dataset.value;
       window.showToast(`Site Selection: ${window.radarSiteSelectionMode}`);
       updateSiteSelectionUI();
-      if (window.saveCurrentState) window.saveCurrentState();
+      window.saveCurrentState?.();
     });
   });
 
@@ -499,8 +418,8 @@ document.addEventListener("DOMContentLoaded", () => {
     option.addEventListener("click", () => {
       window.showSitesMode = option.dataset.value;
       window.showToast(`Show Sites: ${window.showSitesMode}`);
-      if (window.updateShowSitesFilter) window.updateShowSitesFilter();
-      if (window.saveCurrentState) window.saveCurrentState();
+      window.updateShowSitesFilter?.();
+      window.saveCurrentState?.();
     });
   });
 
@@ -527,7 +446,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   window.openSettings = function (isBack = false) {
     if (!isBack) window.menuHistory = [];
-    if (window.closeAllMenus) window.closeAllMenus();
+    window.closeAllMenus?.();
     const settingsPopup = document.getElementById("settings-popup");
     const fabSettings = document.getElementById("fab-settings");
     if (settingsPopup) {
@@ -538,39 +457,25 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   window.closeSettings = function () {
-    const settingsPopup = document.getElementById("settings-popup");
-    const fabSettings = document.getElementById("fab-settings");
-    if (settingsPopup) settingsPopup.classList.remove("open");
-    if (fabSettings) fabSettings.classList.remove("active");
+    document.getElementById("settings-popup")?.classList.remove("open");
+    document.getElementById("fab-settings")?.classList.remove("active");
   };
 
-  const settingsCloseBtn = document.getElementById("settings-close-btn");
-  if (settingsCloseBtn)
-    settingsCloseBtn.addEventListener("click", window.closeSettings);
-
-  const setOpenAlertsBtn = document.getElementById("settings-open-alerts-btn");
-  if (setOpenAlertsBtn)
-    setOpenAlertsBtn.addEventListener("click", () =>
-      window.openAlertSettings(),
-    );
-
-  const setOpenRadarBtn = document.getElementById("settings-open-radar-btn");
-  if (setOpenRadarBtn)
-    setOpenRadarBtn.addEventListener("click", () =>
-      window.openRadarSettingsFrom("settings"),
-    );
+  document
+    .getElementById("settings-close-btn")
+    ?.addEventListener("click", window.closeSettings);
+  document
+    .getElementById("settings-open-alerts-btn")
+    ?.addEventListener("click", () => window.openAlertSettings());
+  document
+    .getElementById("settings-open-radar-btn")
+    ?.addEventListener("click", () => window.openRadarSettingsFrom("settings"));
 
   const alertSettingsPopup = document.getElementById("alert-settings-popup");
-  const alertSettingsCloseBtn = document.getElementById(
-    "alert-settings-close-btn",
-  );
 
   window.openAlertSettings = function (isBack = false) {
-    if (!isBack && window.getCurrentOpenMenu) {
-      const curr = window.getCurrentOpenMenu();
-      if (curr) window.menuHistory.push(curr);
-    }
-    if (window.closeAllMenus) window.closeAllMenus();
+    pushMenuHistory(isBack);
+    window.closeAllMenus?.();
     if (alertSettingsPopup) {
       alertSettingsPopup.classList.add("open");
       alertSettingsPopup.querySelector(".settings-body").scrollTop = 0;
@@ -578,40 +483,35 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   window.closeAlertSettings = function () {
-    if (alertSettingsPopup) alertSettingsPopup.classList.remove("open");
+    alertSettingsPopup?.classList.remove("open");
   };
 
-  if (alertSettingsCloseBtn)
-    alertSettingsCloseBtn.addEventListener("click", window.closeAlertSettings);
-
-  const alertSettBack = document.getElementById("alert-settings-back-btn");
-  if (alertSettBack) alertSettBack.addEventListener("click", window.goBack);
+  document
+    .getElementById("alert-settings-close-btn")
+    ?.addEventListener("click", window.closeAlertSettings);
+  document
+    .getElementById("alert-settings-back-btn")
+    ?.addEventListener("click", window.goBack);
 
   const radarSettingsPopup = document.getElementById("radar-settings-popup");
   window.openRadarSettingsFrom = function (opener, isBack = false) {
-    if (!isBack && window.getCurrentOpenMenu) {
-      const curr = window.getCurrentOpenMenu();
-      if (curr) window.menuHistory.push(curr);
-    }
-    if (window.closeAllMenus) window.closeAllMenus();
-    if (radarSettingsPopup) radarSettingsPopup.classList.add("open");
+    pushMenuHistory(isBack);
+    window.closeAllMenus?.();
+    radarSettingsPopup?.classList.add("open");
   };
 
   window.closeRadarSettings = function () {
-    if (radarSettingsPopup) radarSettingsPopup.classList.remove("open");
+    radarSettingsPopup?.classList.remove("open");
   };
 
-  const rSettClose = document.getElementById("radar-settings-close-btn");
-  if (rSettClose)
-    rSettClose.addEventListener("click", window.closeRadarSettings);
-  const rSettBack = document.getElementById("radar-settings-back-btn");
-  if (rSettBack) rSettBack.addEventListener("click", window.goBack);
+  document
+    .getElementById("radar-settings-close-btn")
+    ?.addEventListener("click", window.closeRadarSettings);
+  document
+    .getElementById("radar-settings-back-btn")
+    ?.addEventListener("click", window.goBack);
 
   const hiddenAlertsPanel = document.getElementById("hidden-alerts-panel");
-  const hiddenAlertsBackBtn = document.getElementById("hidden-alerts-back-btn");
-  const hiddenAlertsCloseBtn = document.getElementById(
-    "hidden-alerts-close-btn",
-  );
   const hiddenAlertsSearch = document.getElementById("hidden-alerts-search");
   const hiddenAlertsListEl = document.getElementById("hidden-alerts-list");
   const hiddenAlertsCountLabel = document.getElementById(
@@ -623,39 +523,33 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function updateHiddenAlertsCountLabel() {
     const n = window.hiddenAlertTypes.size;
-    if (hiddenAlertsCountLabel) {
-      hiddenAlertsCountLabel.textContent =
-        n === 0 ? "No alerts hidden" : `${n} alert${n >= 2 ? "s" : ""} hidden`;
-      if (n === 0) {
-        hiddenAlertsCountLabel.style.width = "100%";
-        hiddenAlertsCountLabel.style.textAlign = "center";
-        if (hiddenAlertsResetBtn) hiddenAlertsResetBtn.style.display = "none";
-      } else {
-        hiddenAlertsCountLabel.style.width = "";
-        hiddenAlertsCountLabel.style.textAlign = "";
-        if (hiddenAlertsResetBtn) hiddenAlertsResetBtn.style.display = "block";
-      }
+    if (!hiddenAlertsCountLabel) return;
+    hiddenAlertsCountLabel.textContent =
+      n === 0 ? "No alerts hidden" : `${n} alert${n >= 2 ? "s" : ""} hidden`;
+    hiddenAlertsCountLabel.style.width = n === 0 ? "100%" : "";
+    hiddenAlertsCountLabel.style.textAlign = n === 0 ? "center" : "";
+    if (hiddenAlertsResetBtn) {
+      hiddenAlertsResetBtn.style.display = n === 0 ? "none" : "block";
     }
   }
 
   function renderHiddenAlertsList(filter) {
     if (!hiddenAlertsListEl || !window.alertColorMap) return;
     const query = (filter || "").toLowerCase();
-    const allTypes = Object.keys(window.alertColorMap);
-    const sorted = allTypes.slice().sort((a, b) => {
+    const sorted = Object.keys(window.alertColorMap).sort((a, b) => {
       const aHidden = window.hiddenAlertTypes.has(a) ? 1 : 0;
       const bHidden = window.hiddenAlertTypes.has(b) ? 1 : 0;
       if (aHidden !== bHidden) return aHidden - bHidden;
-      let scoreA = 0,
-        scoreB = 0;
-      if (window.getAlertPriorityScore) {
-        scoreA = window.getAlertPriorityScore({
-          properties: { event: a, parameters: {} },
-        });
-        scoreB = window.getAlertPriorityScore({
-          properties: { event: b, parameters: {} },
-        });
-      }
+      const scoreA = window.getAlertPriorityScore
+        ? window.getAlertPriorityScore({
+            properties: { event: a, parameters: {} },
+          })
+        : 0;
+      const scoreB = window.getAlertPriorityScore
+        ? window.getAlertPriorityScore({
+            properties: { event: b, parameters: {} },
+          })
+        : 0;
       return scoreA - scoreB;
     });
     const visible = query
@@ -672,6 +566,7 @@ document.addEventListener("DOMContentLoaded", () => {
     existingRows.forEach((r) => {
       if (!newKeys.has(r.dataset.eventType)) r.remove();
     });
+
     visible.forEach((eventType, i) => {
       const isHidden = window.hiddenAlertTypes.has(eventType);
       const color = window.alertColorMap[eventType] || "#808080";
@@ -695,11 +590,13 @@ document.addEventListener("DOMContentLoaded", () => {
           : `${color}80`;
         row.innerHTML = `<span class="hidden-alert-label">${eventType}</span><i class="material-symbols-rounded hidden-alert-eye">${isHidden ? "visibility_off" : "visibility"}</i>`;
         row.addEventListener("click", () => {
-          if (window.hiddenAlertTypes.has(eventType))
+          if (window.hiddenAlertTypes.has(eventType)) {
             window.hiddenAlertTypes.delete(eventType);
-          else window.hiddenAlertTypes.add(eventType);
-          if (window.applyMapAlertFilters) window.applyMapAlertFilters();
-          if (window.saveCurrentState) window.saveCurrentState();
+          } else {
+            window.hiddenAlertTypes.add(eventType);
+          }
+          window.applyMapAlertFilters?.();
+          window.saveCurrentState?.();
           updateHiddenAlertsCountLabel();
           renderHiddenAlertsList(hiddenAlertsSearch.value);
         });
@@ -711,11 +608,8 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   window.openHiddenAlertsPanel = function (isBack = false) {
-    if (!isBack && window.getCurrentOpenMenu) {
-      const curr = window.getCurrentOpenMenu();
-      if (curr) window.menuHistory.push(curr);
-    }
-    if (window.closeAllMenus) window.closeAllMenus();
+    pushMenuHistory(isBack);
+    window.closeAllMenus?.();
     if (hiddenAlertsSearch) hiddenAlertsSearch.value = "";
     renderHiddenAlertsList("");
     if (hiddenAlertsPanel) {
@@ -726,66 +620,52 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   window.closeHiddenAlertsPanel = function () {
-    if (hiddenAlertsPanel) hiddenAlertsPanel.classList.remove("open");
+    hiddenAlertsPanel?.classList.remove("open");
   };
 
-  if (hiddenAlertsBackBtn)
-    hiddenAlertsBackBtn.addEventListener("click", window.goBack);
-  if (hiddenAlertsCloseBtn)
-    hiddenAlertsCloseBtn.addEventListener(
-      "click",
-      window.closeHiddenAlertsPanel,
-    );
-  if (hiddenAlertsSearch)
-    hiddenAlertsSearch.addEventListener("input", () =>
-      renderHiddenAlertsList(hiddenAlertsSearch.value),
-    );
-
-  if (hiddenAlertsResetBtn) {
-    hiddenAlertsResetBtn.addEventListener("click", () => {
-      window.hiddenAlertTypes.clear();
-      if (window.applyMapAlertFilters) window.applyMapAlertFilters();
-      if (window.saveCurrentState) window.saveCurrentState();
-      renderHiddenAlertsList(
-        hiddenAlertsSearch ? hiddenAlertsSearch.value : "",
-      );
-      window.showToast("All alert types visible");
-    });
-  }
-
-  const hiddenAlertsTrigger = document.getElementById("hidden-alert-types-btn");
-  if (hiddenAlertsTrigger)
-    hiddenAlertsTrigger.addEventListener("click", () =>
-      window.openHiddenAlertsPanel(),
-    );
+  document
+    .getElementById("hidden-alerts-back-btn")
+    ?.addEventListener("click", window.goBack);
+  document
+    .getElementById("hidden-alerts-close-btn")
+    ?.addEventListener("click", window.closeHiddenAlertsPanel);
+  hiddenAlertsSearch?.addEventListener("input", () =>
+    renderHiddenAlertsList(hiddenAlertsSearch.value),
+  );
+  hiddenAlertsResetBtn?.addEventListener("click", () => {
+    window.hiddenAlertTypes.clear();
+    window.applyMapAlertFilters?.();
+    window.saveCurrentState?.();
+    renderHiddenAlertsList(hiddenAlertsSearch ? hiddenAlertsSearch.value : "");
+    window.showToast("All alert types visible");
+  });
+  document
+    .getElementById("hidden-alert-types-btn")
+    ?.addEventListener("click", () => window.openHiddenAlertsPanel());
 
   const alertSoundsPanel = document.getElementById("alert-sounds-panel");
-  const alertSoundsBackBtn = document.getElementById("alert-sounds-back-btn");
-  const alertSoundsCloseBtn = document.getElementById("alert-sounds-close-btn");
   const alertSoundsSearch = document.getElementById("alert-sounds-search");
   const alertSoundsListEl = document.getElementById("alert-sounds-list");
-  const alertSoundsResetBtn = document.getElementById("alert-sounds-reset-btn");
 
   function renderAlertSoundsList(filter) {
     if (!alertSoundsListEl || !window.alertColorMap) return;
     const query = (filter || "").toLowerCase();
-    const allTypes = Object.keys(window.alertColorMap);
-    const sorted = allTypes.slice().sort((a, b) => {
+    const sorted = Object.keys(window.alertColorMap).sort((a, b) => {
       const aHasSound =
         window.alertSoundsMap[a] && window.alertSoundsMap[a] !== "none" ? 0 : 1;
       const bHasSound =
         window.alertSoundsMap[b] && window.alertSoundsMap[b] !== "none" ? 0 : 1;
       if (aHasSound !== bHasSound) return aHasSound - bHasSound;
-      let scoreA = 0,
-        scoreB = 0;
-      if (window.getAlertPriorityScore) {
-        scoreA = window.getAlertPriorityScore({
-          properties: { event: a, parameters: {} },
-        });
-        scoreB = window.getAlertPriorityScore({
-          properties: { event: b, parameters: {} },
-        });
-      }
+      const scoreA = window.getAlertPriorityScore
+        ? window.getAlertPriorityScore({
+            properties: { event: a, parameters: {} },
+          })
+        : 0;
+      const scoreB = window.getAlertPriorityScore
+        ? window.getAlertPriorityScore({
+            properties: { event: b, parameters: {} },
+          })
+        : 0;
       return scoreA - scoreB;
     });
     const visible = query
@@ -802,6 +682,7 @@ document.addEventListener("DOMContentLoaded", () => {
     existingRows.forEach((r) => {
       if (!newKeys.has(r.dataset.eventType)) r.remove();
     });
+
     visible.forEach((eventType, i) => {
       const currentColor = window.alertColorMap[eventType] || "#808080";
       const currentValue = window.alertSoundsMap[eventType] || "none";
@@ -816,7 +697,7 @@ document.addEventListener("DOMContentLoaded", () => {
         row.className = "alert-sound-row";
         row.dataset.eventType = eventType;
         row.style.borderLeftColor = `${currentColor}80`;
-        let optionsHtml = window.AUDIO_OPTIONS
+        const optionsHtml = window.AUDIO_OPTIONS
           ? window.AUDIO_OPTIONS.map(
               (opt) =>
                 `<option value="${opt.value}" ${currentValue === opt.value ? "selected" : ""}>${opt.label}</option>`,
@@ -829,9 +710,9 @@ document.addEventListener("DOMContentLoaded", () => {
             delete window.alertSoundsMap[eventType];
           } else {
             window.alertSoundsMap[eventType] = val;
-            if (window.playAlertSound) window.playAlertSound(val, eventType);
+            window.playAlertSound?.(val, eventType);
           }
-          if (window.saveCurrentState) window.saveCurrentState();
+          window.saveCurrentState?.();
           window.updateAlertSoundsCountLabel();
           renderAlertSoundsList(alertSoundsSearch.value);
         });
@@ -843,11 +724,8 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   window.openAlertSoundsPanel = function (isBack = false) {
-    if (!isBack && window.getCurrentOpenMenu) {
-      const curr = window.getCurrentOpenMenu();
-      if (curr) window.menuHistory.push(curr);
-    }
-    if (window.closeAllMenus) window.closeAllMenus();
+    pushMenuHistory(isBack);
+    window.closeAllMenus?.();
     if (alertSoundsSearch) alertSoundsSearch.value = "";
     renderAlertSoundsList("");
     if (alertSoundsPanel) {
@@ -858,32 +736,29 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   window.closeAlertSoundsPanel = function () {
-    if (alertSoundsPanel) alertSoundsPanel.classList.remove("open");
+    alertSoundsPanel?.classList.remove("open");
   };
 
-  if (alertSoundsBackBtn)
-    alertSoundsBackBtn.addEventListener("click", window.goBack);
-  if (alertSoundsCloseBtn)
-    alertSoundsCloseBtn.addEventListener("click", window.closeAlertSoundsPanel);
-  if (alertSoundsSearch)
-    alertSoundsSearch.addEventListener("input", () =>
-      renderAlertSoundsList(alertSoundsSearch.value),
-    );
-
-  if (alertSoundsResetBtn) {
-    alertSoundsResetBtn.addEventListener("click", () => {
+  document
+    .getElementById("alert-sounds-back-btn")
+    ?.addEventListener("click", window.goBack);
+  document
+    .getElementById("alert-sounds-close-btn")
+    ?.addEventListener("click", window.closeAlertSoundsPanel);
+  alertSoundsSearch?.addEventListener("input", () =>
+    renderAlertSoundsList(alertSoundsSearch.value),
+  );
+  document
+    .getElementById("alert-sounds-reset-btn")
+    ?.addEventListener("click", () => {
       window.alertSoundsMap = {};
-      if (window.saveCurrentState) window.saveCurrentState();
+      window.saveCurrentState?.();
       renderAlertSoundsList(alertSoundsSearch ? alertSoundsSearch.value : "");
       window.showToast("Alert sounds reset to None");
     });
-  }
-
-  const alertSoundsTrigger = document.getElementById("alert-sounds-btn");
-  if (alertSoundsTrigger)
-    alertSoundsTrigger.addEventListener("click", () =>
-      window.openAlertSoundsPanel(),
-    );
+  document
+    .getElementById("alert-sounds-btn")
+    ?.addEventListener("click", () => window.openAlertSoundsPanel());
 
   window.handleDebugUpload = function (e) {
     const file = e.target.files[0];
@@ -893,15 +768,15 @@ document.addEventListener("DOMContentLoaded", () => {
       try {
         const data = JSON.parse(ev.target.result);
         if (!data.features) throw new Error();
-        if (window.knownAlertIds) window.knownAlertIds.clear();
-        if (window.newAlertIds) window.newAlertIds.clear();
-        if (window.updatedAlertIds) window.updatedAlertIds.clear();
+        window.knownAlertIds?.clear();
+        window.newAlertIds?.clear();
+        window.updatedAlertIds?.clear();
         window.isInitialLoad = false;
         if (window.processRawAlertFeatures) {
           await window.processRawAlertFeatures(data.features, "polygon", false);
           await window.processRawAlertFeatures(data.features, "zone", false);
         }
-        if (window.displayNextAlert) window.displayNextAlert();
+        window.displayNextAlert?.();
       } catch (err) {
         alert("Error parsing GeoJSON.");
       }
@@ -909,31 +784,28 @@ document.addEventListener("DOMContentLoaded", () => {
     reader.readAsText(file);
   };
 
-  if (debugInput)
-    debugInput.addEventListener("change", window.handleDebugUpload);
+  document
+    .getElementById("debug-file-input")
+    ?.addEventListener("change", window.handleDebugUpload);
 
-  const pillInfoBtn = document.getElementById("pill-info-btn");
-  if (pillInfoBtn) {
-    pillInfoBtn.addEventListener("click", () => {
-      if (!window.activeSiteIdForData || !window.activeRadarProductCode) return;
-      const site = window.allRadarSitesData.find(
-        (s) => s.properties.id.toLowerCase() === window.activeSiteIdForData,
-      );
-      if (!site) return;
-      const type = site.properties.stationType;
-      let next;
-      if (type === "TDWR") {
-        if (window.activeRadarProductCode === "bref1") next = "brefl";
-        else if (window.activeRadarProductCode === "brefl") next = "bvel";
-        else next = "bref1";
-      } else {
-        next =
-          window.activeRadarProductCode === "sr_bref" ? "sr_bvel" : "sr_bref";
-      }
-      if (window.toggleRadarProduct)
-        window.toggleRadarProduct(window.activeSiteIdForData, next);
-    });
-  }
+  document.getElementById("pill-info-btn")?.addEventListener("click", () => {
+    if (!window.activeSiteIdForData || !window.activeRadarProductCode) return;
+    const site = window.allRadarSitesData.find(
+      (s) => s.properties.id.toLowerCase() === window.activeSiteIdForData,
+    );
+    if (!site) return;
+    const type = site.properties.stationType;
+    let next;
+    if (type === "TDWR") {
+      if (window.activeRadarProductCode === "bref1") next = "brefl";
+      else if (window.activeRadarProductCode === "brefl") next = "bvel";
+      else next = "bref1";
+    } else {
+      next =
+        window.activeRadarProductCode === "sr_bref" ? "sr_bvel" : "sr_bref";
+    }
+    window.toggleRadarProduct?.(window.activeSiteIdForData, next);
+  });
 
   const attributionBubble = document.getElementById("attribution-bubble");
   if (attributionBubble) {
@@ -964,10 +836,9 @@ document.addEventListener("DOMContentLoaded", () => {
       const bodyContent = document.getElementById(
         "full-alert-text-popup-body",
       ).innerText;
-      const fullTextToCopy = `${titleContent}\n\n${bodyContent}`;
 
       navigator.clipboard
-        .writeText(fullTextToCopy)
+        .writeText(`${titleContent}\n\n${bodyContent}`)
         .then(() => {
           window.showToast("Text copied to clipboard");
         })
@@ -986,63 +857,48 @@ document.addEventListener("DOMContentLoaded", () => {
     const contentEl = document.getElementById("full-alert-text-content");
     const headerEl = document.getElementById("full-alert-text-popup-header");
 
-    if (window.closeAllMenus) window.closeAllMenus();
+    window.closeAllMenus?.();
 
-    let sentD = null,
-      effectiveD = null,
-      onsetD = null,
-      expireD = null,
-      endsD = null;
+    const parseTime = (val) => {
+      if (!val || !window.parseApiDate) return null;
+      const d = window.parseApiDate(val);
+      return d && !isNaN(d.getTime()) ? d : null;
+    };
 
-    if (window.parseApiDate) {
-      sentD = props.sent ? window.parseApiDate(props.sent) : null;
-      effectiveD = props.effective
-        ? window.parseApiDate(props.effective)
-        : null;
-      onsetD = props.onset ? window.parseApiDate(props.onset) : null;
-      expireD = props.expires ? window.parseApiDate(props.expires) : null;
-      endsD = props.ends ? window.parseApiDate(props.ends) : null;
-    }
+    const sentD = parseTime(props.sent);
+    const effectiveD = parseTime(props.effective);
+    const onsetD = parseTime(props.onset);
+    const expireD = parseTime(props.expires);
+    const endsD = parseTime(props.ends);
 
-    const sentTime = sentD && !isNaN(sentD.getTime()) ? sentD.getTime() : null;
-    const effectiveTime =
-      effectiveD && !isNaN(effectiveD.getTime()) ? effectiveD.getTime() : null;
-    const onsetTime =
-      onsetD && !isNaN(onsetD.getTime()) ? onsetD.getTime() : null;
-    const expiresTime =
-      expireD && !isNaN(expireD.getTime()) ? expireD.getTime() : null;
-    const endsTime = endsD && !isNaN(endsD.getTime()) ? endsD.getTime() : null;
-
-    const showSent = sentTime !== null;
-    const showEffective =
-      effectiveTime !== null &&
-      effectiveTime !== sentTime &&
-      effectiveTime !== onsetTime;
-    const showOnset = onsetTime !== null && onsetTime !== sentTime;
-    const showExpires = expiresTime !== null;
-    const showEnds = endsTime !== null && endsTime !== expiresTime;
+    const sentTime = sentD?.getTime() ?? null;
+    const effectiveTime = effectiveD?.getTime() ?? null;
+    const onsetTime = onsetD?.getTime() ?? null;
+    const expiresTime = expireD?.getTime() ?? null;
+    const endsTime = endsD?.getTime() ?? null;
 
     const effTz = window.getEffectiveTz ? window.getEffectiveTz() : "local";
-
-    const sentStr =
-      showSent && window.formatDateFull
-        ? `<div class="full-alert-meta-row"><strong>Sent:</strong> ${window.formatDateFull(sentD, effTz)}</div>`
+    const formatMetaRow = (label, date) =>
+      window.formatDateFull
+        ? `<div class="full-alert-meta-row"><strong>${label}:</strong> ${window.formatDateFull(date, effTz)}</div>`
         : "";
+
+    const sentStr = sentTime !== null ? formatMetaRow("Sent", sentD) : "";
     const effectiveStr =
-      showEffective && window.formatDateFull
-        ? `<div class="full-alert-meta-row"><strong>Effective:</strong> ${window.formatDateFull(effectiveD, effTz)}</div>`
+      effectiveTime !== null &&
+      effectiveTime !== sentTime &&
+      effectiveTime !== onsetTime
+        ? formatMetaRow("Effective", effectiveD)
         : "";
     const onsetStr =
-      showOnset && window.formatDateFull
-        ? `<div class="full-alert-meta-row"><strong>Onset:</strong> ${window.formatDateFull(onsetD, effTz)}</div>`
+      onsetTime !== null && onsetTime !== sentTime
+        ? formatMetaRow("Onset", onsetD)
         : "";
     const expiresStr =
-      showExpires && window.formatDateFull
-        ? `<div class="full-alert-meta-row"><strong>Expires:</strong> ${window.formatDateFull(expireD, effTz)}</div>`
-        : "";
+      expiresTime !== null ? formatMetaRow("Expires", expireD) : "";
     const endsStr =
-      showEnds && window.formatDateFull
-        ? `<div class="full-alert-meta-row"><strong>Ends:</strong> ${window.formatDateFull(endsD, effTz)}</div>`
+      endsTime !== null && endsTime !== expiresTime
+        ? formatMetaRow("Ends", endsD)
         : "";
     const areaStr = props.areaDesc
       ? `<div class="full-alert-meta-row"><strong>Affected:</strong> ${props.areaDesc}</div>`
@@ -1105,19 +961,22 @@ document.addEventListener("DOMContentLoaded", () => {
       const body = document.getElementById("full-alert-text-popup-body");
       if (body) body.scrollTop = 0;
       if (!validatedUrl) {
-        if (contentEl)
+        if (contentEl) {
           contentEl.innerHTML = `${metaHTML}<p>Could not load text.</p>`;
+        }
         return;
       }
       try {
         const text = window.fetchMdWatchText
           ? await window.fetchMdWatchText(props.id, validatedUrl, false)
           : "";
-        if (contentEl && window.formatNwsText)
+        if (contentEl && window.formatNwsText) {
           contentEl.innerHTML = `${metaHTML}<p>${window.formatNwsText(text)}</p>`;
+        }
       } catch (e) {
-        if (contentEl)
+        if (contentEl) {
           contentEl.innerHTML = `${metaHTML}<p>Failed to load text.</p><p><a href="${validatedUrl}" target="_blank" style="color:#6cb8ff;text-decoration:underline;">View original page</a></p>`;
+        }
       }
       return;
     }
@@ -1131,8 +990,9 @@ document.addEventListener("DOMContentLoaded", () => {
         : props.instruction;
 
     if (titleEl) titleEl.textContent = props.specificEventName || props.event;
-    if (contentEl)
+    if (contentEl) {
       contentEl.innerHTML = `${metaHTML}<div id="alert-description-container"><p>${watchNumber ? "Loading..." : formattedD}</p></div>${props.instruction ? `<div class="full-alert-section-label">Instructions</div><p>${formattedI}</p>` : ""}`;
+    }
     if (popup) popup.classList.add("open");
     const body = document.getElementById("full-alert-text-popup-body");
     if (body) body.scrollTop = 0;
@@ -1148,10 +1008,11 @@ document.addEventListener("DOMContentLoaded", () => {
         const descContainer = document.getElementById(
           "alert-description-container",
         );
-        if (text && descContainer && window.formatNwsText)
+        if (text && descContainer && window.formatNwsText) {
           descContainer.innerHTML = `<p>${window.formatNwsText(text)}</p>`;
-        else if (descContainer)
+        } else if (descContainer) {
           descContainer.innerHTML = `<p>${formattedD}</p>`;
+        }
       } catch (e) {
         const descContainer = document.getElementById(
           "alert-description-container",
